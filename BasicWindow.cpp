@@ -20,24 +20,20 @@ Description
 */
 
 #include "BasicWindow.h"
+#include "defs.h"
 
 // Using declarations
 using std::wstring;
 using std::vector;
 
 // Static member initialization
-vector<LRESULT(CALLBACK BasicWindow::*)(HWND, UINT, WPARAM, LPARAM)>* BasicWindow::winProcList =
-	new vector < LRESULT(CALLBACK BasicWindow::*)(HWND, UINT, WPARAM, LPARAM) > ;
-unsigned int BasicWindow::currentId = 0;
+vector<BasicWindow*>* BasicWindow::winProcList = 0;
+std::vector<BasicWindow>::size_type BasicWindow::currentId = 0;
 
 BasicWindow::BasicWindow(std::wstring name, bool exitAble, int width, int height) :
 m_applicationName(name), m_hinstance(0), m_hwnd(0), m_exitAble(exitAble),
-m_width(width), m_height(height), m_id(currentId)
+m_width(width), m_height(height), m_id(0), m_opened(false)
 {
-	// Update static data members
-	winProcList->push_back(0);
-	++currentId;
-
 	// Determine the resolution of the client's screen and adapt if necessary
 	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
@@ -53,8 +49,23 @@ BasicWindow::~BasicWindow(void) {}
 
 HRESULT BasicWindow::initializeWindow(void) {
 
-	// struct which describes the window class (properties of the window)
-	WNDCLASSEX wc;
+	// Update static data members
+	if (winProcList == 0) {
+		winProcList = new vector < BasicWindow* > ;
+	}
+	if (!m_opened) {
+		// Need to create a new entry for this window
+		m_opened = true;
+		m_id = currentId;
+		++currentId;
+		winProcList->push_back(this);
+	}
+	else {
+		// This window is reopening
+		(*winProcList)[m_id] = this;
+	}
+
+	WNDCLASSEX wc; // struct which describes the window class (properties of the window)
 	DEVMODE dmScreenSettings;
 	int posX, posY;
 
@@ -86,7 +97,6 @@ HRESULT BasicWindow::initializeWindow(void) {
 
 	// Create the window with the screen settings and get the handle to it.
 	//http://msdn.microsoft.com/en-us/library/windows/desktop/ms632679(v=vs.85).aspx
-
 	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW,
 		m_applicationName.c_str(),
 		m_applicationName.c_str(),
@@ -110,26 +120,103 @@ HRESULT BasicWindow::initializeWindow(void) {
 
 HRESULT BasicWindow::shutdownWindow(void) {
 
-	// Remove the window.
-	DestroyWindow(m_hwnd);
-	m_hwnd = NULL;
+	// Check if the window is closed
+	if ((*winProcList)[m_id] != 0) {
 
-	// Remove the application instance.
-	UnregisterClass(m_applicationName.c_str(), m_hinstance);
-	m_hinstance = NULL;
+		// Remove the window.
+		DestroyWindow(m_hwnd);
+		m_hwnd = NULL;
 
-	// Release the pointer to this class.
-	ApplicationHandle = NULL;
+		// Remove the application instance.
+		UnregisterClass(m_applicationName.c_str(), m_hinstance);
+		m_hinstance = NULL;
 
-	return C_OK;
+		// Remove the reference to this object
+		(*winProcList)[m_id] = 0;
+	}
+
+	return ERROR_SUCCESS;
 }
 
-HRESULT run(void);
+HRESULT BasicWindow::shutdownAll(void) {
 
-LRESULT CALLBACK winProc(HWND, UINT, WPARAM, LPARAM);
+	// Error checking
+	if (currentId != winProcList->size()) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_ASSERTION_FAILURE);
+	}
 
-HWND getHWND(void) const;
-int getWidth(void) const;
-int getHeight(void) const;
+	// Close all open windows
+	for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
+		if ((*winProcList)[i] != 0) {
+			(*winProcList)[i]->shutdownWindow();
+		}
+	}
 
-LRESULT CALLBACK appProc(HWND, UINT, WPARAM, LPARAM);
+	// Cleanup
+	delete winProcList;
+	winProcList = 0;
+}
+
+HRESULT BasicWindow::update(bool& quit) {
+
+	quit = false;
+
+	// Initialize the message structure.
+	MSG msg;
+	ZeroMemory(&msg, sizeof(MSG));
+
+	// Handle Windows messages.
+	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	if (msg.message == WM_QUIT)
+	{
+		// The application must terminate
+		quit = true;
+		shutdownAll();
+	}
+
+	return ERROR_SUCCESS;
+}
+
+LRESULT CALLBACK BasicWindow::winProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
+
+	// Check if the window is being destroyed or closed
+	if (umsg == WM_DESTROY || umsg == WM_CLOSE) {
+		shutdownWindow();
+		if (m_exitAble) {
+			PostQuitMessage(0);
+		}
+		return 0;
+	}
+
+	// Any unprocessed messages are sent to the default message handler
+	return DefWindowProc(hwnd, umsg, wparam, lparam);
+}
+
+HWND BasicWindow::getHWND(void) const {
+	return m_hwnd;
+}
+
+unsigned int BasicWindow::getWidth(void) const {
+	return m_width;
+}
+
+unsigned int BasicWindow::getHeight(void) const {
+	return m_height;
+}
+
+LRESULT CALLBACK BasicWindow::appProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
+
+	for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
+		if ((*winProcList)[i]->getHWND == hwnd) {
+			return (*winProcList)[i]->winProc(hwnd, umsg, wparam, lparam);
+		}
+	}
+
+	// Any unprocessed messages are sent to the default message handler
+	return DefWindowProc(hwnd, umsg, wparam, lparam);
+}
