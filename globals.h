@@ -19,6 +19,15 @@ Description
 
 #pragma once;
 
+#include <Windows.h>
+#include <string>
 #include "Logger.h"
 
+// Global variables
 extern Logger* defaultLogger;
+
+// Global functions
+// ----------------
+
+// Convert a string object to an equivalent wstring object
+HRESULT toWString(std::wstring& wStr, const std::string& str);

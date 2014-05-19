@@ -35,7 +35,7 @@ private:
 private:
 	bool m_consoleOpen; // A console has been created
 	bool m_defaultLogFileOpen; // A text file has been opened
-	HANDLE WINAPI m_console; // The handle to the output console
+	HANDLE m_console; // The handle to the output console
 	std::wstring m_filename; // The name of the primary log file
 	std::basic_ofstream<wchar_t> m_logfile; // The primary log file output stream
 

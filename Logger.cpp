@@ -19,6 +19,7 @@ Description
 
 #include "Logger.h"
 #include "defs.h"
+#include "globals.h"
 #include <ctime>
 #include <exception>
 
@@ -40,16 +41,16 @@ m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 
 		if (m_console == INVALID_HANDLE_VALUE) {
 			// Perhaps no console is currently open
-			bool success = true;
+			BOOL success = true;
 			if (nConsoleWriters == 0) {
 				// Try to open a console
 				success = AllocConsole();
-				if (success) {
+				if (success == TRUE) {
 					m_console = GetStdHandle(STD_OUTPUT_HANDLE);
 					success = (m_console != INVALID_HANDLE_VALUE);
 				}
 			}
-			if (!success) {
+			if (success == FALSE) {
 				// This is a Microsoft-specific constructor
 				throw std::exception("Failed to open or access output console.");
 			}
@@ -105,25 +106,28 @@ HRESULT Logger::logMessage(const wstring msg, bool toConsole, bool toFile, wstri
 HRESULT Logger::getDateAndTime(wstring& timeStr) const {
 	std::time_t timeVal;
 	std::time(&timeVal); // Get the current timestamp
-	struct std::tm* pTimeStruct;
-	// Note that the returned pointer is to an internal object
-	pTimeStruct = std::localtime(&timeVal); // Convert to a local time
+	struct std::tm timeStruct;
 
-	char* timeCStr = std::asctime(pTimeStruct); // Get a human-readable time string
+	// Convert to a local time
+	if (localtime_s(&timeStruct, &timeVal)) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+	}
 
-	/* Need to convert to a wide character string
-	See http://msdn.microsoft.com/en-us/library/ms235631.aspx
-	for more information on converting between string types.
-	*/
-	size_t wSize = strlen(timeCStr) + 1;
-	wchar_t* timeWCStr = new wchar_t[wSize];
-	size_t convertedChars = 0;
-	mbstowcs_s(&convertedChars, timeWCStr, wSize, timeCStr, _TRUNCATE);
+	// Following an example at http://msdn.microsoft.com/en-us/library/a442x3ye.aspx
+	const size_t len = 26; // Length of the time string buffer
+	char timeCStr[len];
+	// Get a human-readable time string
+	if (asctime_s(timeCStr, len, &timeStruct)) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+	}
+	 
+	wstring timeWStr;
+	if (FAILED(toWString(timeWStr, timeCStr))) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+	}
 
-	// Output a copy of the result
-	timeStr = timeWCStr;
-	delete[] timeWCStr;
-
+	// Output the result
+	timeStr = timeWStr;
 	return ERROR_SUCCESS;
 }
 
@@ -138,6 +142,7 @@ HRESULT Logger::logMsgToFile(const wstring& msg, wstring filename) {
 	} else if (m_defaultLogFileOpen) {
 		m_logfile << msg;
 	}
+	return ERROR_SUCCESS;
 }
 
 HRESULT Logger::logMsgToConsole(const std::wstring& msg) {
@@ -145,4 +150,5 @@ HRESULT Logger::logMsgToConsole(const std::wstring& msg) {
 	if (m_consoleOpen) {
 		WriteConsole(m_console, cStr, wcslen(cStr), NULL, NULL);
 	}
+	return ERROR_SUCCESS;
 }

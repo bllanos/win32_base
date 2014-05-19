@@ -38,3 +38,6 @@ from the use of the 'new' operator.
 
 // Used for making custom HRESULT values
 #define FACILITY_BL_ENGINE 0
+
+// Custom error codes
+#define ERROR_FUNCTION_CALL 1800 // Error code returned by a function call

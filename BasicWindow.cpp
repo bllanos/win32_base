@@ -35,8 +35,8 @@ m_applicationName(name), m_hinstance(0), m_hwnd(0), m_exitAble(exitAble),
 m_width(width), m_height(height), m_id(0), m_opened(false)
 {
 	// Determine the resolution of the client's screen and adapt if necessary
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	unsigned int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	unsigned int screenHeight = GetSystemMetrics(SM_CYSCREEN);
 	if (m_width > screenWidth) {
 		m_width = screenWidth;
 	}
@@ -66,7 +66,7 @@ HRESULT BasicWindow::initializeWindow(void) {
 	}
 
 	WNDCLASSEX wc; // struct which describes the window class (properties of the window)
-	DEVMODE dmScreenSettings;
+	// DEVMODE dmScreenSettings;
 	int posX, posY;
 
 	// Get the instance of this application.
@@ -167,6 +167,7 @@ HRESULT BasicWindow::shutdownAll(void) {
 	// Cleanup static members
 	delete winProcList;
 	winProcList = 0;
+	return ERROR_SUCCESS;
 }
 
 HRESULT BasicWindow::update(bool& quit) {
@@ -228,7 +229,7 @@ unsigned int BasicWindow::getHeight(void) const {
 LRESULT CALLBACK BasicWindow::appProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 
 	for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
-		if ((*winProcList)[i]->getHWND == hwnd) {
+		if ((*winProcList)[i]->getHWND() == hwnd) {
 			return (*winProcList)[i]->winProc(hwnd, umsg, wparam, lparam);
 		}
 	}

@@ -22,11 +22,13 @@ Description
 #include "globals.h"
 #include <windows.h>
 #include <DirectXMath.h>
+#include <string>
+#include <exception>
 
 // Initialize global variables
 Logger* defaultLogger = 0;
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdshow)
 {
 	// Enable memory leak report output on program exit
 	// See http://msdn.microsoft.com/en-us/library/x98tx3cf.aspx
@@ -35,28 +37,43 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline
 
 	// This block is just to try and eliminate false positives in memory leak detection
 	{
-		HRESULT result;
+		try {
+			HRESULT result;
 
-		defaultLogger = new Logger(true, true);
-		defaultLogger->logMessage(L"wWinMain() - wWinMain() has started.");
+			defaultLogger = new Logger(true, true);
+			defaultLogger->logMessage(L"wWinMain() - wWinMain() has started.");
 
-		/* Check that the DirectX Math library is supported
-		on this system.
-		See http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.utilities.xmverifycpusupport%28v=vs.85%29.aspx
-		*/
-		if (DirectX::XMVerifyCPUSupport()) {
-			defaultLogger->logMessage(L"wWinMain() - System supports DirectX Math.");
-		} else {
-			defaultLogger->logMessage(L"wWinMain() - System does not support DirectX Math. Exiting.");
+			/* Check that the DirectX Math library is supported
+			on this system.
+			See http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.utilities.xmverifycpusupport%28v=vs.85%29.aspx
+			*/
+			if (DirectX::XMVerifyCPUSupport()) {
+				defaultLogger->logMessage(L"wWinMain() - System supports DirectX Math.");
+			}
+			else {
+				defaultLogger->logMessage(L"wWinMain() - System does not support DirectX Math. Exiting.");
+				delete defaultLogger;
+				return 0;
+			}
+
+			defaultLogger->logMessage(L"wWinMain() - Exiting.");
 			delete defaultLogger;
-			return 0;
+
+			// Create a memory leak, just to test that the memory leak check works
+			int* leak = new int[4];
 		}
-
-		defaultLogger->logMessage(L"wWinMain() - Exiting.");
-		delete defaultLogger;
-
-		// Create a memory leak, just to test that the memory leak check works
-		int* leak = new int[4];
+		catch (std::exception e) {
+			std::wstring errorMsg = L"wWinMain() - An exception object was thrown: ";
+			std::wstring exceptionMsg;
+			if (FAILED(toWString(exceptionMsg, e.what()))) {
+				errorMsg += L"Error retrieving exception message.";
+			}
+			errorMsg += exceptionMsg;
+			defaultLogger->logMessage(errorMsg);
+		}
+		catch (...) {
+			defaultLogger->logMessage(L"wWinMain() - Exiting due to an unspecified exception.");
+		}
 	}
 
 	// Show any memory leaks

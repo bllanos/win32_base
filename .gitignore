@@ -4,3 +4,4 @@
 *.suo
 *.vcxproj
 *.vcxproj.filters
+Debug/
