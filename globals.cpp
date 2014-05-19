@@ -1,5 +1,5 @@
 /*
-globals.h
+globals.cpp
 -------------
 
 Created for: Spring 2014 Direct3D 11 Learning
@@ -13,12 +13,5 @@ Other references: None
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
 
 Description
-  -A file containing globally-visible variable and function declarations
-  -Definitions and initializations of global variables are contained in main.cpp
+  -Implementations of the functions declared in globals.h
 */
-
-#pragma once;
-
-#include "Logger.h"
-
-extern Logger* defaultLogger;

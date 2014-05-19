@@ -17,6 +17,12 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
 
 Description
   -A class for setting up and managing a window, as well as handling messages for the window.
+
+Issues
+  -This class is not safe for use by multiple threads because it makes use of shared static members
+  -The static window procedure relies on the uniqueness of HWND values to call
+     the window procedures for specific windows. The uniqueness of HWND values
+	 is probably not guaranteed, however.
 */
 
 #pragma once
@@ -72,12 +78,18 @@ private:
 
 public:
 	/* Call this function once per application loop to update the internal state
-	of the object and dispatch Windows messages
+	of the object and dispatch Windows messages for the window.
 
-	Outputs true if the application must terminate
+	The output parameter is true if the application must terminate
+	(e.g. due to the user closing an "exitAble" window, or closing all windows).
+
+	This function will close all windows if the application must terminate.
+
+	(Note that "all windows" refers to all windows created by this class.)
 	*/
 	HRESULT update(bool& quit);
 
+private:
 	/* It seems that only static functions can be registered as window procedures.
 	This function will be called by the static window procedure.
 	*/

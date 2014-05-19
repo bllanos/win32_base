@@ -120,7 +120,7 @@ HRESULT BasicWindow::initializeWindow(void) {
 
 HRESULT BasicWindow::shutdownWindow(void) {
 
-	// Check if the window is closed
+	// Check if the window is not already closed
 	if ((*winProcList)[m_id] != 0) {
 
 		// Remove the window.
@@ -133,6 +133,18 @@ HRESULT BasicWindow::shutdownWindow(void) {
 
 		// Remove the reference to this object
 		(*winProcList)[m_id] = 0;
+
+		// Check if all windows are now closed
+		bool allClosed = true;
+		for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
+			if ((*winProcList)[i] != 0) {
+				allClosed = false;
+				break;
+			}
+		}
+		if (allClosed) {
+			PostQuitMessage(0);
+		}
 	}
 
 	return ERROR_SUCCESS;
@@ -152,7 +164,7 @@ HRESULT BasicWindow::shutdownAll(void) {
 		}
 	}
 
-	// Cleanup
+	// Cleanup static members
 	delete winProcList;
 	winProcList = 0;
 }
@@ -165,8 +177,8 @@ HRESULT BasicWindow::update(bool& quit) {
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
 
-	// Handle Windows messages.
-	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+	// Dispatch Windows messages for this window
+	if (PeekMessage(&msg, m_hwnd, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -186,8 +198,12 @@ LRESULT CALLBACK BasicWindow::winProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARA
 
 	// Check if the window is being destroyed or closed
 	if (umsg == WM_DESTROY || umsg == WM_CLOSE) {
-		shutdownWindow();
+		shutdownWindow(); // Close this window
 		if (m_exitAble) {
+
+			/* Closing this window means that the entire application must shut down
+			shortly. The quit message will be encountered by any update() function call.
+			*/
 			PostQuitMessage(0);
 		}
 		return 0;
