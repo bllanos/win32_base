@@ -30,7 +30,7 @@ using std::basic_ofstream;
 // Initialization of static members
 unsigned int Logger::nConsoleWriters = 0;
 
-Logger::Logger(bool allocLogConsole, bool allocLogFile, wstring filename) :
+Logger::Logger(bool allocLogFile, wstring filename, bool allocLogConsole) :
 m_consoleOpen(allocLogConsole), m_defaultLogFileOpen(allocLogFile),
 m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 {
@@ -85,7 +85,8 @@ HRESULT Logger::logMessage(const wstring msg, bool toConsole, bool toFile, wstri
 	}
 
 	// Format the message
-	fullMessage += L" | ";
+	fullMessage.back() = L' '; // Remove the newline character
+	fullMessage += L"| ";
 	fullMessage += msg;
 	fullMessage += L"\n";
 

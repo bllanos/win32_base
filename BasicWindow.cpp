@@ -152,11 +152,6 @@ HRESULT BasicWindow::shutdownWindow(void) {
 
 HRESULT BasicWindow::shutdownAll(void) {
 
-	// Error checking
-	if (currentId != winProcList->size()) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_ASSERTION_FAILURE);
-	}
-
 	// Close all open windows
 	for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
 		if ((*winProcList)[i] != 0) {
@@ -229,7 +224,7 @@ unsigned int BasicWindow::getHeight(void) const {
 LRESULT CALLBACK BasicWindow::appProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 
 	for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
-		if ((*winProcList)[i]->getHWND() == hwnd) {
+		if ((*winProcList)[i] != 0 && (*winProcList)[i]->getHWND() == hwnd) {
 			return (*winProcList)[i]->winProc(hwnd, umsg, wparam, lparam);
 		}
 	}

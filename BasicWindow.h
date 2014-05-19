@@ -55,6 +55,10 @@ public:
 	/*
 	The window width and height will be reduced if the screen size
 	turns out to be smaller.
+
+	The "exitAble" parameter, when true, causes window procedure to post a quit message
+	when the window is closed. A quit message will shortly cause shutdownAll() to be called,
+	and Windows will probably expect the thread to terminate.
 	*/
 	BasicWindow(std::wstring name=L"No Name", bool exitAble = true,
 		int width = BASICWINDOW_DEFAULT_WIDTH,
@@ -66,8 +70,10 @@ public:
 public:
 	HRESULT initializeWindow(void);
 
-private:
 	/* Closes this window
+
+	If this is the last window to be closed that was
+	created by this class, a quit message will be posted to Windows.
 	*/
 	HRESULT shutdownWindow(void);
 

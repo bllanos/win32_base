@@ -12,6 +12,8 @@ Other references:
   -Luna, Frank D. 3D Game Programming with DirectX 11. Dulles: Mercury Learning and Information, 2012.
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
+  -Note that the "Character Set" project property (Configuration Properties > General)
+   should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
   -The entry point of the application
@@ -38,9 +40,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	// This block is just to try and eliminate false positives in memory leak detection
 	{
 		try {
-			HRESULT result;
 
-			defaultLogger = new Logger(true, true);
+			// Set up the globally-visible Logger
+			try {
+				defaultLogger = new Logger(true, L".\\logger\\log.txt", true);
+			}
+			catch (...) {
+				return 0;
+			}
+
 			defaultLogger->logMessage(L"wWinMain() - wWinMain() has started.");
 
 			/* Check that the DirectX Math library is supported
@@ -57,10 +65,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			}
 
 			defaultLogger->logMessage(L"wWinMain() - Exiting.");
-			delete defaultLogger;
 
 			// Create a memory leak, just to test that the memory leak check works
-			int* leak = new int[4];
+			// int* leak = new int[4];
 		}
 		catch (std::exception e) {
 			std::wstring errorMsg = L"wWinMain() - An exception object was thrown: ";
@@ -74,10 +81,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		catch (...) {
 			defaultLogger->logMessage(L"wWinMain() - Exiting due to an unspecified exception.");
 		}
+
+		delete defaultLogger;
+		defaultLogger = 0;
 	}
 
 	// Show any memory leaks
-	_CrtDumpMemoryLeaks();
+	// _CrtDumpMemoryLeaks(); // This should be called automatically because of the call to _CrtSetDbgFlag() earlier
 
 	return 0;
 }

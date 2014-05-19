@@ -47,8 +47,10 @@ public:
 
 	The primary log file is opened by the constructor and closed
 	by the destructor. The previous contents of the file are overwritten.
+
+	If the logging file or console cannot be opened, an exception will be thrown.
 	*/
-	Logger(bool allocLogConsole = false, bool allocLogFile = false, std::wstring filename=L"log.txt");
+	Logger(bool allocLogFile = true, std::wstring filename = L"log.txt", bool allocLogConsole = false);
 
 	virtual ~Logger(void);
 
