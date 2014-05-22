@@ -47,7 +47,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
 			// Set up the globally-visible Logger
 			try {
-				defaultLogger = new Logger(true, L".\\logger\\log.txt", true);
+				std::wstring logFilename = DEFAULT_LOG_PATH;
+				logFilename += DEFAULT_LOG_FILENAME;
+				defaultLogger = new Logger(true, logFilename, true);
 			}
 			catch (...) {
 				return 0;

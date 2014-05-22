@@ -20,6 +20,7 @@ Description
 #pragma once
 
 // For finding memory leaks in the debug build configuration
+// ---------------------------------------------------------
 #ifndef _CRTDBG_MAP_ALLOC
 #define _CRTDBG_MAP_ALLOC
 // See http://msdn.microsoft.com/en-us/library/x98tx3cf.aspx
@@ -38,8 +39,24 @@ from the use of the 'new' operator.
 #endif  // _DEBUG
 #endif
 
+// Macro for stringifying arguments
+// (See http://msdn.microsoft.com/en-us/library/7e3a913x.aspx)
+#define LCHAR_STRINGIFY( x ) L#x
+
+// Default configuration values
+// ----------------------------
+// (To be overridden with values loaded from a configuration file)
+#define DEFAULT_LOG_PATH     LCHAR_STRINGIFY(.\\logger\\)
+#define DEFAULT_LOG_FILENAME LCHAR_STRINGIFY(log.txt)
+
 // Used for making custom HRESULT values
 #define FACILITY_BL_ENGINE 0
 
-// Custom error codes
+// Custom error code definitions
+// -----------------------------
+/* These error codes will take precedence over system-defined error codes
+in case of conflict. (In other words, a system-defined error code
+interpretation will be ignored if the error code also matches
+one of the interpretations below.)
+*/
 #define ERROR_FUNCTION_CALL 1800 // Error code returned by a function call

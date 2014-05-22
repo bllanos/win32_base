@@ -34,18 +34,20 @@ class LogUser
 {
 	// Data members
 private:
-	bool m_loggingEnabled;
-	Logger* m_logger;
+	bool m_loggingEnabled; // Switch for turning logging on or off
+	Logger* m_logger; // Null if the global default Logger object is used instead of a custom Logger
 	std::wstring m_msgPrefix; // All logging messages will be prefixed with this string
 
 public:
-	LogUser(bool enableLogging = true, const std::wstring msgPrefix = L"", Logger* logger = defaultLogger);
+	/* The 'msgPrefix' parameter will become a prefix for all logged messages.
+	*/
+	LogUser(bool enableLogging = true, const std::wstring msgPrefix = L"");
 	virtual ~LogUser(void);
 
 	// Getters and setters
 public:
-	Logger* getLogger(void) const;
-	void setLogger(Logger* logger);
+	// Arguments are forwarded to the Logger constructor
+	void setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool allocLogConsole = false);
 	void enableLogging();
 	void disableLogging();
 
@@ -54,6 +56,7 @@ protected:
 
 	// Logging functions
 protected:
+	// Arguments are forwarded to the Logger member function of the same name
 	HRESULT logMessage(const std::wstring& msg,
 		bool toConsole = true, bool toFile = true, const std::wstring filename = L"");
 };

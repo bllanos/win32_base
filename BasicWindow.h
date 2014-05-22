@@ -33,11 +33,13 @@ Issues
 #include <windows.h>
 #include <string>
 #include <vector>
+#include "defs.h"
 
 // Preprocessor Definitions
 #define WIN32_LEAN_AND_MEAN
 #define BASICWINDOW_DEFAULT_WIDTH 600
 #define BASICWINDOW_DEFAULT_HEIGHT 400
+#define BASICWINDOW_DEFAULT_NAME LCHAR_STRINGIFY(No Name)
 
 class BasicWindow
 {
@@ -62,7 +64,7 @@ public:
 	when the window is closed. A quit message will shortly cause shutdownAll() to be called,
 	and Windows will probably expect the thread to terminate.
 	*/
-	BasicWindow(const std::wstring name=L"No Name", bool exitAble = true,
+	BasicWindow(std::wstring name = BASICWINDOW_DEFAULT_NAME, bool exitAble = true,
 		int width = BASICWINDOW_DEFAULT_WIDTH,
 		int height = BASICWINDOW_DEFAULT_HEIGHT);
 

@@ -36,6 +36,10 @@ BasicWindow::BasicWindow(std::wstring name, bool exitAble, int width, int height
 m_applicationName(name), m_hinstance(0), m_hwnd(0), m_exitAble(exitAble),
 m_width(width), m_height(height), m_id(0), m_opened(false)
 {
+	if (name.length() == 0) {
+		name = BASICWINDOW_DEFAULT_NAME;
+	}
+
 	// Determine the resolution of the client's screen and adapt if necessary
 	unsigned int screenWidth = GetSystemMetrics(SM_CXSCREEN);
 	unsigned int screenHeight = GetSystemMetrics(SM_CYSCREEN);

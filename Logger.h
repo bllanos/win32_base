@@ -51,6 +51,8 @@ public:
 	by the destructor. The previous contents of the file are overwritten.
 
 	If the logging file or console cannot be opened, an exception will be thrown.
+	This ensures that pointers to Logger objects will either be null
+	or will refer to functional objects.
 	*/
 	Logger(bool allocLogFile = true, const std::wstring filename = L"log.txt", bool allocLogConsole = false);
 
