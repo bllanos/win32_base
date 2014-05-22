@@ -12,6 +12,8 @@ Primary basis: COMP2501A game design project code
 Other references: None
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
+  -Note that the "Character Set" project property (Configuration Properties > General)
+   should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
   -A class for outputting log messages to a console window or to files
@@ -50,7 +52,7 @@ public:
 
 	If the logging file or console cannot be opened, an exception will be thrown.
 	*/
-	Logger(bool allocLogFile = true, std::wstring filename = L"log.txt", bool allocLogConsole = false);
+	Logger(bool allocLogFile = true, const std::wstring filename = L"log.txt", bool allocLogConsole = false);
 
 	virtual ~Logger(void);
 
@@ -70,15 +72,15 @@ public:
 	All messages will be prefixed with the current date and time,
 	and postfixed with a newline.
 	*/
-	HRESULT logMessage(const std::wstring msg,
-		bool toConsole = true, bool toFile = true, std::wstring filename = L"");
+	HRESULT logMessage(const std::wstring& msg,
+		bool toConsole = true, bool toFile = true, const std::wstring filename = L"");
 
 private:
 	// Retrieves the current local time
 	HRESULT getDateAndTime(std::wstring& timeStr) const;
 
 	// Outputs a message to a file
-	HRESULT logMsgToFile(const std::wstring& msg, std::wstring filename = L"");
+	HRESULT logMsgToFile(const std::wstring& msg, const std::wstring filename = L"");
 
 	// Outputs a message to the debugging console
 	HRESULT logMsgToConsole(const std::wstring& msg);

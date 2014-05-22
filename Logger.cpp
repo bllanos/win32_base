@@ -12,6 +12,8 @@ Primary basis: COMP2501A game design project code
 Other references: None
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
+  -Note that the "Character Set" project property (Configuration Properties > General)
+   should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
   -Implementation of the Logger class.
@@ -78,7 +80,7 @@ Logger::~Logger(void) {
 	*/
 }
 
-HRESULT Logger::logMessage(const wstring msg, bool toConsole, bool toFile, wstring filename) {
+HRESULT Logger::logMessage(const wstring& msg, bool toConsole, bool toFile, const wstring filename) {
 	wstring fullMessage;
 	if (FAILED(getDateAndTime(fullMessage))) {
 		fullMessage = L"[Cannot get time]";

@@ -14,6 +14,8 @@ Other references:
 -Luna, Frank D. 3D Game Programming with DirectX 11. Dulles: Mercury Learning and Information, 2012.
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
+  -Note that the "Character Set" project property (Configuration Properties > General)
+   should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
   -Implementation of the BasicWindow class

@@ -11,6 +11,8 @@ Primary basis: COMP2501A game design project code
 Other references: None
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
+  -Note that the "Character Set" project property (Configuration Properties > General)
+   should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
   -Implementations of the functions declared in globals.h

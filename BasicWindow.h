@@ -14,6 +14,8 @@ Other references:
   -Luna, Frank D. 3D Game Programming with DirectX 11. Dulles: Mercury Learning and Information, 2012.
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
+  -Note that the "Character Set" project property (Configuration Properties > General)
+   should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
   -A class for setting up and managing a window, as well as handling messages for the window.
@@ -60,7 +62,7 @@ public:
 	when the window is closed. A quit message will shortly cause shutdownAll() to be called,
 	and Windows will probably expect the thread to terminate.
 	*/
-	BasicWindow(std::wstring name=L"No Name", bool exitAble = true,
+	BasicWindow(const std::wstring name=L"No Name", bool exitAble = true,
 		int width = BASICWINDOW_DEFAULT_WIDTH,
 		int height = BASICWINDOW_DEFAULT_HEIGHT);
 

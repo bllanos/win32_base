@@ -10,6 +10,8 @@ Primary basis: No reference
 Other references: None
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
+  -Note that the "Character Set" project property (Configuration Properties > General)
+   should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
   A file containing global definitions and preprocessor constants

@@ -17,6 +17,7 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
 
 Description
   -The entry point of the application
+  -A helper function to start the application loop
   -Definition and initialization of global variables
 */
 
@@ -29,6 +30,9 @@ Description
 
 // Initialize global variables
 Logger* defaultLogger = 0;
+
+// Application loop wrapper function
+HRESULT applicationLoop(void);
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdshow)
 {
@@ -64,6 +68,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 				return 0;
 			}
 
+			// The application loop
+			applicationLoop();
+
 			defaultLogger->logMessage(L"wWinMain() - Exiting.");
 
 			// Create a memory leak, just to test that the memory leak check works
@@ -90,4 +97,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	// _CrtDumpMemoryLeaks(); // This should be called automatically because of the call to _CrtSetDbgFlag() earlier
 
 	return 0;
+}
+
+/*
+Run the application, possibly through a top-level control object
+*/
+HRESULT applicationLoop(void) {
+	return ERROR_SUCCESS;
 }
