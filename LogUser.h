@@ -46,8 +46,11 @@ public:
 
 	// Getters and setters
 public:
-	// Arguments are forwarded to the Logger constructor
-	void setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool allocLogConsole = false);
+	/* Arguments are forwarded to the Logger constructor
+	If the call to the Logger constructor fails, this
+	object's logger is not changed.
+	 */
+	HRESULT setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool allocLogConsole = false);
 	void enableLogging();
 	void disableLogging();
 

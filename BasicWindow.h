@@ -34,6 +34,7 @@ Issues
 #include <string>
 #include <vector>
 #include "defs.h"
+#include "LogUser.h"
 
 // Preprocessor Definitions
 #define WIN32_LEAN_AND_MEAN
@@ -41,7 +42,7 @@ Issues
 #define BASICWINDOW_DEFAULT_HEIGHT 400
 #define BASICWINDOW_DEFAULT_NAME LCHAR_STRINGIFY(No Name)
 
-class BasicWindow
+class BasicWindow : public LogUser
 {
 	// Data members
 private:

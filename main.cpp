@@ -29,7 +29,7 @@ Description
 #include <exception>
 
 // Initialize global variables
-Logger* defaultLogger = 0;
+Logger* g_defaultLogger = 0;
 
 // Application loop wrapper function
 HRESULT applicationLoop(void);
@@ -49,31 +49,31 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			try {
 				std::wstring logFilename = DEFAULT_LOG_PATH;
 				logFilename += DEFAULT_LOG_FILENAME;
-				defaultLogger = new Logger(true, logFilename, true);
+				g_defaultLogger = new Logger(true, logFilename, true);
 			}
 			catch (...) {
 				return 0;
 			}
 
-			defaultLogger->logMessage(L"wWinMain() - wWinMain() has started.");
+			g_defaultLogger->logMessage(L"wWinMain() - wWinMain() has started.");
 
 			/* Check that the DirectX Math library is supported
 			on this system.
 			See http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.utilities.xmverifycpusupport%28v=vs.85%29.aspx
 			*/
 			if (DirectX::XMVerifyCPUSupport()) {
-				defaultLogger->logMessage(L"wWinMain() - System supports DirectX Math.");
+				g_defaultLogger->logMessage(L"wWinMain() - System supports DirectX Math.");
 			}
 			else {
-				defaultLogger->logMessage(L"wWinMain() - System does not support DirectX Math. Exiting.");
-				delete defaultLogger;
+				g_defaultLogger->logMessage(L"wWinMain() - System does not support DirectX Math. Exiting.");
+				delete g_defaultLogger;
 				return 0;
 			}
 
 			// The application loop
 			applicationLoop();
 
-			defaultLogger->logMessage(L"wWinMain() - Exiting.");
+			g_defaultLogger->logMessage(L"wWinMain() - Exiting.");
 
 			// Create a memory leak, just to test that the memory leak check works
 			// int* leak = new int[4];
@@ -85,14 +85,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 				errorMsg += L"Error retrieving exception message.";
 			}
 			errorMsg += exceptionMsg;
-			defaultLogger->logMessage(errorMsg);
+			g_defaultLogger->logMessage(errorMsg);
 		}
 		catch (...) {
-			defaultLogger->logMessage(L"wWinMain() - Exiting due to an unspecified exception.");
+			g_defaultLogger->logMessage(L"wWinMain() - Exiting due to an unspecified exception.");
 		}
 
-		delete defaultLogger;
-		defaultLogger = 0;
+		delete g_defaultLogger;
+		g_defaultLogger = 0;
 	}
 
 	// Show any memory leaks

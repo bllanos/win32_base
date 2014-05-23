@@ -17,6 +17,7 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
 
 Description
   -A file containing globally-visible variable and function declarations
+  -Global variable names will be prefixed with 'g_' for ease of identification
   -Definitions and initializations of global variables are contained in main.cpp
 */
 
@@ -29,7 +30,7 @@ Description
 // Global variables
 // ----------------
 
-extern Logger* defaultLogger;
+extern Logger* g_defaultLogger;
 
 // Global functions
 // ----------------

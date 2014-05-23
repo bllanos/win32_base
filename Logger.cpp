@@ -113,7 +113,7 @@ HRESULT Logger::getDateAndTime(wstring& timeStr) const {
 
 	// Convert to a local time
 	if (localtime_s(&timeStruct, &timeVal)) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	}
 
 	// Following an example at http://msdn.microsoft.com/en-us/library/a442x3ye.aspx
@@ -121,12 +121,12 @@ HRESULT Logger::getDateAndTime(wstring& timeStr) const {
 	char timeCStr[len];
 	// Get a human-readable time string
 	if (asctime_s(timeCStr, len, &timeStruct)) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	}
 	 
 	wstring timeWStr;
 	if (FAILED(toWString(timeWStr, timeCStr))) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	}
 
 	// Output the result
