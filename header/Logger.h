@@ -86,5 +86,10 @@ private:
 
 	// Outputs a message to the debugging console
 	HRESULT logMsgToConsole(const std::wstring& msg);
+
+	// Currently not implemented - will cause linker errors if called
+private:
+	Logger(const Logger& other);
+	Logger& operator=(const Logger& other);
 };
 

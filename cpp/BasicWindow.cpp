@@ -33,12 +33,16 @@ vector<BasicWindow*>* BasicWindow::winProcList = 0;
 std::vector<BasicWindow>::size_type BasicWindow::currentId = 0;
 
 BasicWindow::BasicWindow(std::wstring name, bool exitAble, int width, int height) :
+LogUser(),
 m_applicationName(name), m_hinstance(0), m_hwnd(0), m_exitAble(exitAble),
 m_width(width), m_height(height), m_id(0), m_opened(false)
 {
 	if (name.length() == 0) {
-		name = BASICWINDOW_DEFAULT_NAME;
+		m_applicationName = BASICWINDOW_DEFAULT_NAME;
 	}
+
+	// Set the logging message prefix
+	setMsgPrefix(L"BasicWindow '" + m_applicationName + L"'");
 
 	// Determine the resolution of the client's screen and adapt if necessary
 	unsigned int screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -53,7 +57,7 @@ m_width(width), m_height(height), m_id(0), m_opened(false)
 
 BasicWindow::~BasicWindow(void) {}
 
-HRESULT BasicWindow::initializeWindow(void) {
+HRESULT BasicWindow::openWindow(void) {
 
 	// Update static data members
 	if (winProcList == 0) {
@@ -121,10 +125,21 @@ HRESULT BasicWindow::initializeWindow(void) {
 	SetForegroundWindow(m_hwnd); // make window the foreground window
 	SetFocus(m_hwnd);            // give window input focus
 
+	// Set the logging message prefix to include more information
+	setMsgPrefix(L"BasicWindow '" + m_applicationName +
+		L"', id = " + std::to_wstring(m_id) + L":");
+
+	logMessage(L"Window opened.");
+
 	return ERROR_SUCCESS;
 }
 
-HRESULT BasicWindow::shutdownWindow(void) {
+HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
+
+	// Check if this window has ever been opened
+	if (!m_opened) {
+		return ERROR_WRONG_STATE;
+	}
 
 	// Check if the window is not already closed
 	if ((*winProcList)[m_id] != 0) {
@@ -139,17 +154,21 @@ HRESULT BasicWindow::shutdownWindow(void) {
 
 		// Remove the reference to this object
 		(*winProcList)[m_id] = 0;
+		logMessage(L"window closed.");
 
 		// Check if all windows are now closed
-		bool allClosed = true;
-		for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
-			if ((*winProcList)[i] != 0) {
-				allClosed = false;
-				break;
+		if (exitIfLast) {
+			bool allClosed = true;
+			for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
+				if ((*winProcList)[i] != 0) {
+					allClosed = false;
+					break;
+				}
 			}
-		}
-		if (allClosed) {
-			PostQuitMessage(0);
+			if (allClosed) {
+				PostQuitMessage(0);
+				logMessage(L"Posted quit message because all windows are closed.");
+			}
 		}
 	}
 
@@ -161,7 +180,7 @@ HRESULT BasicWindow::shutdownAll(void) {
 	// Close all open windows
 	for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
 		if ((*winProcList)[i] != 0) {
-			(*winProcList)[i]->shutdownWindow();
+			(*winProcList)[i]->shutdownWindow(false);
 		}
 	}
 
@@ -200,13 +219,15 @@ LRESULT CALLBACK BasicWindow::winProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARA
 
 	// Check if the window is being destroyed or closed
 	if (umsg == WM_DESTROY || umsg == WM_CLOSE) {
-		shutdownWindow(); // Close this window
+		
 		if (m_exitAble) {
-
 			/* Closing this window means that the entire application must shut down
 			shortly. The quit message will be encountered by any update() function call.
 			*/
 			PostQuitMessage(0);
+			logMessage(L"Posted quit message because this 'exitAble' window received a WM_CLOSE or WM_DESTROY message.");
+		} else {
+			shutdownWindow(true); // Close only this window, unless it is the only open window
 		}
 		return 0;
 	}

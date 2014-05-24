@@ -38,10 +38,14 @@ private:
 	Logger* m_logger; // Null if the global default Logger object is used instead of a custom Logger
 	std::wstring m_msgPrefix; // All logging messages will be prefixed with this string
 
-public:
+protected:
 	/* The 'msgPrefix' parameter will become a prefix for all logged messages.
+	It will automatically be separated from any following message text
+	by a space.
 	*/
 	LogUser(bool enableLogging = true, const std::wstring msgPrefix = L"");
+
+public:
 	virtual ~LogUser(void);
 
 	// Getters and setters
@@ -62,5 +66,10 @@ protected:
 	// Arguments are forwarded to the Logger member function of the same name
 	HRESULT logMessage(const std::wstring& msg,
 		bool toConsole = true, bool toFile = true, const std::wstring filename = L"");
+
+	// Currently not implemented - will cause linker errors if called
+private:
+	LogUser(const LogUser& other);
+	LogUser& operator=(const LogUser& other);
 };
 

@@ -18,7 +18,10 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
    should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
-  -A class for setting up and managing a window, as well as handling messages for the window.
+  -A class for setting up and managing windows, as well as handling window messages.
+  -Objects of this class, encapsulating windows, will post quit messages for the thread
+   if all windows opened by this class are closed, or if a window created by this class
+   is closed that was designated as 'exitAble' (a constructor parameter).
 
 Issues
   -This class is not safe for use by multiple threads because it makes use of shared static members
@@ -46,7 +49,7 @@ class BasicWindow : public LogUser
 {
 	// Data members
 private:
-	const std::wstring	m_applicationName;
+	std::wstring	m_applicationName;
 	HINSTANCE		m_hinstance;
 	HWND			m_hwnd;  //handle to the client window for the application
 	bool			m_exitAble; // True if closing this window will cause the application to quit
@@ -73,14 +76,14 @@ public:
 
 	// Setup and shutdown
 public:
-	HRESULT initializeWindow(void);
+	HRESULT openWindow(void);
 
 	/* Closes this window
-
-	If this is the last window to be closed that was
-	created by this class, a quit message will be posted to Windows.
+	If the input parameter is true, the function will check if this is the only
+	window open that was created by this class,
+	in which case a quit message will be posted to Windows.
 	*/
-	HRESULT shutdownWindow(void);
+	HRESULT shutdownWindow(const bool exitIfLast);
 
 	/* Closes all windows created by this class.
 	To be called when an "exitAble" window is closed.

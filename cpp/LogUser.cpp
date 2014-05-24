@@ -61,7 +61,7 @@ void LogUser::setMsgPrefix(const std::wstring& prefix) {
 HRESULT LogUser::logMessage(const std::wstring& msg,
 	bool toConsole, bool toFile, const std::wstring filename) {
 	if (m_loggingEnabled) {
-		std::wstring fullMsg = m_msgPrefix + msg;
+		std::wstring fullMsg = m_msgPrefix + L" " + msg;
 		if (m_logger != 0) {
 			return m_logger->logMessage(fullMsg, toConsole, toFile, filename);
 		}

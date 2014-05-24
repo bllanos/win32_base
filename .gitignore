@@ -5,4 +5,4 @@
 *.vcxproj
 *.vcxproj.filters
 Debug/
-logger/
+logger_output/

@@ -59,4 +59,5 @@ in case of conflict. (In other words, a system-defined error code
 interpretation will be ignored if the error code also matches
 one of the interpretations below.)
 */
-#define ERROR_FUNCTION_CALL 1800 // Error code returned by a function call
+#define ERROR_FUNCTION_CALL	1800 // Error code returned by a function call
+#define ERROR_WRONG_STATE	1801 // A member function was called for an object in an inappropriate state
