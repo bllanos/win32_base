@@ -138,7 +138,7 @@ HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
 
 	// Check if this window has ever been opened
 	if (!m_opened) {
-		return ERROR_WRONG_STATE;
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
 	}
 
 	// Check if the window is not already closed

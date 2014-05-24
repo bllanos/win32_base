@@ -43,6 +43,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
 	// This block is just to try and eliminate false positives in memory leak detection
 	{
+		HRESULT error = ERROR_SUCCESS;
+
 		try {
 
 			// Set up the globally-visible Logger
@@ -52,6 +54,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 				g_defaultLogger = new Logger(true, logFilename, true);
 			}
 			catch (...) {
+				// Message box documentation: http://msdn.microsoft.com/en-us/library/windows/desktop/ms645505%28v=vs.85%29.aspx
+				MessageBox(NULL, L"Failed to initialize the default logger object.\nProgram will exit.",
+					L"BL Project Error", MB_OK | MB_ICONSTOP | MB_TASKMODAL);
 				return 0;
 			}
 
@@ -63,17 +68,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			*/
 			if (DirectX::XMVerifyCPUSupport()) {
 				g_defaultLogger->logMessage(L"wWinMain() - System supports DirectX Math.");
-			}
-			else {
+			} else {
 				g_defaultLogger->logMessage(L"wWinMain() - System does not support DirectX Math. Exiting.");
+				MessageBox(NULL, L"System does not support DirectX Math.\nProgram will exit.",
+					L"BL Project Error", MB_OK | MB_ICONSTOP | MB_TASKMODAL);
 				delete g_defaultLogger;
 				return 0;
 			}
 
-			// The application loop
-			applicationLoop();
+			/* The application loop goes here, as well as more task-specific
+			 * initialization and shutdown
+			 */
+			// ------------------------------
+			error = applicationLoop();
+			// ------------------------------
 
-			g_defaultLogger->logMessage(L"wWinMain() - Exiting.");
+			g_defaultLogger->logMessage(L"wWinMain() - Exiting normally.");
 
 			// Create a memory leak, just to test that the memory leak check works
 			// int* leak = new int[4];
@@ -86,13 +96,20 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			}
 			errorMsg += exceptionMsg;
 			g_defaultLogger->logMessage(errorMsg);
+			error = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		}
 		catch (...) {
 			g_defaultLogger->logMessage(L"wWinMain() - Exiting due to an unspecified exception.");
+			error = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		}
 
 		delete g_defaultLogger;
 		g_defaultLogger = 0;
+
+		if (FAILED(error)) {
+			MessageBox(NULL, L"Errors or exceptions occured. Program will now exit.\nPlease check the logs for details.",
+				L"BL Project Error", MB_OK | MB_ICONSTOP | MB_TASKMODAL);
+		}
 	}
 
 	// Show any memory leaks

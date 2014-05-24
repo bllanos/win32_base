@@ -19,7 +19,7 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
 
 Description
   -A class for setting up and managing windows, as well as handling window messages.
-  -Objects of this class, encapsulating windows, will post quit messages for the thread
+  -IMPORTANT: Objects of this class, encapsulating windows, will post quit messages for the thread
    if all windows opened by this class are closed, or if a window created by this class
    is closed that was designated as 'exitAble' (a constructor parameter).
 

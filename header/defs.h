@@ -46,7 +46,7 @@ from the use of the 'new' operator.
 // Default configuration values
 // ----------------------------
 // (To be overridden with values loaded from a configuration file)
-#define DEFAULT_LOG_PATH     LCHAR_STRINGIFY(.\\logger\\)
+#define DEFAULT_LOG_PATH     LCHAR_STRINGIFY(.\\logger_output\\)
 #define DEFAULT_LOG_FILENAME LCHAR_STRINGIFY(log.txt)
 
 // Used for making custom HRESULT values
