@@ -114,6 +114,7 @@ public:
 	HWND getHWND(void) const;
 	unsigned int getWidth(void) const;
 	unsigned int getHeight(void) const;
+	std::vector<BasicWindow>::size_type	getID(void) const;
 
 private:
 	/*

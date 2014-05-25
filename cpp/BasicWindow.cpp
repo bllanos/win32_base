@@ -69,10 +69,12 @@ HRESULT BasicWindow::openWindow(void) {
 		m_id = currentId;
 		++currentId;
 		winProcList->push_back(this);
-	}
-	else {
+	} else if( (*winProcList)[m_id] == 0 ) {
 		// This window is reopening
 		(*winProcList)[m_id] = this;
+	} else {
+		logMessage(L"Attempt to open a window that is already open.");
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
 	}
 
 	WNDCLASSEX wc; // struct which describes the window class (properties of the window)
@@ -110,7 +112,8 @@ HRESULT BasicWindow::openWindow(void) {
 	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW,
 		m_applicationName.c_str(),
 		m_applicationName.c_str(),
-		WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP | WS_CAPTION, // WS_CAPTION for border with title
+		// WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP | WS_CAPTION, // WS_CAPTION for border with title
+		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 		posX,  // screen X of window's top left corner
 		posY, // screen Y of window's top left corner
 		m_width,  // width of screen
@@ -138,6 +141,7 @@ HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
 
 	// Check if this window has ever been opened
 	if (!m_opened) {
+		logMessage(L"Attempt to close a window that has never been opened.");
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
 	}
 
@@ -159,7 +163,7 @@ HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
 		// Check if all windows are now closed
 		if (exitIfLast) {
 			bool allClosed = true;
-			for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
+			for (std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
 				if ((*winProcList)[i] != 0) {
 					allClosed = false;
 					break;
@@ -170,6 +174,9 @@ HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
 				logMessage(L"Posted quit message because all windows are closed.");
 			}
 		}
+	} else {
+		logMessage(L"Attempt to close a window that is already closed.");
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
 	}
 
 	return ERROR_SUCCESS;
@@ -178,7 +185,7 @@ HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
 HRESULT BasicWindow::shutdownAll(void) {
 
 	// Close all open windows
-	for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
+	for (std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
 		if ((*winProcList)[i] != 0) {
 			(*winProcList)[i]->shutdownWindow(false);
 		}
@@ -248,9 +255,13 @@ unsigned int BasicWindow::getHeight(void) const {
 	return m_height;
 }
 
+std::vector<BasicWindow>::size_type	BasicWindow::getID(void) const {
+	return m_id;
+}
+
 LRESULT CALLBACK BasicWindow::appProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 
-	for (static std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
+	for (std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
 		if ((*winProcList)[i] != 0 && (*winProcList)[i]->getHWND() == hwnd) {
 			return (*winProcList)[i]->winProc(hwnd, umsg, wparam, lparam);
 		}

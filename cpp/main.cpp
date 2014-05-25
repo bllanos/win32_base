@@ -118,9 +118,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	return 0;
 }
 
+// Additional includes needed for test code
+#include "testBasicWindow.h"
+
 /*
 Run the application, possibly through a top-level control object
 */
 HRESULT applicationLoop(void) {
+
+	TestBasicWindow::openNWindows(1, true);
 	return ERROR_SUCCESS;
 }
