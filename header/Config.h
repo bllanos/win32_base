@@ -29,12 +29,13 @@ Usage Notes
 #pragma once
 
 #include <windows.h>
-#include <unordered_map>
+#include <map>
+#include <iterator>
 #include <string>
 
 class Config {
 
-private:
+public:
 
 	// Supported data types of property values
 	enum class DataType : unsigned int {
@@ -42,7 +43,7 @@ private:
 	};
 
 	// Nested classes
-private:
+public:
 	/* A map value is a data type-value pair
 	In order to safely delete data, it is necessary to store
 	data types with the data.
@@ -80,8 +81,11 @@ private:
 	public:
 		Key(const std::wstring& scope, const std::wstring& field);
 
+		// A default destructor is sufficient
+
 	public:
-		bool operator==(Key other) const;
+		bool operator==(const Key& other) const;
+		bool operator<(const Key& other) const;
 
 		// Currently not implemented - will cause linker errors if called
 	private:
@@ -91,8 +95,13 @@ private:
 
 
 private:
-	// Stores the key-value data pairs
-	std::unordered_map<Key, Value> map;
+
+	/* Stores the key-value data pairs
+	I am using an ordered map because it will make it easier to
+	write the configuration data to a file ordered by scope name,
+	then by field name (as defined by the '<' operator of the Key class).
+	*/
+	std::map<Key, Value> m_map;
 
 public:
 	// A default constructor and destructor is sufficient for now
@@ -115,8 +124,18 @@ private:
 	Config(const Config& other);
 	Config& operator=(const Config& other);
 
-	// The public interface
-	// --------------------
+
+	// The public interface: bulk data access for writing to a file
+	// ------------------------------------------------------------
+	/* These functions are proxies for the underlying STL container
+	functions
+	*/
+public:
+	std::map<Key, Value>::const_iterator cbegin(void) const;
+	std::map<Key, Value>::const_iterator cend(void) const;
+
+	// The public interface: insertion and retrieval of field data
+	// -----------------------------------------------------------
 	/* All retrieval functions return null as their final (output) parameter
 	if there is no value corresponding to the key parameters,
 	or if there is a value corresponding to the key parameters,
