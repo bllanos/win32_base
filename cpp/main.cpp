@@ -126,6 +126,6 @@ Run the application, possibly through a top-level control object
 */
 HRESULT applicationLoop(void) {
 
-	TestBasicWindow::openNWindows(1, true);
+	TestBasicWindow::openNWindows(1, false);
 	return ERROR_SUCCESS;
 }

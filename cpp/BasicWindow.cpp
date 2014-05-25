@@ -197,7 +197,7 @@ HRESULT BasicWindow::shutdownAll(void) {
 	return ERROR_SUCCESS;
 }
 
-HRESULT BasicWindow::update(bool& quit) {
+HRESULT BasicWindow::updateAll(bool& quit) {
 
 	quit = false;
 
@@ -205,8 +205,14 @@ HRESULT BasicWindow::update(bool& quit) {
 	MSG msg;
 	ZeroMemory(&msg, sizeof(MSG));
 
-	// Dispatch Windows messages for this window
-	if (PeekMessage(&msg, m_hwnd, 0, 0, PM_REMOVE))
+	/* Dispatch Windows messages for this thread
+	   Note that passing in a HWND value for the second
+	   parameter might seem like a good idea
+	   (e.g. for an instance
+	   member function where each window can check its own messages),
+	   but will miss WM_QUIT messages.
+	 */
+	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -232,8 +238,11 @@ LRESULT CALLBACK BasicWindow::winProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARA
 			shortly. The quit message will be encountered by any update() function call.
 			*/
 			PostQuitMessage(0);
-			logMessage(L"Posted quit message because this 'exitAble' window received a WM_CLOSE or WM_DESTROY message.");
+			logMessage(L"Posted quit message because this 'exitAble' window received a WM_CLOSE (2) or WM_DESTROY (16) message."
+				L"\n\tThe message value is "+std::to_wstring(umsg));
 		} else {
+			logMessage(L"Non-'exitAble' window received a WM_CLOSE (2) or WM_DESTROY (16) message."
+				L"\n\tThe message value is " + std::to_wstring(umsg));
 			shutdownWindow(true); // Close only this window, unless it is the only open window
 		}
 		return 0;

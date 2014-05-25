@@ -19,6 +19,11 @@ Description
   -A class for outputting log messages to a console window or to files
   -Multiple instances of this class can use the console, but cannot
    write to the same log file.
+
+Issues
+  -Currently, the log file may not receive all logging messages if the application
+   terminates in an abnormal way. Perhaps the output file stream could be flushed after
+   each message to eliminate this issue, but there might be a performance cost?
 */
 
 #pragma once

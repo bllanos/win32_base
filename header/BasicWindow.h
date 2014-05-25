@@ -90,18 +90,18 @@ public:
 	*/
 	static HRESULT shutdownAll(void);
 
+	// Application loop functions
 public:
-	/* Call this function once per application loop to update the internal state
-	of the object and dispatch Windows messages for the window.
+	/* Call this function once per application loop to
+	dispatch Windows messages for this thread.
 
 	The output parameter is true if the application must terminate
 	(e.g. due to the user closing an "exitAble" window, or closing all windows).
 
 	This function will close all windows if the application must terminate.
-
 	(Note that "all windows" refers to all windows created by this class.)
 	*/
-	HRESULT update(bool& quit);
+	static HRESULT updateAll(bool& quit);
 
 private:
 	/* It seems that only static functions can be registered as window procedures.

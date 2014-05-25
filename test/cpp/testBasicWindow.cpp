@@ -42,15 +42,12 @@ void TestBasicWindow:: openNWindows(const unsigned int n, bool exitAble) {
 	g_defaultLogger->logMessage(L"TestBasicWindow::openNWindows() Entering update loop.");
 	bool quit = false;
 	while (!quit) {
-		for( unsigned int i = 0; i < n; ++i ) {
-			if( FAILED(windowArray[i]->update(quit)) ) {
-				g_defaultLogger->logMessage(
-					L"TestBasicWindow::openNWindows() window update() function returned an error."
-					L" BasicWindow object has id = " + std::to_wstring(windowArray[i]->getID()));
-			}
-			if( quit ) {
-				break;
-			}
+		if( FAILED(BasicWindow::updateAll(quit)) ) {
+			g_defaultLogger->logMessage(
+				L"TestBasicWindow::openNWindows() BasicWindow updateAll() function returned an error.");
+		}
+		if( quit ) {
+			break;
 		}
 	}
 	g_defaultLogger->logMessage(L"TestBasicWindow::openNWindows() Leaving update loop.");
