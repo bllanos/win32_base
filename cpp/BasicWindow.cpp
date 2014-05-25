@@ -112,8 +112,7 @@ HRESULT BasicWindow::openWindow(void) {
 	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW,
 		m_applicationName.c_str(),
 		m_applicationName.c_str(),
-		// WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP | WS_CAPTION, // WS_CAPTION for border with title
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 		posX,  // screen X of window's top left corner
 		posY, // screen Y of window's top left corner
 		m_width,  // width of screen

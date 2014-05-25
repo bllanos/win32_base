@@ -51,7 +51,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			try {
 				std::wstring logFilename = DEFAULT_LOG_PATH;
 				logFilename += DEFAULT_LOG_FILENAME;
-				g_defaultLogger = new Logger(true, logFilename, true);
+				g_defaultLogger = new Logger(true, logFilename, false);
 			}
 			catch (...) {
 				// Message box documentation: http://msdn.microsoft.com/en-us/library/windows/desktop/ms645505%28v=vs.85%29.aspx
@@ -83,7 +83,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			error = applicationLoop();
 			// ------------------------------
 
-			g_defaultLogger->logMessage(L"wWinMain() - Exiting normally.");
+			if( FAILED(error) ) {
+				g_defaultLogger->logMessage(L"wWinMain() - Exiting with an error code reported from the application loop.\n"
+					L"\tError (HRESULT type) value has severity " +
+					std::to_wstring(static_cast<unsigned long>(HRESULT_SEVERITY(error))) + L", facility " +
+					std::to_wstring(static_cast<unsigned long>(HRESULT_FACILITY(error))) + L", code " +
+					std::to_wstring(static_cast<unsigned long>(HRESULT_CODE(error))) + L".");
+			} else {
+				g_defaultLogger->logMessage(L"wWinMain() - Exiting normally.");
+			}
 
 			// Create a memory leak, just to test that the memory leak check works
 			// int* leak = new int[4];

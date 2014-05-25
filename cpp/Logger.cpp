@@ -41,15 +41,23 @@ m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 		// Try to access the console output stream
 		m_console = GetStdHandle(STD_OUTPUT_HANDLE);
 
-		if (m_console == INVALID_HANDLE_VALUE) {
+		if( m_console == INVALID_HANDLE_VALUE ) {
+			// Something went wrong
+			DWORD errorCode = GetLastError();
+			std::string errorMsg = "Failed to access standard output handle. GetLastError() returned code " + std::to_string(errorCode);
+
+			// This is a Microsoft-specific constructor
+			throw std::exception(errorMsg.c_str());
+
+		} else if( m_console == NULL ) {
 			// Perhaps no console is currently open
-			BOOL success = true;
+			BOOL success = false;
 			if (nConsoleWriters == 0) {
 				// Try to open a console
 				success = AllocConsole();
 				if (success == TRUE) {
 					m_console = GetStdHandle(STD_OUTPUT_HANDLE);
-					success = (m_console != INVALID_HANDLE_VALUE);
+					success = !(m_console == INVALID_HANDLE_VALUE || m_console == NULL);
 				}
 			}
 			if (success == FALSE) {
