@@ -41,6 +41,11 @@ public:
 	enum class DataType : unsigned int {
 		WSTRING
 	};
+	/* When adding new data types to the enumeration, also do the following:
+	- Update the Value class destructor
+	- Add public retrieval and insertion member functions for values of the
+	  new data type
+	*/
 
 	// Nested classes
 public:
@@ -62,7 +67,7 @@ public:
 		/* Returns the value stored in this object,
 		or null, if the value is not of the input data type.
 		*/
-		const void* getValue(const DataType type);
+		const void* const getValue(const DataType type) const;
 
 		// Currently not implemented - will cause linker errors if called
 	private:
@@ -71,6 +76,7 @@ public:
 	};
 
 	/* A key is a scope name combined with a property name
+	The scope name can be an empty string, but not the property name.
 	*/
 	class Key {
 
@@ -81,15 +87,21 @@ public:
 	public:
 		Key(const std::wstring& scope, const std::wstring& field);
 
-		// A default destructor is sufficient
+		// The default destructor is sufficient
 
 	public:
 		bool operator==(const Key& other) const;
 		bool operator<(const Key& other) const;
 
+	public:
+		const std::wstring& getScope(void) const;
+		const std::wstring& getField(void) const;
+
+	public:
+		Key(const Key& other);
+
 		// Currently not implemented - will cause linker errors if called
 	private:
-		Key(const Key& other);
 		Key& operator=(const Key& other);
 	};
 
@@ -101,13 +113,18 @@ private:
 	write the configuration data to a file ordered by scope name,
 	then by field name (as defined by the '<' operator of the Key class).
 	*/
-	std::map<Key, Value> m_map;
+	std::map<Key, Value*> m_map;
 
 public:
-	// A default constructor and destructor is sufficient for now
+	// A default constructor is sufficient for now
+
+	~Config(void);
 
 private:
-	// All insertion functions call this function
+	/* All insertion functions call this function
+	Returns a failure code and does nothing if another map element
+	is stored under the same key parameters.
+	*/
 	HRESULT insert(const std::wstring& scope, const std::wstring& field,
 		const DataType type, const void* const value);
 
@@ -131,8 +148,8 @@ private:
 	functions
 	*/
 public:
-	std::map<Key, Value>::const_iterator cbegin(void) const;
-	std::map<Key, Value>::const_iterator cend(void) const;
+	std::map<Key, Value*>::const_iterator cbegin(void) const;
+	std::map<Key, Value*>::const_iterator cend(void) const;
 
 	// The public interface: insertion and retrieval of field data
 	// -----------------------------------------------------------
@@ -143,6 +160,9 @@ public:
 
 	The output parameter of a retrieval function is a reference to a pointer.
 	The pointer is a pointer to a constant object.
+
+	Insertion functions will return a failure code if the Config
+	object already has a value stored with the given key parameters.
 	*/
 public:
 	

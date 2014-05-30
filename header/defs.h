@@ -56,8 +56,13 @@ from the use of the 'new' operator.
 // -----------------------------
 /* These error codes will take precedence over system-defined error codes
 in case of conflict. (In other words, a system-defined error code
-interpretation will be ignored if the error code also matches
+interpretation will be ignored if the error code number also matches
 one of the interpretations below.)
+
+On the other hand, some system-defined error codes are used in this program
+because their names or descriptions are reasonably appropriate for the
+contexts of certain errors. Therefore, the following is not a complete
+list of all error codes used in the program.
 */
 #define ERROR_FUNCTION_CALL	1800 // Error code returned by a function call
 #define ERROR_WRONG_STATE	1801 // A member function was called for an object in an inappropriate state
