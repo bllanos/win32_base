@@ -139,6 +139,7 @@ Run the application, possibly through a top-level control object
 HRESULT applicationLoop(void) {
 
 	// testBasicWindow::openNWindows(1, false);
-	testConfig_IConfigManager::testConfigWithStringValues(1, 1);
+	testConfig_IConfigManager::testConfigWithStringValues(14, 3);
+	testConfig_IConfigManager::testConfigWithStringAndBoolValues();
 	return ERROR_SUCCESS;
 }

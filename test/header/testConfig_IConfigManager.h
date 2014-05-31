@@ -26,12 +26,20 @@ Description
 namespace testConfig_IConfigManager {
 
 	/* Loads a Config object with a number of strings equal to
-	the first input parameter and logs them to a file,
+	the first input parameter and logs them to a text file,
 	in the process verifying that they are sorted according to Key.
 
 	The number of distinct Key scopes used is equal to the second input paramter.
 	(This value is set to 1 if it is zero.)
 	*/
 	HRESULT testConfigWithStringValues(const unsigned int n, unsigned int nScopes);
+
+	/* Inserts a small number of bool and wstring values into a Config
+	object and then reads them back out to a text file.
+
+	This verifies that a Config object can store values of multiple
+	data types.
+	*/
+	HRESULT testConfigWithStringAndBoolValues(void);
 
 }
