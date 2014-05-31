@@ -1,5 +1,5 @@
 /*
-TestBasicWindow.h
+testBasicWindow.h
 -------------------
 
 Created for: Spring 2014 Direct3D 11 Learning
@@ -21,7 +21,7 @@ Description
 
 #include <Windows.h>
 
-namespace TestBasicWindow {
+namespace testBasicWindow {
 
 	/* Opens the number of windows specified by the input parameter
 	The second parameter specifies whether the windows are 'exitAble'

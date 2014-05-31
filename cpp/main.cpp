@@ -121,19 +121,24 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	}
 
 	// Show any memory leaks
-	// _CrtDumpMemoryLeaks(); // This should be called automatically because of the call to _CrtSetDbgFlag() earlier
+	// _CrtDumpMemoryLeaks();
+	/* On my system, this is called automatically
+	 * because of the call to _CrtSetDbgFlag() earlier
+	 */
 
 	return 0;
 }
 
 // Additional includes needed for test code
 #include "testBasicWindow.h"
+#include "testConfig_IConfigManager.h"
 
 /*
 Run the application, possibly through a top-level control object
 */
 HRESULT applicationLoop(void) {
 
-	TestBasicWindow::openNWindows(1, false);
+	// testBasicWindow::openNWindows(1, false);
+	testConfig_IConfigManager::testConfigWithStringValues(1, 1);
 	return ERROR_SUCCESS;
 }

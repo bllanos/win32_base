@@ -46,8 +46,13 @@ from the use of the 'new' operator.
 // Default configuration values
 // ----------------------------
 // (To be overridden with values loaded from a configuration file)
-#define DEFAULT_LOG_PATH     LCHAR_STRINGIFY(.\\logger_output\\)
-#define DEFAULT_LOG_FILENAME LCHAR_STRINGIFY(log.txt)
+
+#define DEFAULT_LOG_PATH		LCHAR_STRINGIFY(.\\logger_output\\)
+
+// For the results of unit tests
+#define DEFAULT_LOG_PATH_TEST   LCHAR_STRINGIFY(.\\logger_output\\test\\)
+
+#define DEFAULT_LOG_FILENAME	LCHAR_STRINGIFY(log.txt)
 
 // Used for making custom HRESULT values
 #define FACILITY_BL_ENGINE 0
@@ -64,5 +69,7 @@ because their names or descriptions are reasonably appropriate for the
 contexts of certain errors. Therefore, the following is not a complete
 list of all error codes used in the program.
 */
-#define ERROR_FUNCTION_CALL	1800 // Error code returned by a function call
-#define ERROR_WRONG_STATE	1801 // A member function was called for an object in an inappropriate state
+#define ERROR_FUNCTION_CALL			1800 // Error code returned by a function call
+#define ERROR_WRONG_STATE			1801 // A member function was called for an object in an inappropriate state
+#define ERROR_DATA_NOT_FOUND		1802 // Data structure failed to find an element
+#define ERROR_NO_LOGGER				1803 // Failed to create a custom Logger object

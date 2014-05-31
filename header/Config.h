@@ -24,6 +24,10 @@ Usage Notes
   -This class is currently not intended to be inherited from. It may need
    to be modified to be suitable for inheritance (e.g. so that it has
    virtual destructors).
+
+Issues
+  -Objects of this class are not safe for access by multiple threads
+   (unless all threads are performing const operations).
 */
 
 #pragma once
@@ -39,7 +43,7 @@ public:
 
 	// Supported data types of property values
 	enum class DataType : unsigned int {
-		WSTRING
+		WSTRING, BOOL
 	};
 	/* When adding new data types to the enumeration, also do the following:
 	- Update the Value class destructor
@@ -116,7 +120,7 @@ private:
 	std::map<Key, Value*> m_map;
 
 public:
-	// A default constructor is sufficient for now
+	Config(void);
 
 	~Config(void);
 
@@ -162,11 +166,18 @@ public:
 	The pointer is a pointer to a constant object.
 
 	Insertion functions will return a failure code if the Config
-	object already has a value stored with the given key parameters.
+	object already has a value stored with the given key parameters,
+	if the value to be stored is a null pointer, or if the field string
+	is empty.
 	*/
 public:
 	
 	// wstring
 	HRESULT insert(const std::wstring& scope, const std::wstring& field, const std::wstring* const value);
 	HRESULT retrieve(const std::wstring& scope, const std::wstring& field, const std::wstring*& value) const;
+
+	// bool
+	HRESULT insert(const std::wstring& scope, const std::wstring& field, const bool* const value);
+	HRESULT retrieve(const std::wstring& scope, const std::wstring& field, const bool*& value) const;
+
 };

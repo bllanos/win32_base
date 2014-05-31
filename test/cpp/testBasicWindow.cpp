@@ -1,5 +1,5 @@
 /*
-TestBasicWindow.cpp
+testBasicWindow.cpp
 -------------------
 
 Created for: Spring 2014 Direct3D 11 Learning
@@ -24,7 +24,7 @@ Description
 #include "testBasicWindow.h"
 
 
-void TestBasicWindow:: openNWindows(const unsigned int n, bool exitAble) {
+void testBasicWindow:: openNWindows(const unsigned int n, bool exitAble) {
 	if (n == 0) return;
 	BasicWindow** windowArray = new BasicWindow*[n];
 
