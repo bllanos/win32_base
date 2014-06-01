@@ -6,9 +6,7 @@ Created for: Spring 2014 Direct3D 11 Learning
 By: Bernard Llanos
 May 19, 2014
 
-Primary basis: COMP2501A game design project code
--Adapted from Tutorial 4
-
+Primary basis: None
 Other references: None
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
@@ -30,7 +28,7 @@ using std::wstring;
 using std::basic_ofstream;
 
 // Initialization of static members
-unsigned int Logger::nConsoleWriters = 0;
+unsigned int Logger::s_nConsoleWriters = 0;
 
 Logger::Logger(bool allocLogFile, wstring filename, bool allocLogConsole) :
 m_consoleOpen(allocLogConsole), m_defaultLogFileOpen(allocLogFile),
@@ -52,7 +50,7 @@ m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 		} else if( m_console == NULL ) {
 			// Perhaps no console is currently open
 			BOOL success = false;
-			if (nConsoleWriters == 0) {
+			if (s_nConsoleWriters == 0) {
 				// Try to open a console
 				success = AllocConsole();
 				if (success == TRUE) {
@@ -65,7 +63,7 @@ m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 				throw std::exception("Failed to open or access output console.");
 			}
 		}
-		++nConsoleWriters;
+		++s_nConsoleWriters;
 	}
 	
 	if (m_defaultLogFileOpen) {
@@ -79,8 +77,8 @@ m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 
 Logger::~Logger(void) {
 	// Dissociate this process from the console, if it is no longer being used
-	--nConsoleWriters;
-	if (nConsoleWriters == 0) {
+	--s_nConsoleWriters;
+	if (s_nConsoleWriters == 0) {
 		FreeConsole();
 	}
 	/* Note that the primary logging output file will be closed automatically

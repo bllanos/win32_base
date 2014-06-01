@@ -19,6 +19,8 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
 
 Description
   -A class for setting up and managing windows, as well as handling window messages.
+     Recall that message handlers should return 0 if they have processed a given message.
+
   -IMPORTANT: Objects of this class, encapsulating windows, will post quit messages for the thread
    if all windows opened by this class are closed, or if a window created by this class
    is closed that was designated as 'exitAble' (a constructor parameter).
@@ -124,8 +126,8 @@ private:
 	static LRESULT CALLBACK appProc(HWND, UINT, WPARAM, LPARAM);
 
 	// Static data members
-	static std::vector<BasicWindow*>* winProcList;
-	static std::vector<BasicWindow>::size_type currentId; // The ID to be assigned to the next window opened
+	static std::vector<BasicWindow*>* s_winProcList;
+	static std::vector<BasicWindow>::size_type s_currentId; // The ID to be assigned to the next window opened
 
 	// Currently not implemented - will cause linker errors if called
 private:

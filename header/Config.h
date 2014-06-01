@@ -42,14 +42,51 @@ class Config {
 public:
 
 	// Supported data types of property values
+	// ---------------------------------------
+	/* The use of this enumeration is as an alternative
+	to using run-time type information (e.g. the typeid operator),
+	for allowing a type-safe class interface and
+	the storage of values of multiple data types in the same
+	class instance (which is not possible with a class template).
+
+	See http://msdn.microsoft.com/en-us/library/b2ay8610.aspx for
+	more information on run-time type information.
+	I am actually not sure if RTTI could be used to achieve all of
+	the functionality currently implemented here.
+	*/
 	enum class DataType : unsigned int {
 		WSTRING, BOOL
 	};
-	/* When adding new data types to the enumeration, also do the following:
+	/* When adding new data types to this enumeration, also do the following:
+	- Update the 's_dataTypesNames' and 's_dataTypesInOrder' static members
 	- Update the Value class destructor
 	- Add public retrieval and insertion member functions for values of the
-	  new data type
+	    new data type
 	*/
+
+	/* Outputs the DataType constant name that has the same form
+	as the input string (case-sensitive).
+	Returns a failure code if there is no corresponding DataType constant.
+	*/
+	static HRESULT wstringToDataType(DataType& out, const std::wstring& in);
+
+	/* The inverse of wstringToDataType()
+	Outpus the name corresponding to the data type enum constant
+	*/
+	static HRESULT dataTypeToWString(std::wstring& out, const DataType& in);
+
+private:
+	/* Number of constants in the DataType enumeration,
+	which also corresponds to the length of the following
+	two arrays
+	*/
+	static const size_t s_nDataTypes;
+
+	// Names of data type constants as string literals, in order of declaration
+	static const std::wstring s_dataTypesNames[];
+
+	// DataType constants in order of declaration
+	static const DataType s_dataTypesInOrder[];
 
 	// Nested classes
 public:

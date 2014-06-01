@@ -26,6 +26,37 @@ Usage Notes: See Config.h
 
 using std::map;
 
+const std::wstring Config::s_dataTypesNames[] = {
+	L"WSTRING",
+	L"BOOL"
+};
+const Config::DataType Config::s_dataTypesInOrder[] = {
+	DataType::WSTRING,
+	DataType::BOOL
+};
+
+const size_t Config::s_nDataTypes = sizeof(s_dataTypesInOrder) / sizeof(Config::DataType);
+
+HRESULT Config::wstringToDataType(DataType& out, const std::wstring& in) {
+	for( size_t i = 0; i < s_nDataTypes; ++i ) {
+		if( in == s_dataTypesNames[i] ) {
+			out = s_dataTypesInOrder[i];
+			return ERROR_SUCCESS;
+		}
+	}
+	return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
+}
+
+HRESULT Config::dataTypeToWString(std::wstring& out, const DataType& in) {
+	for( size_t i = 0; i < s_nDataTypes; ++i ) {
+		if( in == s_dataTypesInOrder[i] ) {
+			out = s_dataTypesNames[i];
+			return ERROR_SUCCESS;
+		}
+	}
+	return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
+}
+
 Config::Value::Value(const DataType type, const void* const value) :
 m_type(type), m_value(value)
 {

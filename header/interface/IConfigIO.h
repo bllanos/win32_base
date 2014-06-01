@@ -1,5 +1,5 @@
 /*
-IConfigManager.h
+IConfigIO.h
 ---------------
 
 Created for: Spring 2014 Direct3D 11 Learning
@@ -26,9 +26,9 @@ Description
 #include <string>
 #include "Config.h"
 
-class IConfigManager {
+class IConfigIO {
 public:
-	virtual ~IConfigManager(void) {}
+	virtual ~IConfigIO(void) {}
 
 public:
 	// Read configuration data from a file
@@ -41,6 +41,6 @@ public:
 
 	// Currently not implemented - will cause linker errors if called
 private:
-	IConfigManager(const IConfigManager& other);
-	IConfigManager& operator=(const IConfigManager& other);
+	IConfigIO(const IConfigIO& other);
+	IConfigIO& operator=(const IConfigIO& other);
 };

@@ -6,9 +6,7 @@ Created for: Spring 2014 Direct3D 11 Learning
 By: Bernard Llanos
 May 19, 2014
 
-Primary basis: COMP2501A game design project code
--Adapted from Tutorial 4
-
+Primary basis: None
 Other references: None
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
@@ -36,7 +34,7 @@ class Logger
 {
 private:
 	// Counts the number of instances of this class using the console
-	static unsigned int nConsoleWriters;
+	static unsigned int s_nConsoleWriters;
 
 	// Data members
 private:

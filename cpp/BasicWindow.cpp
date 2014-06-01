@@ -29,8 +29,8 @@ using std::wstring;
 using std::vector;
 
 // Static member initialization
-vector<BasicWindow*>* BasicWindow::winProcList = 0;
-std::vector<BasicWindow>::size_type BasicWindow::currentId = 0;
+vector<BasicWindow*>* BasicWindow::s_winProcList = 0;
+std::vector<BasicWindow>::size_type BasicWindow::s_currentId = 0;
 
 BasicWindow::BasicWindow(std::wstring name, bool exitAble, int width, int height) :
 LogUser(),
@@ -60,18 +60,18 @@ BasicWindow::~BasicWindow(void) {}
 HRESULT BasicWindow::openWindow(void) {
 
 	// Update static data members
-	if (winProcList == 0) {
-		winProcList = new vector < BasicWindow* > ;
+	if (s_winProcList == 0) {
+		s_winProcList = new vector < BasicWindow* > ;
 	}
 	if (!m_opened) {
 		// Need to create a new entry for this window
 		m_opened = true;
-		m_id = currentId;
-		++currentId;
-		winProcList->push_back(this);
-	} else if( (*winProcList)[m_id] == 0 ) {
+		m_id = s_currentId;
+		++s_currentId;
+		s_winProcList->push_back(this);
+	} else if( (*s_winProcList)[m_id] == 0 ) {
 		// This window is reopening
-		(*winProcList)[m_id] = this;
+		(*s_winProcList)[m_id] = this;
 	} else {
 		logMessage(L"Attempt to open a window that is already open.");
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
@@ -108,19 +108,26 @@ HRESULT BasicWindow::openWindow(void) {
 	posY = (GetSystemMetrics(SM_CYSCREEN) - m_height) / 2;
 
 	// Create the window with the screen settings and get the handle to it.
+	// If the function fails, it returns 0
 	//http://msdn.microsoft.com/en-us/library/windows/desktop/ms632679(v=vs.85).aspx
 	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW,
-		m_applicationName.c_str(),
-		m_applicationName.c_str(),
+		m_applicationName.c_str(), // This is the name of the WNDCLASS instance that was registered
+		m_applicationName.c_str(), // This will be the window title
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 		posX,  // screen X of window's top left corner
 		posY, // screen Y of window's top left corner
 		m_width,  // width of screen
 		m_height, // height of screen
-		NULL,
-		NULL,
+		NULL, // Parent window
+		NULL, // Menu handle
 		m_hinstance, // the application instance
-		NULL);
+		NULL); // Additional parameters
+
+	// Check if window creation failed
+	if( m_hwnd == 0 ) {
+		logMessage(L"Error - Window creation failed.");
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WINDOWS_CALL);
+	}
 
 	// Bring the window up on the screen and set it as main focus.
 	ShowWindow(m_hwnd, SW_SHOW); // show  the window
@@ -145,7 +152,7 @@ HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
 	}
 
 	// Check if the window is not already closed
-	if ((*winProcList)[m_id] != 0) {
+	if ((*s_winProcList)[m_id] != 0) {
 
 		// Remove the window.
 		DestroyWindow(m_hwnd);
@@ -156,14 +163,14 @@ HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
 		m_hinstance = NULL;
 
 		// Remove the reference to this object
-		(*winProcList)[m_id] = 0;
+		(*s_winProcList)[m_id] = 0;
 		logMessage(L"window closed.");
 
 		// Check if all windows are now closed
 		if (exitIfLast) {
 			bool allClosed = true;
-			for (std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
-				if ((*winProcList)[i] != 0) {
+			for (std::vector<BasicWindow>::size_type i = 0; i < s_currentId; ++i) {
+				if ((*s_winProcList)[i] != 0) {
 					allClosed = false;
 					break;
 				}
@@ -184,15 +191,15 @@ HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
 HRESULT BasicWindow::shutdownAll(void) {
 
 	// Close all open windows
-	for (std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
-		if ((*winProcList)[i] != 0) {
-			(*winProcList)[i]->shutdownWindow(false);
+	for (std::vector<BasicWindow>::size_type i = 0; i < s_currentId; ++i) {
+		if ((*s_winProcList)[i] != 0) {
+			(*s_winProcList)[i]->shutdownWindow(false);
 		}
 	}
 
 	// Cleanup static members
-	delete winProcList;
-	winProcList = 0;
+	delete s_winProcList;
+	s_winProcList = 0;
 	return ERROR_SUCCESS;
 }
 
@@ -210,6 +217,9 @@ HRESULT BasicWindow::updateAll(bool& quit) {
 	   (e.g. for an instance
 	   member function where each window can check its own messages),
 	   but will miss WM_QUIT messages.
+
+	   PeekMessage() returns false if there are no messages
+	   (http://msdn.microsoft.com/en-us/library/windows/desktop/ms644943%28v=vs.85%29.aspx)
 	 */
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
@@ -269,12 +279,13 @@ std::vector<BasicWindow>::size_type	BasicWindow::getID(void) const {
 
 LRESULT CALLBACK BasicWindow::appProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 
-	for (std::vector<BasicWindow>::size_type i = 0; i < currentId; ++i) {
-		if ((*winProcList)[i] != 0 && (*winProcList)[i]->getHWND() == hwnd) {
-			return (*winProcList)[i]->winProc(hwnd, umsg, wparam, lparam);
+	// Let the individual windows handle their own messages
+	for (std::vector<BasicWindow>::size_type i = 0; i < s_currentId; ++i) {
+		if ((*s_winProcList)[i] != 0 && (*s_winProcList)[i]->getHWND() == hwnd) {
+			return (*s_winProcList)[i]->winProc(hwnd, umsg, wparam, lparam);
 		}
 	}
 
-	// Any unprocessed messages are sent to the default message handler
+	// Any other messages are sent to the default message handler
 	return DefWindowProc(hwnd, umsg, wparam, lparam);
 }
