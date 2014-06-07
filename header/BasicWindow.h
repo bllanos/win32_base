@@ -97,13 +97,16 @@ public:
 	/* Call this function once per application loop to
 	dispatch Windows messages for this thread.
 
-	The output parameter is true if the application must terminate
+	The 'quit' output parameter is true if the application must terminate
 	(e.g. due to the user closing an "exitAble" window, or closing all windows).
+
+	The second output parameter, 'msg_wParam', is the wParam field of the quit message,
+	to be returned when the application exits, so it is only valid when 'quit' is true.
 
 	This function will close all windows if the application must terminate.
 	(Note that "all windows" refers to all windows created by this class.)
 	*/
-	static HRESULT updateAll(bool& quit);
+	static HRESULT updateAll(bool& quit, WPARAM& msg_wParam);
 
 private:
 	/* It seems that only static functions can be registered as window procedures.

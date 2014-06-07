@@ -7,11 +7,11 @@ By: Bernard Llanos
 May 18, 2014
 
 Primary basis: COMP2501A game design project code
--Adapted from Tutorial 4
--Probably originally based on the Rastertek tutorials (http://www.rastertek.com/index.html)
+  -Adapted from Tutorial 4
+  -Probably originally based on the Rastertek tutorials (http://www.rastertek.com/index.html)
 
 Other references:
--Luna, Frank D. 3D Game Programming with DirectX 11. Dulles: Mercury Learning and Information, 2012.
+  -Luna, Frank D. 3D Game Programming with DirectX 11. Dulles: Mercury Learning and Information, 2012.
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
   -Note that the "Character Set" project property (Configuration Properties > General)
@@ -203,9 +203,10 @@ HRESULT BasicWindow::shutdownAll(void) {
 	return ERROR_SUCCESS;
 }
 
-HRESULT BasicWindow::updateAll(bool& quit) {
+HRESULT BasicWindow::updateAll(bool& quit, WPARAM& msg_wParam) {
 
 	quit = false;
+	msg_wParam = static_cast<WPARAM>(0);
 
 	// Initialize the message structure.
 	MSG msg;
@@ -221,17 +222,17 @@ HRESULT BasicWindow::updateAll(bool& quit) {
 	   PeekMessage() returns false if there are no messages
 	   (http://msdn.microsoft.com/en-us/library/windows/desktop/ms644943%28v=vs.85%29.aspx)
 	 */
-	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-	}
 
-	if (msg.message == WM_QUIT)
-	{
-		// The application must terminate
-		quit = true;
-		shutdownAll();
+		if( msg.message == WM_QUIT ) {
+			// The application must terminate
+			quit = true;
+			msg_wParam = msg.wParam;
+			shutdownAll();
+		}
 	}
 
 	return ERROR_SUCCESS;

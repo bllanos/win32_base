@@ -24,7 +24,7 @@ Description
 #include "testBasicWindow.h"
 
 
-void testBasicWindow:: openNWindows(const unsigned int n, bool exitAble) {
+void testBasicWindow::openNWindows(const unsigned int n, bool exitAble, WPARAM& quit_wParam) {
 	if (n == 0) return;
 	BasicWindow** windowArray = new BasicWindow*[n];
 
@@ -41,8 +41,9 @@ void testBasicWindow:: openNWindows(const unsigned int n, bool exitAble) {
 	// Update loop
 	g_defaultLogger->logMessage(L"TestBasicWindow::openNWindows() Entering update loop.");
 	bool quit = false;
+	quit_wParam = static_cast<WPARAM>(0);
 	while (!quit) {
-		if( FAILED(BasicWindow::updateAll(quit)) ) {
+		if( FAILED(BasicWindow::updateAll(quit, quit_wParam)) ) {
 			g_defaultLogger->logMessage(
 				L"TestBasicWindow::openNWindows() BasicWindow updateAll() function returned an error.");
 		}
@@ -58,4 +59,5 @@ void testBasicWindow:: openNWindows(const unsigned int n, bool exitAble) {
 		windowArray[i] = 0;
 	}
 	delete[] windowArray;
+
 }

@@ -32,7 +32,7 @@ Description
 Logger* g_defaultLogger = 0;
 
 // Application loop wrapper function
-HRESULT applicationLoop(void);
+HRESULT applicationLoop(WPARAM& quit_wParam);
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdshow)
 {
@@ -40,6 +40,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	// See http://msdn.microsoft.com/en-us/library/x98tx3cf.aspx
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+
+	/* Eventually, the wParam field of a WM_QUIT message will be returned.
+	 * If the application does not enter a message loop, 0 will be returned.
+	 */
+	WPARAM quit_wParam = static_cast<WPARAM>(0);
 
 	// This block is just to try and eliminate false positives in memory leak detection
 	{
@@ -80,7 +85,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			 * initialization and shutdown
 			 */
 			// ------------------------------
-			error = applicationLoop();
+			error = applicationLoop(quit_wParam);
 			// ------------------------------
 
 			if( FAILED(error) ) {
@@ -126,7 +131,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	 * because of the call to _CrtSetDbgFlag() earlier
 	 */
 
-	return 0;
+	return quit_wParam;
 }
 
 // Additional includes needed for test code
@@ -136,7 +141,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 /*
 Run the application, possibly through a top-level control object
 */
-HRESULT applicationLoop(void) {
+HRESULT applicationLoop(WPARAM& quit_wParam) {
 
 	// testBasicWindow::openNWindows(1, false);
 	testConfig_IConfigManager::testConfigWithStringValues(14, 3);
