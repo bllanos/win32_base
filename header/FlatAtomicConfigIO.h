@@ -25,7 +25,6 @@ Description
 #pragma once
 
 #include <windows.h>
-#include <list>
 #include <string>
 #include "defs.h"
 #include "LogUser.h"
@@ -87,14 +86,6 @@ private:
 public:
 	// Returns true if this class can process this data type
 	static bool isSupportedDataType(Config::DataType type);
-
-protected:
-	/* Stores error messages that will be written to the end of a
-	configuration file being read into a Config object or written
-	to from a Config object
-	after the parsing process is finished.
-	*/
-	std::list<std::wstring> m_errorMessages;
 
 public:
 	FlatAtomicConfigIO(void);

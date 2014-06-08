@@ -27,6 +27,7 @@ Note that the globally-visible Logger object is initialized and destroyed in mai
 
 #include <Windows.h>
 #include <string>
+#include <list>
 #include "globals.h"
 #include "Logger.h"
 
@@ -37,6 +38,12 @@ private:
 	bool m_loggingEnabled; // Switch for turning logging on or off
 	Logger* m_logger; // Null if the global default Logger object is used instead of a custom Logger
 	std::wstring m_msgPrefix; // All logging messages will be prefixed with this string
+
+protected:
+	/* Used by derived classes to store messages for logging
+	at a later time.
+	*/
+	std::list<std::wstring> m_msgStore;
 
 protected:
 	/* The 'msgPrefix' parameter will become a prefix for all logged messages.
@@ -66,6 +73,28 @@ protected:
 	// Arguments are forwarded to the Logger member function of the same name
 	HRESULT logMessage(const std::wstring& msg,
 		bool toConsole = true, bool toFile = true, const std::wstring filename = L"");
+
+	/* Arguments are forwarded to the Logger member function of the same name.
+	Note that this function maps to the Logger function with an additional 'prefix'
+	parameter. The prefix parameter is supplied by this class, and so is not passed
+	in as a parameter to this function.
+
+	This function will add a space at the end of this object's message prefix
+	before passing the resulting string to the Logger class function.
+	 */
+	HRESULT logMessage(std::list<std::wstring>::const_iterator start,
+		std::list<std::wstring>::const_iterator end,
+		bool toConsole = true, bool toFile = true, const std::wstring filename = L"");
+
+	/* Logs this object's internal message list (m_msgStore) using the above function.
+	The first parameter indicates whether to always clear the list (true),
+	or to only clear the list if the logging operation succeeds (false).
+
+	The return value indicates the success of the logging operation.
+	(The list clear operation does not return an error code.)
+	*/
+	HRESULT logMsgStore(bool alwaysClearStore = true, bool toConsole = true, bool toFile = true,
+		const std::wstring filename = L"");
 
 	// Currently not implemented - will cause linker errors if called
 private:

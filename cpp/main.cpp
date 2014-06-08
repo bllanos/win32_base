@@ -137,6 +137,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 // Additional includes needed for test code
 #include "testBasicWindow.h"
 #include "testConfig_IConfigManager.h"
+#include "testLogger_LogUser.h"
 
 /*
 Run the application, possibly through a top-level control object
@@ -144,7 +145,8 @@ Run the application, possibly through a top-level control object
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
 	// testBasicWindow::openNWindows(1, false);
-	testConfig_IConfigManager::testConfigWithStringValues(14, 3);
-	testConfig_IConfigManager::testConfigWithStringAndBoolValues();
+	// testConfig_IConfigManager::testConfigWithStringValues(14, 3);
+	// testConfig_IConfigManager::testConfigWithStringAndBoolValues();
+	testLogger_LogUser::testBulkLogging();
 	return ERROR_SUCCESS;
 }

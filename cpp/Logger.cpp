@@ -112,6 +112,35 @@ HRESULT Logger::logMessage(const wstring& msg, bool toConsole, bool toFile, cons
 	return result;
 }
 
+HRESULT Logger::logMessage(std::list<wstring>::const_iterator start,
+	std::list<wstring>::const_iterator end, const std::wstring& prefix,
+	bool toConsole, bool toFile, const wstring filename) {
+
+	wstring fullPrefix;
+	if( FAILED(getDateAndTime(fullPrefix)) ) {
+		fullPrefix = L"[Cannot get time]";
+	}
+
+	// Format the message
+	fullPrefix.back() = L' '; // Remove the newline character
+	fullPrefix += L"| ";
+	fullPrefix += prefix;
+
+	HRESULT result = ERROR_SUCCESS;
+
+	if( toConsole ) {
+		result = logMsgToConsole(start, end, fullPrefix);
+	}
+	if( toFile ) {
+		HRESULT tempResult = logMsgToFile(start, end, fullPrefix, filename);
+		if( FAILED(tempResult) && SUCCEEDED(result) ) {
+			result = tempResult;
+		}
+	}
+	return result;
+}
+
+
 HRESULT Logger::getDateAndTime(wstring& timeStr) const {
 	std::time_t timeVal;
 	std::time(&timeVal); // Get the current timestamp
@@ -154,10 +183,54 @@ HRESULT Logger::logMsgToFile(const wstring& msg, wstring filename) {
 	return ERROR_SUCCESS;
 }
 
-HRESULT Logger::logMsgToConsole(const std::wstring& msg) {
+HRESULT Logger::logMsgToFile(std::list<wstring>::const_iterator start,
+	std::list<wstring>::const_iterator end,
+	const wstring& prefix,
+	const wstring filename) {
+
+	if( filename.length() > 0 && filename != m_filename ) {
+		// Open a custom logging file
+		basic_ofstream<wchar_t> newFile(filename, std::ios::app);
+		if( !newFile.is_open() ) {
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FILE_NOT_FOUND);
+		}
+
+		while( start != end ) {
+			newFile << prefix << *start << L"\n";
+			++start;
+		}
+
+	} else if( m_defaultLogFileOpen ) {
+		while( start != end ) {
+			m_logfile << prefix << *start << L"\n";
+			++start;
+		}
+	}
+	return ERROR_SUCCESS;
+}
+
+HRESULT Logger::logMsgToConsole(const wstring& msg) {
 	const wchar_t* cStr = msg.c_str();
 	if (m_consoleOpen) {
 		WriteConsole(m_console, cStr, wcslen(cStr), NULL, NULL);
+	}
+	return ERROR_SUCCESS;
+}
+
+HRESULT Logger::logMsgToConsole(std::list<wstring>::const_iterator start,
+	std::list<wstring>::const_iterator end,
+	const wstring& prefix) {
+
+	const wchar_t* prefixCStr = prefix.c_str();
+	const wchar_t* msgCStr = 0;
+	if( m_consoleOpen ) {
+		while( start != end ) {
+			WriteConsole(m_console, prefixCStr, wcslen(prefixCStr), NULL, NULL);
+			msgCStr = start->c_str();
+			WriteConsole(m_console, msgCStr, wcslen(msgCStr), NULL, NULL);
+			WriteConsole(m_console, L"\n", static_cast<DWORD>(1), NULL, NULL);
+			++start;
+		}
 	}
 	return ERROR_SUCCESS;
 }

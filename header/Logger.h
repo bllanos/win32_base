@@ -28,6 +28,8 @@ Issues
 
 #include <windows.h>
 #include <string>
+#include <list>
+#include <iterator>
 #include <fstream>
 
 class Logger
@@ -80,15 +82,41 @@ public:
 	HRESULT logMessage(const std::wstring& msg,
 		bool toConsole = true, bool toFile = true, const std::wstring filename = L"");
 
+	/* This function is intended for bulk logging operations,
+	 and will be more efficient than calling the version for single messages
+	 repeatedly.
+
+	 All messages in the stream will be given the same time prefix, followed
+	 by the optional prefix passed in as the third argument. No separation is
+	 added between the prefix and the rest of each message.
+
+	 Messages will be logged in the order that they are provided by the iterators.
+	 */
+	HRESULT logMessage(std::list<std::wstring>::const_iterator start,
+		std::list<std::wstring>::const_iterator end, const std::wstring& prefix = L"",
+		bool toConsole = true, bool toFile = true, const std::wstring filename = L"");
+
 private:
 	// Retrieves the current local time
 	HRESULT getDateAndTime(std::wstring& timeStr) const;
 
 	// Outputs a message to a file
-	HRESULT logMsgToFile(const std::wstring& msg, const std::wstring filename = L"");
+	HRESULT logMsgToFile(const std::wstring& msg,
+		const std::wstring filename = L"");
+
+	// Outputs multiple messages to a file
+	HRESULT logMsgToFile(std::list<std::wstring>::const_iterator start,
+		std::list<std::wstring>::const_iterator end,
+		const std::wstring& prefix,
+		const std::wstring filename = L"");
 
 	// Outputs a message to the debugging console
 	HRESULT logMsgToConsole(const std::wstring& msg);
+
+	// Outputs multiple messages to the debugging console
+	HRESULT logMsgToConsole(std::list<std::wstring>::const_iterator start,
+		std::list<std::wstring>::const_iterator end,
+		const std::wstring& prefix);
 
 	// Currently not implemented - will cause linker errors if called
 private:

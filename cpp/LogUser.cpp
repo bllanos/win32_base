@@ -75,3 +75,33 @@ HRESULT LogUser::logMessage(const std::wstring& msg,
 		return ERROR_SUCCESS;
 	}
 }
+
+HRESULT LogUser::logMessage(std::list<std::wstring>::const_iterator start,
+	std::list<std::wstring>::const_iterator end,
+	bool toConsole, bool toFile, const std::wstring filename) {
+	if( m_loggingEnabled ) {
+		std::wstring fullPrefix = m_msgPrefix + L" ";
+		if( m_logger != 0 ) {
+			return m_logger->logMessage(start, end, fullPrefix, toConsole, toFile, filename);
+		} else if( g_defaultLogger != 0 ) {
+			return g_defaultLogger->logMessage(start, end, fullPrefix, toConsole, toFile, filename);
+		} else {
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		}
+	} else {
+		return ERROR_SUCCESS;
+	}
+}
+
+HRESULT LogUser::logMsgStore(bool alwaysClearStore, bool toConsole, bool toFile,
+	const std::wstring filename) {
+
+	HRESULT result = logMessage(m_msgStore.cbegin(), m_msgStore.cend(),
+		toConsole, toFile, filename);
+
+	if( SUCCEEDED(result) || alwaysClearStore ) {
+		m_msgStore.clear();
+	}
+
+	return result;
+}
