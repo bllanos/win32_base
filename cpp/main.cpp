@@ -149,5 +149,6 @@ HRESULT applicationLoop(WPARAM& quit_wParam) {
 	// testConfig_IConfigManager::testConfigWithStringAndBoolValues();
 	// testLogger_LogUser::testBulkLogging();
 	testLogger_LogUser::testLocking();
+	testLogger_LogUser::testAppendMode();
 	return ERROR_SUCCESS;
 }

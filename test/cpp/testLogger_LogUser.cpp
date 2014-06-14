@@ -123,3 +123,96 @@ HRESULT testLogger_LogUser::testLocking(void) {
 
 	return ERROR_SUCCESS;
 }
+
+HRESULT testLogger_LogUser::testAppendMode(void) {
+
+	// Test a valid filename
+	Logger* logger = 0;
+	try {
+		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
+		logFilename += L"testAppendMode.txt";
+		logger = new Logger(true, logFilename, false, true);
+	} catch( ... ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
+	}
+
+	if( FAILED(logger->logMessage(L"Starting tests.")) ) {
+		delete logger;
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	}
+
+	HRESULT result = ERROR_SUCCESS;
+	HRESULT finalResult = ERROR_SUCCESS;
+
+	std::list<wstring> list;
+	result = logger->logMessage(list.cbegin(), list.cend(), L"Empty list:");
+	if( FAILED(result) ) {
+		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		logger->logMessage(L"Failed to log empty list.");
+	}
+
+	list.push_back(L"First message.");
+	result = logger->logMessage(list.cbegin(), list.cend(), L"One-element list:");
+	if( FAILED(result) ) {
+		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		logger->logMessage(L"Failed to log one-element list.");
+	}
+
+	list.push_back(L"Second message.");
+	list.push_back(L"Third message.");
+	result = logger->logMessage(list.cbegin(), list.cend(), L"Three-element list:");
+	if( FAILED(result) ) {
+		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		logger->logMessage(L"Failed to log three-element list.");
+	}
+
+	// Try logging to an alternate file
+	result = logger->logMessage(list.cbegin(), list.cend(), L"Three-element list, to another file:",
+		true, true, DEFAULT_LOG_PATH_TEST + wstring(L"testBulkLogging2.txt"));
+	if( FAILED(result) ) {
+		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		logger->logMessage(L"Failed to log three-element list to an alternate file.");
+	}
+
+	// Try creating a logger with an invalid filename
+	try {
+		std::wstring invalidLogFilename = L":.txt";
+		Logger* logger2 = new Logger(true, invalidLogFilename, false, true);
+		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		logger->logMessage(L"Failure: Constructed a Logger with an invalid filename.");
+		delete logger2;
+	} catch( std::exception e ) {
+		std::wstring exceptionMsg;
+		if( FAILED(toWString(exceptionMsg, e.what())) ) {
+			exceptionMsg = L"Error retrieving exception message.";
+		}
+		logger->logMessage(L"Successfully prevented construction with an invalid filename: "+exceptionMsg);
+	}
+
+	// Try creating a logger with an invalid filepath
+	try {
+		std::wstring invalidPathLogFilename = DEFAULT_LOG_PATH_TEST;
+		invalidPathLogFilename += L"\\doesNotExist\\"; // Make sure this folder does not exist!
+		invalidPathLogFilename += L"testAppendModeInvalidPath.txt";
+		Logger* logger3 = new Logger(true, invalidPathLogFilename, false, true);
+		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		logger->logMessage(L"Failure: Constructed a Logger with an invalid filename.");
+		delete logger3;
+	} catch( std::exception e ) {
+		std::wstring exceptionMsg;
+		if( FAILED(toWString(exceptionMsg, e.what())) ) {
+			exceptionMsg = L"Error retrieving exception message.";
+		}
+		logger->logMessage(L"Successfully prevented construction with an invalid filepath: " + exceptionMsg);
+	}
+
+	if( SUCCEEDED(finalResult) ) {
+		logger->logMessage(L"All tests passed.");
+	} else {
+		logger->logMessage(L"Some or all tests failed.");
+	}
+
+	delete logger;
+
+	return finalResult;
+}

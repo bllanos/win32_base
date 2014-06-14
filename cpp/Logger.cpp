@@ -22,6 +22,7 @@ Description
 #include "globals.h"
 #include <ctime>
 #include <exception>
+#include <cctype>
 
 /* For directory existence check (Windows-specific)
    Requires linking Shlwapi.lib
@@ -88,9 +89,45 @@ m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 				if( FAILED(extractPath(path, m_filename)) ) {
 					// This is a Microsoft-specific constructor
 					throw std::exception("Failure retrieving the primary logging output file's path.");
-				} else if( !PathIsDirectory(path.c_str()) ){
+				} else if( path.length() != 0 && !PathIsDirectory(path.c_str()) ){
 					// The location of the file is invalid
 					throw std::exception("Primary logging output file's path is invalid.");
+				}
+
+				// Check if the filename is 'invalid'
+				const wchar_t dot = L'.';
+				const wchar_t uScore = L'_';
+				const wchar_t* const filenameCStr = PathFindFileName(m_filename.c_str());
+				size_t filenameCStrSize = wcslen(filenameCStr);
+				if( filenameCStr[0] == dot || filenameCStr[filenameCStrSize - 1] == dot ) {
+					throw std::exception("Primary logging output filename starts or ends with '.'");
+				}
+				if( filenameCStr[0] == uScore ) {
+					throw std::exception("Primary logging output filename starts with '_'");
+				}
+
+				size_t dotPos = static_cast<size_t>(0);
+				for( size_t i = 0; i < filenameCStrSize; ++i ) {
+					if( filenameCStr[i] == dot ) {
+						if( dotPos != static_cast<size_t>(0) ) {
+							throw std::exception("Primary logging output filename has multiple occurrences of '.'");
+						} else {
+							dotPos = i;
+						}
+					} else if( !isalnum(filenameCStr[i]) ) {
+						if( filenameCStr[i] != uScore ) {
+							throw std::exception("Primary logging output filename has a non-alphanumeric character other than '.' or '_'");
+						} else if( dotPos != static_cast<size_t>(0) ) {
+							throw std::exception("Primary logging output filename has '_' after '.'");
+						}
+					}
+				}
+
+				if( dotPos == static_cast<size_t>(0) ) {
+					throw std::exception("Primary logging output filename does not contain '.'");
+				}
+				if( filenameCStr[dotPos - static_cast<size_t>(1)] == uScore ) {
+					throw std::exception("Primary logging output filename has '_' immediately before '.'");
 				}
 			}
 		}

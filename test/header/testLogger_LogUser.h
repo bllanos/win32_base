@@ -35,4 +35,11 @@ namespace testLogger_LogUser {
 	can write to the same file under these conditions.)
 	*/
 	HRESULT testLocking(void);
+
+	/* Tests Logger behaviour when the 'holdAndReplaceFile'
+	constructor parameter is false
+	Particular attention is paid to the capacity for the
+	constructor to detect invalid filepaths/filenames.
+	*/
+	HRESULT testAppendMode(void);
 }

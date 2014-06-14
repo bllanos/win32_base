@@ -22,6 +22,15 @@ Issues
   -Currently, the log file may not receive all logging messages if the application
    terminates in an abnormal way. Perhaps the output file stream could be flushed after
    each message to eliminate this issue, but there might be a performance cost?
+
+  -The constructor has a parameter, 'holdAndReplaceFile', which indicates whether
+   the Logger will open the file once and replace its contents with messages,
+   or open the file each time a message is logged to it, with messages being appended
+   to the existing content of the file. In the case where the Logger keeps the file
+   open for writing, the file can actually be opened and modified at the same time
+   by other objects. I have not implemented or used any locking mechanisms to prevent this.
+   (For example, the LockFile function,
+   http://msdn.microsoft.com/en-ca/library/windows/desktop/aa365202%28v=vs.85%29.aspx)
 */
 
 #pragma once
@@ -72,8 +81,22 @@ public:
 	  If the directory in which the logging file is to be found/created does not
 	  exist, an exception will be thrown.
 
-	This ensures that pointers to Logger objects will either be null
-	or will refer to functional objects.
+	  In this case, the constructor does not open the file, but checks
+	  that the directory in which the file is/would be located is valid.
+	  It also attempts to validate the filename (without opening the file)
+	  by permitting only the following:
+	    -All characters are either alphanumeric, '_', or '.'
+		-There is one occurrence of '.', and it is not at the beginning or end.
+		-Occurrences of '_' are not at the beginning, immediately before '.',
+		 or anywhere after '.'
+
+		(I could not find an easy check for a valid filename.
+		See http://msdn.microsoft.com/en-us/library/aa365247.aspx for more
+		information on filenames in Windows.)
+
+	Basically, the constructor attempts to ensure that pointers to Logger objects
+	will either be null or will refer to functional objects,
+	regardless of the constructor parameter values.
 	*/
 	Logger(bool allocLogFile = true, const std::wstring filename = L"log.txt", bool holdAndReplaceFile = false, bool allocLogConsole = false);
 
