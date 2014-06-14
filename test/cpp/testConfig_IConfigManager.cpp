@@ -41,7 +41,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 	try {
 		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
 		logFilename += L"testConfigWithStringValues.txt";
-		logger = new Logger(true, logFilename, false);
+		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
 	}
@@ -235,7 +235,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringAndBoolValues(void) {
 	try {
 		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
 		logFilename += L"testConfigWithStringAndBoolValues.txt";
-		logger = new Logger(true, logFilename, false);
+		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
 	}

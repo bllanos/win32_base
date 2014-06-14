@@ -31,10 +31,10 @@ LogUser::~LogUser(void) {
 	}
 }
 
-HRESULT LogUser::setLogger(bool allocLogFile, const std::wstring filename, bool allocLogConsole) {
+HRESULT LogUser::setLogger(bool allocLogFile, const std::wstring filename, bool lockAndReplaceFile, bool allocLogConsole) {
 	try {
 		Logger* newLogger;
-		newLogger = new Logger(allocLogFile, filename, allocLogConsole);
+		newLogger = new Logger(allocLogFile, filename, lockAndReplaceFile, allocLogConsole);
 		if (m_logger != 0) {
 			delete m_logger;
 			m_logger = newLogger;

@@ -22,6 +22,7 @@ Description
 #include "globals.h"
 #include <ctime>
 #include <exception>
+#include <Shlwapi.h> // For directory existence check (Windows-specific)
 
 // Using declarations
 using std::wstring;
@@ -30,8 +31,10 @@ using std::basic_ofstream;
 // Initialization of static members
 unsigned int Logger::s_nConsoleWriters = 0;
 
-Logger::Logger(bool allocLogFile, wstring filename, bool allocLogConsole) :
+Logger::Logger(bool allocLogFile, wstring filename,
+	bool lockAndReplaceFile, bool allocLogConsole) :
 m_consoleOpen(allocLogConsole), m_defaultLogFileOpen(allocLogFile),
+m_lockAndReplaceFile(lockAndReplaceFile),
 m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 {
 	if (m_consoleOpen) {
@@ -67,10 +70,25 @@ m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 	}
 	
 	if (m_defaultLogFileOpen) {
-		m_logfile.open(m_filename, std::ios::out);
-		if (!m_logfile.is_open()) {
-			// This is a Microsoft-specific constructor
-			throw std::exception("Failed to open output primary logging output file.");
+		if( m_lockAndReplaceFile ) {
+			m_logfile.open(m_filename, std::ios::out);
+			if( !m_logfile.is_open() ) {
+				// This is a Microsoft-specific constructor
+				throw std::exception("Failed to open output primary logging output file.");
+			}
+		} else {
+			// Check if the file does not already exist
+			if( !PathFileExists(m_filename.c_str()) ) {
+				// Check if the directory where the file will be created is valid
+				wstring path;
+				if( FAILED(extractPath(path, m_filename)) ) {
+					// This is a Microsoft-specific constructor
+					throw std::exception("Failure retrieving the primary logging output file's path.");
+				} else if( !PathIsDirectory(path.c_str()) ){
+					// The location of the file is invalid
+					throw std::exception("Primary logging output file's path is invalid.");
+				}
+			}
 		}
 	}
 }
@@ -178,7 +196,19 @@ HRESULT Logger::logMsgToFile(const wstring& msg, wstring filename) {
 		}
 		newFile << msg;
 	} else if (m_defaultLogFileOpen) {
-		m_logfile << msg;
+
+		if( m_lockAndReplaceFile ) {
+			m_logfile << msg;
+
+		} else {
+			m_logfile.open(m_filename, std::ios::app);
+			if( !m_logfile.is_open() ) {
+				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FILE_NOT_FOUND);
+			} else {
+				m_logfile << msg;
+				m_logfile.close();
+			}
+		}
 	}
 	return ERROR_SUCCESS;
 }
@@ -201,9 +231,21 @@ HRESULT Logger::logMsgToFile(std::list<wstring>::const_iterator start,
 		}
 
 	} else if( m_defaultLogFileOpen ) {
+
+		if( !m_lockAndReplaceFile ) {
+			m_logfile.open(m_filename, std::ios::app);
+			if( !m_logfile.is_open() ) {
+				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FILE_NOT_FOUND);
+			}
+		}
+
 		while( start != end ) {
 			m_logfile << prefix << *start << L"\n";
 			++start;
+		}
+
+		if( !m_lockAndReplaceFile ) {
+			m_logfile.close();
 		}
 	}
 	return ERROR_SUCCESS;

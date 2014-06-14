@@ -41,25 +41,41 @@ private:
 	// Data members
 private:
 	bool m_consoleOpen; // A console has been created
-	bool m_defaultLogFileOpen; // A text file has been opened
+
+	bool m_defaultLogFileOpen; // A text file has been opened, or can be opened
+
+	/* True if the primary log file is opened in the absence of message logging,
+	 as discussed further in the constructor documentation.
+	 */
+	bool m_lockAndReplaceFile;
+
 	HANDLE m_console; // The handle to the output console
-	std::wstring m_filename; // The name of the primary log file
+
+	std::wstring m_filename; // The name and path of the primary log file
+
 	std::basic_ofstream<wchar_t> m_logfile; // The primary log file output stream
 
 public:
 	/*
-	If the first parameter is true, a console window will be created.
-	If the second parameter is true, an output text file will be created.
-	The last parameter sets the name of the primary log file.
+	If 'allocLogConsole' is true, a console window will be created.
+	If the 'allocLogFile' parameter is true, an output text file will be created.
+	The 'filename' parameter sets the name of the primary log file.
 
-	The primary log file is opened by the constructor and closed
-	by the destructor. The previous contents of the file are overwritten.
+	If the 'lockAndReplaceFile' parameter is true:
+	  The primary log file is opened by the constructor and closed
+	  by the destructor. The previous contents of the file are overwritten.
+	  If the logging file or console cannot be opened, an exception will be thrown.
+	otherwise:
+	  The primary log file is opened and appended to only when messages
+	  are being written to it. The original contents of the file are added to,
+	  not overwritten.
+	  If the directory in which the logging file is to be found/created does not
+	  exist, an exception will be thrown.
 
-	If the logging file or console cannot be opened, an exception will be thrown.
 	This ensures that pointers to Logger objects will either be null
 	or will refer to functional objects.
 	*/
-	Logger(bool allocLogFile = true, const std::wstring filename = L"log.txt", bool allocLogConsole = false);
+	Logger(bool allocLogFile = true, const std::wstring filename = L"log.txt", bool lockAndReplaceFile = false, bool allocLogConsole = false);
 
 	virtual ~Logger(void);
 

@@ -61,7 +61,7 @@ public:
 	If the call to the Logger constructor fails, this
 	object's logger is not changed.
 	 */
-	HRESULT setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool allocLogConsole = false);
+	HRESULT setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool lockAndReplaceFile = false, bool allocLogConsole = false);
 	void enableLogging();
 	void disableLogging();
 

@@ -19,6 +19,7 @@ Description
 
 #include "globals.h"
 #include "defs.h"
+#include <Pathcch.h> // For filepath processing functions
 
 HRESULT toWString(std::wstring& wStr, const std::string& str) {
 	/* To convert an ASCII character string to a wide character string
@@ -38,4 +39,27 @@ HRESULT toWString(std::wstring& wStr, const std::string& str) {
 	wStr = wCStr;
 	delete[] wCStr;
 	return ERROR_SUCCESS;
+}
+
+HRESULT extractPath(std::wstring& path, const std::wstring& filenameAndPath) {
+
+	HRESULT result = ERROR_SUCCESS;
+
+	// Get a copy of the combined filename and path
+	size_t bufferLength = filenameAndPath.length() + 1;
+	wchar_t* pathBuffer = new wchar_t[bufferLength];
+	if( !wcscpy_s(pathBuffer, bufferLength, filenameAndPath.c_str()) ) {
+		result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+
+	// Copy operation was successful
+	} else {
+		// Remove the last directory or filename from the string
+		if(FAILED(PathCchRemoveFileSpec(pathBuffer, bufferLength))) {
+			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+		} else {
+			path = pathBuffer;
+		}
+	}
+	delete[] pathBuffer;
+	return result;
 }

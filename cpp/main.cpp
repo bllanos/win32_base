@@ -56,7 +56,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			try {
 				std::wstring logFilename = DEFAULT_LOG_PATH;
 				logFilename += DEFAULT_LOG_FILENAME;
-				g_defaultLogger = new Logger(true, logFilename, false);
+				g_defaultLogger = new Logger(true, logFilename, true, false);
 			}
 			catch (...) {
 				// Message box documentation: http://msdn.microsoft.com/en-us/library/windows/desktop/ms645505%28v=vs.85%29.aspx

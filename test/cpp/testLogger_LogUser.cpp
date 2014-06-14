@@ -35,7 +35,7 @@ HRESULT testLogger_LogUser::testBulkLogging(void) {
 	try {
 		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
 		logFilename += L"testBulkLogging.txt";
-		logger = new Logger(true, logFilename, true);
+		logger = new Logger(true, logFilename, true, true);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
 	}
