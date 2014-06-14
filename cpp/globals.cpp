@@ -19,7 +19,16 @@ Description
 
 #include "globals.h"
 #include "defs.h"
-#include <Pathcch.h> // For filepath processing functions
+
+/* For PathCchRemoveFileSpec() (Windows-specific)
+   Requires linking Pathcch.lib
+*/
+// #include <Pathcch.h> (Available only on Windows 8)
+
+/* For PathRemoveFileSpec() (Deprecated, but available on Windows 7)
+   Requires linking Shlwapi.lib
+*/
+#include <Shlwapi.h>
 
 HRESULT toWString(std::wstring& wStr, const std::string& str) {
 	/* To convert an ASCII character string to a wide character string
@@ -53,12 +62,20 @@ HRESULT extractPath(std::wstring& path, const std::wstring& filenameAndPath) {
 
 	// Copy operation was successful
 	} else {
+
+		/* (Works only on Windows 8 and above, it seems)
 		// Remove the last directory or filename from the string
 		if(FAILED(PathCchRemoveFileSpec(pathBuffer, bufferLength))) {
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
 		} else {
 			path = pathBuffer;
 		}
+		*/
+
+		// (Windows 7 - compatible version)
+		// Remove the last directory or filename from the string
+		PathRemoveFileSpec(pathBuffer);
+		path = pathBuffer;
 	}
 	delete[] pathBuffer;
 	return result;

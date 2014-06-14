@@ -147,6 +147,7 @@ HRESULT applicationLoop(WPARAM& quit_wParam) {
 	// testBasicWindow::openNWindows(1, false);
 	// testConfig_IConfigManager::testConfigWithStringValues(14, 3);
 	// testConfig_IConfigManager::testConfigWithStringAndBoolValues();
-	testLogger_LogUser::testBulkLogging();
+	// testLogger_LogUser::testBulkLogging();
+	testLogger_LogUser::testLocking();
 	return ERROR_SUCCESS;
 }

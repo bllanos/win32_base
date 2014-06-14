@@ -47,7 +47,7 @@ private:
 	/* True if the primary log file is opened in the absence of message logging,
 	 as discussed further in the constructor documentation.
 	 */
-	bool m_lockAndReplaceFile;
+	bool m_holdAndReplaceFile;
 
 	HANDLE m_console; // The handle to the output console
 
@@ -61,7 +61,7 @@ public:
 	If the 'allocLogFile' parameter is true, an output text file will be created.
 	The 'filename' parameter sets the name of the primary log file.
 
-	If the 'lockAndReplaceFile' parameter is true:
+	If the 'holdAndReplaceFile' parameter is true:
 	  The primary log file is opened by the constructor and closed
 	  by the destructor. The previous contents of the file are overwritten.
 	  If the logging file or console cannot be opened, an exception will be thrown.
@@ -75,7 +75,7 @@ public:
 	This ensures that pointers to Logger objects will either be null
 	or will refer to functional objects.
 	*/
-	Logger(bool allocLogFile = true, const std::wstring filename = L"log.txt", bool lockAndReplaceFile = false, bool allocLogConsole = false);
+	Logger(bool allocLogFile = true, const std::wstring filename = L"log.txt", bool holdAndReplaceFile = false, bool allocLogConsole = false);
 
 	virtual ~Logger(void);
 

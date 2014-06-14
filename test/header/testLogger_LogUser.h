@@ -28,4 +28,11 @@ namespace testLogger_LogUser {
 	of the Logger class.
 	*/
 	HRESULT testBulkLogging(void);
+
+	/* Testing whether Logger objects lock files when
+	the 'holdAndReplaceFile' constructor parameter is true.
+	(It seems that they do not; Multiple Logger objects
+	can write to the same file under these conditions.)
+	*/
+	HRESULT testLocking(void);
 }

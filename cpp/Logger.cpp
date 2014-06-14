@@ -22,7 +22,11 @@ Description
 #include "globals.h"
 #include <ctime>
 #include <exception>
-#include <Shlwapi.h> // For directory existence check (Windows-specific)
+
+/* For directory existence check (Windows-specific)
+   Requires linking Shlwapi.lib
+*/
+#include <Shlwapi.h>
 
 // Using declarations
 using std::wstring;
@@ -32,9 +36,9 @@ using std::basic_ofstream;
 unsigned int Logger::s_nConsoleWriters = 0;
 
 Logger::Logger(bool allocLogFile, wstring filename,
-	bool lockAndReplaceFile, bool allocLogConsole) :
+	bool holdAndReplaceFile, bool allocLogConsole) :
 m_consoleOpen(allocLogConsole), m_defaultLogFileOpen(allocLogFile),
-m_lockAndReplaceFile(lockAndReplaceFile),
+m_holdAndReplaceFile(holdAndReplaceFile),
 m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 {
 	if (m_consoleOpen) {
@@ -70,7 +74,7 @@ m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
 	}
 	
 	if (m_defaultLogFileOpen) {
-		if( m_lockAndReplaceFile ) {
+		if( m_holdAndReplaceFile ) {
 			m_logfile.open(m_filename, std::ios::out);
 			if( !m_logfile.is_open() ) {
 				// This is a Microsoft-specific constructor
@@ -197,7 +201,7 @@ HRESULT Logger::logMsgToFile(const wstring& msg, wstring filename) {
 		newFile << msg;
 	} else if (m_defaultLogFileOpen) {
 
-		if( m_lockAndReplaceFile ) {
+		if( m_holdAndReplaceFile ) {
 			m_logfile << msg;
 
 		} else {
@@ -232,7 +236,7 @@ HRESULT Logger::logMsgToFile(std::list<wstring>::const_iterator start,
 
 	} else if( m_defaultLogFileOpen ) {
 
-		if( !m_lockAndReplaceFile ) {
+		if( !m_holdAndReplaceFile ) {
 			m_logfile.open(m_filename, std::ios::app);
 			if( !m_logfile.is_open() ) {
 				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FILE_NOT_FOUND);
@@ -244,7 +248,7 @@ HRESULT Logger::logMsgToFile(std::list<wstring>::const_iterator start,
 			++start;
 		}
 
-		if( !m_lockAndReplaceFile ) {
+		if( !m_holdAndReplaceFile ) {
 			m_logfile.close();
 		}
 	}

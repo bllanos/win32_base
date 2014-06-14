@@ -92,3 +92,34 @@ HRESULT testLogger_LogUser::testBulkLogging(void) {
 
 	return finalResult;
 }
+
+HRESULT testLogger_LogUser::testLocking(void) {
+
+	// Create a file for logging the test results
+	std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
+	logFilename += L"testLocking.txt";
+	Logger* logger1 = 0;
+	try {
+		logger1 = new Logger(true, logFilename, true, true);
+	} catch( ... ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
+	}
+
+	// See if a second logger can open the same file
+	Logger* logger2 = 0;
+	try {
+		logger2 = new Logger(true, logFilename, true, true);
+		logger2->logMessage(L"Second logger created successfully.");
+	} catch( std::exception e ) {
+		std::wstring exceptionMsg;
+		if( FAILED(toWString(exceptionMsg, e.what())) ) {
+			exceptionMsg = L"Error retrieving exception message.";
+		}
+		logger1->logMessage(L"Second logger could not be created: " + exceptionMsg);
+	}
+
+	delete logger1;
+	delete logger2;
+
+	return ERROR_SUCCESS;
+}
