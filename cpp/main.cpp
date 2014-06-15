@@ -58,8 +58,20 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 				logFilename += DEFAULT_LOG_FILENAME;
 				g_defaultLogger = new Logger(true, logFilename, true, false);
 			}
-			catch (...) {
+			catch( std::exception e ) {
 				// Message box documentation: http://msdn.microsoft.com/en-us/library/windows/desktop/ms645505%28v=vs.85%29.aspx
+				std::string errorMsg = "Failed to initialize the default logger object, with error message: ";
+				errorMsg += e.what();
+				std::wstring wErrorMsg;
+				if( FAILED(toWString(wErrorMsg, errorMsg)) ) {
+					wErrorMsg = L"Failed to initialize the default logger object, and failed to retrieve an error message.";
+				}
+				wErrorMsg += L"\nProgram will exit.";
+				MessageBox(NULL, wErrorMsg.c_str(),
+					L"BL Project Error", MB_OK | MB_ICONSTOP | MB_TASKMODAL);
+				return 0;
+			}
+			catch (...) {
 				MessageBox(NULL, L"Failed to initialize the default logger object.\nProgram will exit.",
 					L"BL Project Error", MB_OK | MB_ICONSTOP | MB_TASKMODAL);
 				return 0;
