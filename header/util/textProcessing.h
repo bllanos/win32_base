@@ -39,27 +39,36 @@ namespace textProcessing {
 	If the function encounters an error, it may still have altered
 	the input string before returning a failure code.
 	*/
-	HRESULT remove_ASCII_Control(char* const str, const char* const ignore, const int nIgnore);
+	HRESULT remove_ASCII_ControlAndWhitespace(char* const str, const char* const ignore = 0, const size_t nIgnore = 0);
 
 	/* Converts a wide character string literal stored
-	in an ASCII string to a wide character
+	as a substring of a null-terminated ASCII string to a wide character
 	string object. The string literal must be prefixed by 'L"' and
 	postfixed by '"' in order to be accepted.
 
 	The index parameter is the point in the string at which to start
 	parsing, and is moved to the end of the parsed section if the
 	call succeeds.
+
+	Failure codes are returned due to internal errors, or if the input
+	string does not contain a wide character string literal.
 	*/
-	HRESULT strToWString(std::wstring& out, const char* const in, size_t& index);
+	HRESULT wStrLiteralToWString(std::wstring& out, const char* const in, size_t& index);
 
-	/* Essentially the inverse of strToWString() */
-	HRESULT wstringToWStringLiteral(std::wstring& out, const std::wstring& in);
+	/* Essentially the inverse of wStrLiteralToWString() */
+	HRESULT wstringToWStrLiteral(std::wstring& out, const std::wstring& in);
 
-	/* Converts the ASCII strings 'true' and 'false' to bool values.
+	/* Converts the null-terminated
+	ASCII string containing the substrings 'true' or 'false' to bool values.
+	(The first such substring encountered is assigned to the output parameter,
+	at which point the function returns.)
 
 	The index parameter is the point in the string at which to start
 	parsing, and is moved to the end of the parsed section if the
 	call succeeds.
+
+	Failure codes are returned due to internal errors, or if the input
+	string does not contain a bool literal.
 	*/
 	HRESULT strToBool(bool& out, const char* const in, size_t& index);
 

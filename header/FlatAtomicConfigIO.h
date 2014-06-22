@@ -47,17 +47,21 @@ created from Config objects by instances of this class.
 	L"# \t\t followed by '#', optional whitespace, and then the comment text\n"\
 	L"# \t-Configuration key-value pairs\n"\
 	L"#\n"\
-	L"# Whitespace is any character, other than '\\n',"\
-	L"# with an ASCII decimal value from 1 (inclusive) to 32 (inclusive), or 127."\
+	L"# Lines cannot be longer than 256 characters, or they will not be fully read.\n"\
 	L"#\n"\
-	L"# A configuration key value pair is, in the same order,\n"\
-	L"# \t Optional whitespace\n"\
-	L"# \t A datatype\n"\
-	L"# \t Optionally a key scope string (any characters), followed by '::'\n"\
-	L"# \t\t ('::' is optional if a scope string is not present)\n"\
-	L"# \t A key field parameter (any characters), followed by '='\n"\
+	L"# Whitespace is one or more characters, selected from the following:\n"\
+	L"# Characters other than '\\n', with ASCII decimal values\n"\
+	L"# from 1 (inclusive) to 32 (inclusive), or 127.\n"\
+	L"# (Therefore, whitespace includes tabs and spaces.)\n"\
+	L"#\n"\
+	L"# A configuration key value pair is, in the following order,\n"\
+	L"# \t A datatype name\n"\
+	L"# \t '--'\n"\
+	L"# \t Optionally, a key scope string (any characters)\n"\
+	L"# \t '::'\n"\
+	L"# \t A key field parameter (any characters)\n"\
+	L"# \t '='\n"\
 	L"# \t A value\n"\
-	L"# \t Optional whitespace\n"\
 	L"#\n"\
 	L"# Each of the above elements can optionally be separated by whitespace\n"\
 	L"# from the others, but any whitespace within an element\n"\
