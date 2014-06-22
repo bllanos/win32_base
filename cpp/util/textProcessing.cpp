@@ -54,13 +54,6 @@ HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const
 		current = str[copyFrom];
 		str[copyTo] = current;
 
-		// Track whether characters are espaced
-		if( current == '\\' ) {
-			escaped = !escaped;
-		} else {
-			escaped = false;
-		}
-
 		// Check for a special area of the string
 		if( current == delim && specialIgnore != 0 && !escaped ) {
 
@@ -88,11 +81,20 @@ HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const
 				str[endSection] = '\0';
 
 				// Process the substring
-				result = remove_ASCII_controlAndWhitespace(str + copyTo,
+				++copyFrom;
+				result = remove_ASCII_controlAndWhitespace(str + copyFrom,
 					specialIgnore, nSpecialIgnore, '\0', 0, 0);
 				if( FAILED(result) ) {
 					return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 				}
+
+				// Shift the substring
+				size_t substrIndex = 0;
+				while( str[substrIndex + copyFrom] != '\0' ) {
+					str[substrIndex + copyTo] = str[substrIndex + copyFrom];
+					++substrIndex;
+				}
+				str[substrIndex + copyTo] = str[substrIndex + copyFrom]; // Copy '\0'
 
 				// Put back the delimiter
 				str[endSection] = delim;
@@ -105,7 +107,7 @@ HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const
 				// Copy over and skip past the delimiter
 				str[copyTo] = delim;
 				++copyTo;
-				copyFrom = endSection + 1;
+				copyFrom = endSection;
 				escaped = false;
 			}
 
@@ -125,6 +127,13 @@ HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const
 			} else {
 				++copyTo;
 			}
+		}
+
+		// Track whether characters are espaced
+		if( current == '\\' ) {
+			escaped = !escaped;
+		} else {
+			escaped = false;
 		}
 	}
 
