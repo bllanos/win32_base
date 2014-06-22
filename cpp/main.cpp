@@ -150,6 +150,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 #include "testBasicWindow.h"
 #include "testConfig_IConfigManager.h"
 #include "testLogger_LogUser.h"
+#include "testTextProcessing.h"
 
 /*
 Run the application, possibly through a top-level control object
@@ -160,7 +161,8 @@ HRESULT applicationLoop(WPARAM& quit_wParam) {
 	// testConfig_IConfigManager::testConfigWithStringValues(14, 3);
 	// testConfig_IConfigManager::testConfigWithStringAndBoolValues();
 	// testLogger_LogUser::testBulkLogging();
-	testLogger_LogUser::testLocking();
-	testLogger_LogUser::testAppendMode();
+	// testLogger_LogUser::testLocking();
+	// testLogger_LogUser::testAppendMode();
+	testTextProcessing::testControlStrip();
 	return ERROR_SUCCESS;
 }
