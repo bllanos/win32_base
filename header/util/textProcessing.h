@@ -55,8 +55,9 @@ namespace textProcessing {
 	Delimiters can be escaped by preceding them with '\'.
 	'\' is not allowed as a delimiter.
 
-	The function will do nothing if any of the count/length parameters
-	are nonzero, but the corresponding arrays are null pointers,
+	The function will do nothing and return an error code
+	if any of the count/length parameters are nonzero,
+	but the corresponding arrays are null pointers,
 	or if the count parameters are zero, but the correpsonding
 	arrays are not null pointers.
 

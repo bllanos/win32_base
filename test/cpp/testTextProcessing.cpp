@@ -60,9 +60,11 @@ HRESULT testTextProcessing::testControlStrip(void) {
 		"Unmatched Escaped \\\" Delimiter.",
 		"Matched Escaped \\\"D e l i \n\tm i t e r s\\\".",
 		"Matched Delimiter At End: \\\\\"D e l i m i t e r\"",
-		"Matched Escpaed D e l i m i t e rs At End \\\"\\\"",
+		"Matched Escaped D e l i m i t e rs At End \\\"\\\"",
 		"\"D e l i \tm\n i t e r\"",
 		"\\\"D e l i \tm\n i t e r\"",
+		"\"D e l i \tm\n i t e r\\\"",
+		"\"D e l i \tm\n i t e r\\\\\""
 	};
 	size_t nStr = sizeof(pConstStrings) / sizeof(char*);
 
@@ -95,9 +97,9 @@ HRESULT testTextProcessing::testControlStrip(void) {
 	}
 
 	if( SUCCEEDED(finalResult) ) {
-		logger->logMessage(L"All tests passed.");
+		logger->logMessage(L"All tests ran without errors.");
 	} else {
-		logger->logMessage(L"Some or all tests failed.");
+		logger->logMessage(L"Some or all tests encountered errors.");
 	}
 
 	for( size_t i = 0; i < nStr; ++i ) {
