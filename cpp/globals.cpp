@@ -42,7 +42,7 @@ HRESULT toWString(std::wstring& wStr, const std::string& str) {
 	mbstowcs_s(&convertedChars, wCStr, wSize, cStr, _TRUNCATE);
 
 	if (convertedChars != wSize) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
 	}
 
 	wStr = wCStr;

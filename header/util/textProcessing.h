@@ -91,11 +91,12 @@ namespace textProcessing {
 	postfixed by '"' (not escaped) in order to be accepted.
 
 	The index parameter is the point in the string at which to start
-	parsing, and is moved to the end of the parsed section if the
-	call succeeds.
+	parsing, and is moved to after the end of the parsed section if a
+	string literal is found.
+	(Otherwise, if a string literal is not found,
+	the index parameter and output string parameter are not modified.)
 
-	Failure codes are returned due to internal errors, or if the input
-	string does not contain a wide character string literal.
+	Failure codes are returned due to internal errors.
 	*/
 	HRESULT wStrLiteralToWString(std::wstring& out, const char* const in, size_t& index);
 
@@ -107,12 +108,7 @@ namespace textProcessing {
 	(The first such substring encountered is assigned to the output parameter,
 	at which point the function returns.)
 
-	The index parameter is the point in the string at which to start
-	parsing, and is moved to the end of the parsed section if the
-	call succeeds.
-
-	Failure codes are returned due to internal errors, or if the input
-	string does not contain a bool literal.
+	Otherwise behaves like wStrLiteralToWString
 	*/
 	HRESULT strToBool(bool& out, const char* const in, size_t& index);
 

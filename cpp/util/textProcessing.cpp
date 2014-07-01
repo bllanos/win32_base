@@ -171,20 +171,76 @@ HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* cons
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
 	}
 
-	
+	// Check the start of the string
+	if( in[index] == 'L' && in[index + 1] == '"' ) {
+
+		// Find the end of the string literal
+		bool foundEnd = false;
+		size_t beginIndex = index + 2;
+		size_t endIndex = 0;
+		if( FAILED(findFirstNonEscaped(in, beginIndex, '"', foundEnd, endIndex)) ) {
+			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+
+		} else if( foundEnd ) {
+
+			// The string contains a string literal
+			size_t wSize = endIndex - beginIndex;
+			wchar_t* wCStr = new wchar_t[wSize];
+			size_t convertedChars = 0;
+			mbstowcs_s(&convertedChars, wCStr, wSize, in + beginIndex, _TRUNCATE);
+
+			if( convertedChars != wSize ) {
+				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+			}
+
+			out = wCStr;
+			delete[] wCStr;
+			index = endIndex + 1;
+		}
+	}
+
+	return ERROR_SUCCESS;
 }
 
-HRESULT textProcessing::wstringToWStrLiteral(std::wstring& out, const std::wstring& in);
+HRESULT textProcessing::wstringToWStrLiteral(std::wstring& out, const std::wstring& in) {
+	out = L"L\"";
+	out += in;
+	out += L'"';
+	return ERROR_SUCCESS;
+}
 
 HRESULT textProcessing::strToBool(bool& out, const char* const in, size_t& index) {
+
 	// Error checking
 	if( in == 0 ) {
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
 	}
 
-	HRESULT result = ERROR_SUCCESS;
+	// Initialization
+	const char* subStr = in + index;
 
-	return result;
+	// Constants
+	const char* const trueStr = "true";
+	const size_t trueLen = 4;
+	const char* const falseStr = "false";
+	const size_t falseLen = 5;
+
+	if( strncmp(subStr, trueStr, trueLen) == 0 ) {
+		out = true;
+		index += trueLen;
+	} else if( strncmp(subStr, falseStr, falseLen) == 0 ) {
+		out = false;
+		index += falseLen;
+	}
+	
+	return ERROR_SUCCESS;
 }
 
-HRESULT textProcessing::boolToWString(std::wstring& out, const bool& in);
+HRESULT textProcessing::boolToWString(std::wstring& out, const bool& in) {
+	if( in ) {
+		out = L"true";
+	} else {
+		out = L"false";
+	}
+	return ERROR_SUCCESS;
+}
