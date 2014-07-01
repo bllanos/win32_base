@@ -23,6 +23,8 @@ Description
 #include <windows.h> // For the HRESULT type
 #include <string>
 
+#define ESCAPE_CHAR '\\'
+
 namespace textProcessing {
 
 	/* Removes characters from the character array (which must be null-terminated)
@@ -67,10 +69,26 @@ namespace textProcessing {
 	HRESULT remove_ASCII_controlAndWhitespace(char* const str, const char* const ignore = 0, const size_t nIgnore = 0,
 		const char delim = '"', const char* const specialIgnore = 0, const size_t nSpecialIgnore = 0);
 
+	/* Finds the next occurrence of the 'target' character
+	in the string that is not preceded by an odd number of '\'
+	(i.e. the character is not "escaped"). The search begins
+	at the 'startOffset' index.
+
+	If the target character is found, the 'found' parameter
+	will be set to true.
+
+	The function outputs false to its 'found' parameter,
+	but still returns a success code,
+	if the 'target' non-escaped character is not found.
+	(Failure codes are returned if there are faults.)
+	*/
+	HRESULT findFirstNonEscaped(const char* const str, const size_t& startOffset,
+		const char target, bool& found, size_t& foundOffset);
+
 	/* Converts a wide character string literal stored
 	as a substring of a null-terminated ASCII string to a wide character
 	string object. The string literal must be prefixed by 'L"' and
-	postfixed by '"' in order to be accepted.
+	postfixed by '"' (not escaped) in order to be accepted.
 
 	The index parameter is the point in the string at which to start
 	parsing, and is moved to the end of the parsed section if the

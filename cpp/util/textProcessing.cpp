@@ -31,7 +31,7 @@ HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
 	} else if( (specialIgnore == 0 && nSpecialIgnore != 0) || (specialIgnore != 0 && nSpecialIgnore == 0) ) {
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
-	} else if( delim == '\\' ) {
+	} else if( delim == ESCAPE_CHAR ) {
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
 	}
 
@@ -57,24 +57,15 @@ HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const
 		// Check for a special area of the string
 		if( current == delim && specialIgnore != 0 && !escaped ) {
 
-			// Search for the second delimiter
-			size_t endSection = copyFrom + 1;
-			bool otherEscaped = false;
-			while( str[endSection] != '\0' ) {
-				if( str[endSection] == delim && !otherEscaped ) {
-					// Second delimiter found and is not escaped
-					break;
-				} else if( str[endSection] == '\\' ) {
-					otherEscaped = !otherEscaped;
-				} else {
-					otherEscaped = false;
-				}
-				++endSection;
-			}
-
 			++copyTo;
 
-			if( str[endSection] != '\0' ) {
+			// Search for the second delimiter
+			bool foundEndSection = false;
+			size_t endSection = 0;
+			if( FAILED(findFirstNonEscaped(str, copyFrom + 1, delim, foundEndSection, endSection)) ) {
+				return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+
+			} else if(foundEndSection) {
 				// Found a non-escaped second delimiter
 
 				// Mark a substring
@@ -130,7 +121,7 @@ HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const
 		}
 
 		// Track whether characters are espaced
-		if( current == '\\' ) {
+		if( current == ESCAPE_CHAR ) {
 			escaped = !escaped;
 		} else {
 			escaped = false;
@@ -141,6 +132,36 @@ HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const
 	str[copyTo] = '\0';
 
 	return result;
+}
+
+HRESULT textProcessing::findFirstNonEscaped(const char* const str, const size_t& startOffset,
+	const char target, bool& found, size_t& foundOffset) {
+
+	// Error checking
+	if( str == 0 ) {
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+	}
+
+	// Initialize result to "not found"
+	foundOffset = 0;
+	found = false;
+
+	bool escaped = false;
+	const char* testLocation = str + startOffset;
+	while( *testLocation != '\0' ) {
+		if( *testLocation == target && !escaped ) {
+			foundOffset = static_cast<size_t>(testLocation - str);
+			found = true;
+			break;
+		} else if( *testLocation == ESCAPE_CHAR ) {
+			escaped = !escaped;
+		} else {
+			escaped = false;
+		}
+		++testLocation;
+	}
+
+	return ERROR_SUCCESS;
 }
 
 HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* const in, size_t& index) {
