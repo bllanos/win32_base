@@ -67,7 +67,8 @@ private:
 public:
 	/*
 	If 'allocLogConsole' is true, a console window will be created.
-	If the 'allocLogFile' parameter is true, an output text file will be created.
+	If the 'allocLogFile' parameter is true, an output text file will be created
+	(or simply opened, if it already exists).
 	The 'filename' parameter sets the name of the primary log file.
 
 	If the 'holdAndReplaceFile' parameter is true:
@@ -123,7 +124,7 @@ public:
 
 	/* This function is intended for bulk logging operations,
 	 and will be more efficient than calling the version for single messages
-	 repeatedly.
+	 repeatedly. Otherwise, the two functions behave similarly except as follows:
 
 	 All messages in the stream will be given the same time prefix, followed
 	 by the optional prefix passed in as the third argument. No separation is

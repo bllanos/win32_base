@@ -36,7 +36,7 @@ created from Config objects by instances of this class.
 */
 #define FLATATOMICCONFIGIO_DATA_FORMATSPEC \
 	L"# ----------------------------------------------------------------------------\n"\
-	L"# The FlatAtomicConfigIO class, used to process this file \n"\
+	L"# The FlatAtomicConfigIO class, used to generate this file \n"\
 	L"# defines the following file format:\n"\
 	L"#\n"\
 	L"# ASCII encoding is expected."\
@@ -49,9 +49,9 @@ created from Config objects by instances of this class.
 	L"#\n"\
 	L"# Lines cannot be longer than 256 characters, or they will not be fully read.\n"\
 	L"#\n"\
-	L"# Whitespace is one or more characters, selected from the following:\n"\
+	L"# 'Whitespace' is one or more characters, selected from the following:\n"\
 	L"# Characters other than '\\n', with ASCII decimal values\n"\
-	L"# from 1 (inclusive) to 32 (inclusive), or 127.\n"\
+	L"# from 1 (inclusive) to 32 (inclusive), or 127 and greater.\n"\
 	L"# (Therefore, whitespace includes tabs and spaces.)\n"\
 	L"#\n"\
 	L"# A configuration key value pair is, in the following order,\n"\
@@ -79,13 +79,16 @@ created from Config objects by instances of this class.
 	L"# they must start with 'L\"' and end with '\"'.\n"\
 	L"# ----------------------------------------------------------------------------\n"
 
+#define FLATATOMICCONFIGIO_COMMENT_PREFIX L'#'
+#define FLATATOMICCONFIGIO_MAX_LINE_LENGTH 256
+#define FLATATOMICCONFIGIO_LINE_SEP '\n'
 
 class FlatAtomicConfigIO : public IConfigIO, public LogUser {
 
 private:
 	// Stores the types of data that this class can process
-	static const size_t s_nSupportedDataTypes;
 	static const Config::DataType s_supportedDataTypes[];
+	static const size_t s_nSupportedDataTypes;
 
 public:
 	// Returns true if this class can process this data type
@@ -97,15 +100,23 @@ public:
 
 public:
 	/* Read configuration data from a file
+	(See IConfigIO.h for details)
+
 	This function is responsible for ignoring comment lines
-	in the file.
+	in the file, and for appending error messages
+	to the file.
+	
+	(This function adds comment symbols and class name prefixes
+	to the error messages before they are logged.)
 	*/
 	virtual HRESULT read(const std::wstring& filename,
 		Config& config) override;
 
-	// Write configuration data to a file
+	/* Write configuration data to a file.
+	(See IConfigIO.h for details)
+	*/
 	virtual HRESULT write(const std::wstring& filename,
-		const Config& config) override;
+		const Config& config, const bool overwrite) override;
 
 protected:
 	/* Processes a data type, key, value line from the input file
@@ -115,8 +126,11 @@ protected:
 	been stripped, and the line is expected to be null-terminated.
 	(Therefore, the 'line' could actually have been multiple lines
 	in the input file.)
+
+	The line number is used to create more useful error messages,
+	by identifying where in the file an issue was encountered.
 	*/
-	HRESULT readDataLine(Config& config, const char* const str);
+	HRESULT readDataLine(Config& config, char* const str, const size_t lineNumber);
 
 	/* Format a key-value pair as a string
 	Only values of data types which are supported by this class

@@ -30,6 +30,7 @@ const std::wstring Config::s_dataTypesNames[] = {
 	L"WSTRING",
 	L"BOOL"
 };
+
 const Config::DataType Config::s_dataTypesInOrder[] = {
 	DataType::WSTRING,
 	DataType::BOOL
