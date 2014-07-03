@@ -75,3 +75,4 @@ list of all error codes used in the program.
 #define ERROR_NO_LOGGER				1803 // Failed to create a custom Logger object
 #define ERROR_WINDOWS_CALL			1804 // Error in a call to a Windows function
 #define ERROR_LIBRARY_CALL			1805 // Error in a call to a library function
+#define ERROR_DATA_INCOMPLETE		1806 // Data entered or returned is not complete or is partially corrupted

@@ -26,6 +26,8 @@ Description
 
 #include <windows.h>
 #include <string>
+#include <map>
+#include <iterator>
 #include "defs.h"
 #include "LogUser.h"
 #include "Config.h"
@@ -47,7 +49,7 @@ created from Config objects by instances of this class.
 	L"# \t\t followed by '#', optional whitespace, and then the comment text\n"\
 	L"# \t-Configuration key-value pairs\n"\
 	L"#\n"\
-	L"# Lines cannot be longer than 256 characters, or they will not be fully read.\n"\
+	L"# Lines cannot be longer than 255 characters, or they will not be fully read.\n"\
 	L"#\n"\
 	L"# 'Whitespace' is one or more characters, selected from the following:\n"\
 	L"# Characters other than '\\n', with ASCII decimal values\n"\
@@ -129,14 +131,24 @@ protected:
 
 	The line number is used to create more useful error messages,
 	by identifying where in the file an issue was encountered.
+
+	If the function encounters an internal error, it will return a failure
+	code. If it encounters improperly formatted data in the file, but does
+	not experience internal errors, it will return a success,
+	but with the ERROR_DATA_INCOMPLETE error code.
 	*/
-	HRESULT readDataLine(Config& config, char* const str, const size_t lineNumber);
+	HRESULT readDataLine(Config& config, char* const str, const size_t& lineNumber);
 
 	/* Format a key-value pair as a string
 	Only values of data types which are supported by this class
 	can be processed. (Refer to the isSupportedDataType() function)
+
+	If the function encounters an internal error, it will return a failure
+	code. If it encounters unexpected data types in the Config object, but does
+	not experience internal errors, it will return a success,
+	but with the ERROR_DATA_INCOMPLETE error code.
 	*/
-	HRESULT writeDataLine(std::wstring& str, const Config& config);
+	HRESULT writeDataLine(std::wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data);
 
 	// Currently not implemented - will cause linker errors if called
 private:

@@ -44,9 +44,14 @@ public:
 	will become the final mapping for that key.)
 
 	Parsing warnings, errors, etc., may be appended to the configuration
-	file in the form of comments. (They will not be read as data
-	by instances of the same IConfigIO derived class as the object
+	file in the form of comments. (Comments will not be interpreted later as data
+	when read by instances of the same IConfigIO derived class as the object
 	that logged them.)
+
+	If the function encounters an internal error, it will return a failure
+	code. If it encounters improperly formatted data in the file, but does
+	not experience internal errors, it will return a success,
+	but with the ERROR_DATA_INCOMPLETE error code.
 	*/
 	virtual HRESULT read(const std::wstring& filename,
 		Config& config) = 0;
@@ -54,6 +59,11 @@ public:
 	/* Write configuration data to a file.
 	The 'overwrite' parameter specifies whether to overwrite the file
 	(true), or append to the file (false).
+
+	If the function encounters an internal error, it will return a failure
+	code. If it encounters unexpected data types in the Config object, but does
+	not experience internal errors, it will return a success,
+	but with the ERROR_DATA_INCOMPLETE error code.
 	*/
 	virtual HRESULT write(const std::wstring& filename,
 		const Config& config, const bool overwrite) = 0;

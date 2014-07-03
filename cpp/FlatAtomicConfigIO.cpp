@@ -54,7 +54,8 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FILE_NOT_FOUND);
 	}
 
-	HRESULT result;
+	HRESULT result = ERROR_SUCCESS;
+	HRESULT lineResult = ERROR_SUCCESS;
 
 	// Process each line
 	char line[FLATATOMICCONFIGIO_MAX_LINE_LENGTH];
@@ -69,11 +70,14 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 			break;
 		}
 		++lineNumber;
-		if( FAILED(readDataLine(config, line, lineNumber)) ) {
+		lineResult = readDataLine(config, line, lineNumber);
+		if( FAILED(lineResult) ) {
 			// The readDataLine() function should already have logged an error to the message queue
 			logMessage(L"readDataLine() returned a failure code - Aborting read operation.");
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			break;
+		} else if( HRESULT_CODE(lineResult) == ERROR_DATA_INCOMPLETE) {
+			result = lineResult;
 		}
 	} while( file.good() );
 
@@ -82,14 +86,14 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 	// Write any parsing problems back to the file
 	if( !fail ) {
 		if( m_msgStore.empty() ) {
-			logMessage(L"File parsed without errors.");
+			logMessage(L"File parsing complete - No invalid data.");
 		} else {
-			setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_PREFIX +
-				L"FlatAtomicConfigIO parsing issue >");
+			logMessage(L"File parsing complete - Invalid data encountered.");
+			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object parsing report begins --");
+			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object parsing report ends -->>");
 
 			if( FAILED(logMsgStore(true, false, true, filename)) ) {
-				setMsgPrefix(L"FlatAtomicConfigIO reading " + filename + L">");
-				logMessage(L"Problem appending error messages.");
+				logMessage(L"Problem appending parsing error messages to the file.");
 				result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			}
 		}
@@ -100,6 +104,6 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 
 HRESULT FlatAtomicConfigIO::write(const std::wstring& filename, const Config& config, const bool overwrite);
 
-HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const size_t lineNumber);
+HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const size_t& lineNumber);
 
-HRESULT FlatAtomicConfigIO::writeDataLine(std::wstring& str, const Config& config);
+HRESULT FlatAtomicConfigIO::writeDataLine(std::wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data);
