@@ -26,8 +26,11 @@ namespace testLogger_LogUser {
 
 	/* Testing the bulk logging capabilities
 	of the Logger class.
+
+	The input parameter indicates whether or not messages
+	are timestamped by the logger.
 	*/
-	HRESULT testBulkLogging(void);
+	HRESULT testBulkLogging(bool timestampEnabled);
 
 	/* Testing whether Logger objects lock files when
 	the 'holdAndReplaceFile' constructor parameter is true.

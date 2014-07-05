@@ -37,6 +37,7 @@ class LogUser
 private:
 	bool m_loggingEnabled; // Switch for turning logging on or off
 	Logger* m_logger; // Null if the global default Logger object is used instead of a custom Logger
+	Logger* m_pastLogger; // The previous Logger
 	std::wstring m_msgPrefix; // All logging messages will be prefixed with this string
 
 protected:
@@ -55,18 +56,55 @@ protected:
 public:
 	virtual ~LogUser(void);
 
-	// Getters and setters
-public:
+	// Protected getters and setters
+protected:
 	/* Arguments are forwarded to the Logger constructor
 	If the call to the Logger constructor fails, this
 	object's logger is not changed.
 	 */
 	HRESULT setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool holdAndReplaceFile = false, bool allocLogConsole = false);
+
+	/* Reverts to the previous Logger, if it is not a null pointer
+	(in which case the call fails and nothing is changed).
+
+	The previous Logger is not null only if
+	setLogger() has been called since the last call
+	to revertLogger(), or since the object was created
+	(whichever came first).
+	*/
+	HRESULT revertLogger(void);
+
+	/* The following functions should be used only with some knowledge
+	of what the specific class of this object uses a Logger for.
+
+	Logging is sometimes used for outputting important data!
+	*/
+public:
 	void enableLogging();
 	void disableLogging();
 
 protected:
 	void setMsgPrefix(const std::wstring& prefix);
+
+	/* Proxy for the Logger class function of the same name.
+	Watch that this will affect the global Logger
+	if this object does not own a Logger.
+
+	If this object's setLogger() function is used to
+	change the Logger pointed to by this object,
+	the effects of calling this function previously
+	will be lost; the timestamping setting
+	is not carried forward.
+	
+	However, the timestamping setting
+	of the object's past Logger (if one exists) are persisted,
+	such that, if the past Logger is restored using revertLogger(),
+	the timestamping behaviour of that Logger will take effect.
+
+	Returns false if this object does not own a Logger,
+	and if the global Logger pointer is null.
+	*/
+	bool toggleTimestamp(bool newState);
 
 	// Logging functions
 protected:

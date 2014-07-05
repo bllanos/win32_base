@@ -64,6 +64,8 @@ private:
 
 	std::basic_ofstream<wchar_t> m_logfile; // The primary log file output stream
 
+	bool m_timestampEnabled; // Determines whether logged messages are prefixed with the current time
+
 public:
 	/*
 	If 'allocLogConsole' is true, a console window will be created.
@@ -98,6 +100,9 @@ public:
 	Basically, the constructor attempts to ensure that pointers to Logger objects
 	will either be null or will refer to functional objects,
 	regardless of the constructor parameter values.
+
+	Timestamping of logged messages is enabled by default, but
+	can be disabled or re-enabled using the toggleTimestamp() function.
 	*/
 	Logger(bool allocLogFile = true, const std::wstring filename = L"log.txt", bool holdAndReplaceFile = false, bool allocLogConsole = false);
 
@@ -117,7 +122,9 @@ public:
 	file will not be overwritten.)
 
 	All messages will be prefixed with the current date and time,
-	and postfixed with a newline.
+	and postfixed with a newline. However, the date and time
+	prefixing can be disabled by calling the 'toggleTimestamp()'
+	member function.
 	*/
 	HRESULT logMessage(const std::wstring& msg,
 		bool toConsole = true, bool toFile = true, const std::wstring filename = L"");
@@ -126,8 +133,9 @@ public:
 	 and will be more efficient than calling the version for single messages
 	 repeatedly. Otherwise, the two functions behave similarly except as follows:
 
-	 All messages in the stream will be given the same time prefix, followed
-	 by the optional prefix passed in as the third argument. No separation is
+	 All messages in the stream will be given the same time prefix
+	 (if timestamping is enabled), followed by the optional prefix
+	 passed in as the third argument. No separation is
 	 added between the prefix and the rest of each message.
 
 	 Messages will be logged in the order that they are provided by the iterators.
@@ -135,6 +143,11 @@ public:
 	HRESULT logMessage(std::list<std::wstring>::const_iterator start,
 		std::list<std::wstring>::const_iterator end, const std::wstring& prefix = L"",
 		bool toConsole = true, bool toFile = true, const std::wstring filename = L"");
+
+	/* Turns the prefixing of messages with the current time on or off.
+	  Returns whether timestamping was previously on (true) or off (false).
+	*/
+	bool toggleTimestamp(bool newState);
 
 private:
 	// Retrieves the current local time

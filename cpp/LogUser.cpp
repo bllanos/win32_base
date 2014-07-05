@@ -21,13 +21,17 @@ Description
 #include "LogUser.h"
 
 LogUser::LogUser(bool enableLogging, std::wstring msgPrefix) :
-m_loggingEnabled(enableLogging), m_logger(0), m_msgPrefix(msgPrefix)
+m_loggingEnabled(enableLogging), m_logger(0), m_pastLogger(0),
+m_msgPrefix(msgPrefix)
 {}
 
 LogUser::~LogUser(void) {
 	if (m_logger != 0) {
 		delete m_logger;
 		m_logger = 0;
+	} if( m_pastLogger != 0 && m_pastLogger != g_defaultLogger ) {
+		delete m_pastLogger;
+		m_pastLogger = 0;
 	}
 }
 
@@ -36,13 +40,34 @@ HRESULT LogUser::setLogger(bool allocLogFile, const std::wstring filename, bool 
 		Logger* newLogger;
 		newLogger = new Logger(allocLogFile, filename, holdAndReplaceFile, allocLogConsole);
 		if (m_logger != 0) {
-			delete m_logger;
-			m_logger = newLogger;
+			if( m_pastLogger != 0 && m_pastLogger != g_defaultLogger ) {
+				delete m_pastLogger;
+			}
+			m_pastLogger = m_logger;
+		} else {
+			m_pastLogger = g_defaultLogger;
 		}
+		m_logger = newLogger;
 		return ERROR_SUCCESS;
 	}
 	catch (...) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	}
+}
+
+HRESULT LogUser::revertLogger(void) {
+	if( m_pastLogger == 0 ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+	} else {
+		if( m_logger != 0 ) {
+			delete m_logger;
+			m_logger = 0;
+		}
+		if( m_pastLogger != g_defaultLogger ) {
+			m_logger = m_pastLogger;
+		}
+		m_pastLogger = 0;
+		return ERROR_SUCCESS;
 	}
 }
 
@@ -56,6 +81,16 @@ void LogUser::disableLogging() {
 
 void LogUser::setMsgPrefix(const std::wstring& prefix) {
 	m_msgPrefix = prefix;
+}
+
+bool LogUser::toggleTimestamp(bool newState) {
+	if( m_logger != 0 ) {
+		return m_logger->toggleTimestamp(newState);
+	} else if( g_defaultLogger != 0 ) {
+		return g_defaultLogger->toggleTimestamp(newState);
+	} else {
+		return false;
+	}
 }
 
 HRESULT LogUser::logMessage(const std::wstring& msg,

@@ -37,10 +37,11 @@ using std::basic_ofstream;
 unsigned int Logger::s_nConsoleWriters = 0;
 
 Logger::Logger(bool allocLogFile, wstring filename,
-	bool holdAndReplaceFile, bool allocLogConsole) :
+bool holdAndReplaceFile, bool allocLogConsole) :
 m_consoleOpen(allocLogConsole), m_defaultLogFileOpen(allocLogFile),
 m_holdAndReplaceFile(holdAndReplaceFile),
-m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile()
+m_console(INVALID_HANDLE_VALUE), m_filename(filename), m_logfile(),
+m_timestampEnabled(true)
 {
 	if (m_consoleOpen) {
 
@@ -147,13 +148,16 @@ Logger::~Logger(void) {
 
 HRESULT Logger::logMessage(const wstring& msg, bool toConsole, bool toFile, const wstring filename) {
 	wstring fullMessage;
-	if (FAILED(getDateAndTime(fullMessage))) {
-		fullMessage = L"[Cannot get time]";
-	}
 
-	// Format the message
-	fullMessage.back() = L' '; // Remove the newline character
-	fullMessage += L"| ";
+	if( m_timestampEnabled ) {
+		if( FAILED(getDateAndTime(fullMessage)) ) {
+			fullMessage = L"[Cannot get time]";
+		}
+
+		// Format the message
+		fullMessage.back() = L' '; // Remove the newline character
+		fullMessage += L"| ";
+	}
 	fullMessage += msg;
 	fullMessage += L"\n";
 
@@ -176,13 +180,15 @@ HRESULT Logger::logMessage(std::list<wstring>::const_iterator start,
 	bool toConsole, bool toFile, const wstring filename) {
 
 	wstring fullPrefix;
-	if( FAILED(getDateAndTime(fullPrefix)) ) {
-		fullPrefix = L"[Cannot get time]";
-	}
+	if( m_timestampEnabled ) {
+		if( FAILED(getDateAndTime(fullPrefix)) ) {
+			fullPrefix = L"[Cannot get time]";
+		}
 
-	// Format the message
-	fullPrefix.back() = L' '; // Remove the newline character
-	fullPrefix += L"| ";
+		// Format the message
+		fullPrefix.back() = L' '; // Remove the newline character
+		fullPrefix += L"| ";
+	}
 	fullPrefix += prefix;
 
 	HRESULT result = ERROR_SUCCESS;
@@ -196,6 +202,13 @@ HRESULT Logger::logMessage(std::list<wstring>::const_iterator start,
 			result = tempResult;
 		}
 	}
+	return result;
+}
+
+
+bool Logger::toggleTimestamp(bool newState) {
+	bool result = m_timestampEnabled;
+	m_timestampEnabled = newState;
 	return result;
 }
 

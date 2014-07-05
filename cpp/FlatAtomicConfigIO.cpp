@@ -88,22 +88,43 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 		if( m_msgStore.empty() ) {
 			logMessage(L"File parsing complete - No invalid data.");
 		} else {
-			logMessage(L"File parsing complete - Invalid data encountered.");
+			logMessage(L"File parsing complete - Problems encountered.");
+
 			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object parsing report begins --");
 			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object parsing report ends -->>");
 
-			if( FAILED(logMsgStore(true, false, true, filename)) ) {
-				logMessage(L"Problem appending parsing error messages to the file.");
+			/* Get an "empty" Logger for easy output to the file,
+			   such that this object has complete control over the
+			   Logger's timestamping behaviour.
+			*/
+			if( FAILED(setLogger(false, L"", false, false)) ) {
+				logMessage(L"Error getting a Logger to output parsing report to the file.");
 				result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+			} else {
+				toggleTimestamp(false);
+				setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_PREFIX);
+				if( FAILED(logMsgStore(true, false, true, filename)) ) {
+					revertLogger();
+					setMsgPrefix(L"FlatAtomicConfigIO reading " + filename + L">");
+					logMessage(L"Problem appending parsing error messages to the file.");
+					result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+				} else {
+					revertLogger();
+				}
 			}
 		}
 	}
-
 	return result;
 }
 
-HRESULT FlatAtomicConfigIO::write(const std::wstring& filename, const Config& config, const bool overwrite);
+HRESULT FlatAtomicConfigIO::write(const std::wstring& filename, const Config& config, const bool overwrite) {
+	return ERROR_SUCCESS;
+}
 
-HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const size_t& lineNumber);
+HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const size_t& lineNumber) {
+	return ERROR_SUCCESS;
+}
 
-HRESULT FlatAtomicConfigIO::writeDataLine(std::wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data);
+HRESULT FlatAtomicConfigIO::writeDataLine(std::wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data) {
+	return ERROR_SUCCESS;
+}

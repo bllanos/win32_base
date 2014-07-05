@@ -81,7 +81,8 @@ created from Config objects by instances of this class.
 	L"# they must start with 'L\"' and end with '\"'.\n"\
 	L"# ----------------------------------------------------------------------------\n"
 
-#define FLATATOMICCONFIGIO_COMMENT_PREFIX L'#'
+#define FLATATOMICCONFIGIO_COMMENT_CHAR '#'
+#define FLATATOMICCONFIGIO_COMMENT_PREFIX L"#"
 #define FLATATOMICCONFIGIO_MAX_LINE_LENGTH 256
 #define FLATATOMICCONFIGIO_LINE_SEP '\n'
 

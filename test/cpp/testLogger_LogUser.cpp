@@ -28,7 +28,7 @@ Description
 
 using std::wstring;
 
-HRESULT testLogger_LogUser::testBulkLogging(void) {
+HRESULT testLogger_LogUser::testBulkLogging(bool timestampEnabled) {
 
 	// Create a file for logging the test results
 	Logger* logger = 0;
@@ -42,6 +42,8 @@ HRESULT testLogger_LogUser::testBulkLogging(void) {
 
 	HRESULT result = ERROR_SUCCESS;
 	HRESULT finalResult = ERROR_SUCCESS;
+
+	logger->toggleTimestamp(timestampEnabled);
 
 	// Begin tests
 	std::list<wstring> list;
