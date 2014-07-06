@@ -70,8 +70,8 @@ created from Config objects by instances of this class.
 	L"# will be stripped during processing.\n"\
 	L"#\n"\
 	L"# Datatypes must match one of the 'DataType' enumeration constant names\n"\
-	L"# found in Config.h\n"\
-	L"# that corresponds to either a wide character string or a fundamental type.\n"\
+	L"# found in Config.h that corresponds to\n"\
+	L"# either a wide character string or a fundamental type.\n"\
 	L"# The matching is case-sensitive,\n"\
 	L"# and is implemented in the Config::wstringToDataType() function.\n"\
 	L"#\n"\
@@ -81,7 +81,10 @@ created from Config objects by instances of this class.
 	L"# they must start with 'L\"' and end with '\"'.\n"\
 	L"# ----------------------------------------------------------------------------\n"
 
-#define FLATATOMICCONFIGIO_COMMENT_CHAR '#'
+#define FLATATOMICCONFIGIO_COMMENT_SEP '#'
+#define FLATATOMICCONFIGIO_SEP_1 "--"
+#define FLATATOMICCONFIGIO_SEP_2 "::"
+#define FLATATOMICCONFIGIO_SEP_3 "="
 #define FLATATOMICCONFIGIO_COMMENT_PREFIX L"#"
 #define FLATATOMICCONFIGIO_MAX_LINE_LENGTH 256
 #define FLATATOMICCONFIGIO_LINE_SEP '\n'
@@ -105,18 +108,21 @@ public:
 	/* Read configuration data from a file
 	(See IConfigIO.h for details)
 
-	This function is responsible for ignoring comment lines
-	in the file, and for appending error messages
-	to the file.
-	
-	(This function adds comment symbols and class name prefixes
-	to the error messages before they are logged.)
+	This function is responsible for appending error messages
+	to the file and adds comment symbols and class name prefixes
+	to the error messages before they are logged.
 	*/
 	virtual HRESULT read(const std::wstring& filename,
 		Config& config) override;
 
 	/* Write configuration data to a file.
 	(See IConfigIO.h for details)
+
+	Data lines will be postfixed with newlines by this function.
+
+	This function is also responsible for appending error messages
+	to the file and adds comment symbols and class name prefixes
+	to the error messages before they are logged.
 	*/
 	virtual HRESULT write(const std::wstring& filename,
 		const Config& config, const bool overwrite) override;
