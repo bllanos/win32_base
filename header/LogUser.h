@@ -37,7 +37,11 @@ class LogUser
 private:
 	bool m_loggingEnabled; // Switch for turning logging on or off
 	Logger* m_logger; // Null if the global default Logger object is used instead of a custom Logger
-	Logger* m_pastLogger; // The previous Logger
+	
+	/* The previous Logger (if one existed)
+	   Null if the global default Logger object was the previous Logger
+	*/
+	Logger* m_pastLogger;
 	std::wstring m_msgPrefix; // All logging messages will be prefixed with this string
 
 protected:
@@ -56,30 +60,32 @@ protected:
 public:
 	virtual ~LogUser(void);
 
-	// Protected getters and setters
-protected:
+	/* Getters and setters
+	The following functions should be used only with some knowledge
+	of what the specific class of this object uses a Logger for.
+
+	Logging is sometimes used for outputting important data!
+	*/
+public:
 	/* Arguments are forwarded to the Logger constructor
 	If the call to the Logger constructor fails, this
 	object's logger is not changed.
 	 */
 	HRESULT setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool holdAndReplaceFile = false, bool allocLogConsole = false);
 
-	/* Reverts to the previous Logger, if it is not a null pointer
-	(in which case the call fails and nothing is changed).
+	/* Reverts to the previous Logger
 
-	The previous Logger is not null only if
-	setLogger() has been called since the last call
-	to revertLogger(), or since the object was created
-	(whichever came first).
+	Note that if the previous Logger is null,
+	the global default Logger is assumed to be the previous Logger
+	(even if the object has not used more than one Logger).
+
+	There is no stack of past Loggers; Multiple
+	calls to this function will only swap the current Logger
+	with the Logger used previously, rather than
+	acting like an "undo" feature storing a stack of past changes.
 	*/
 	HRESULT revertLogger(void);
 
-	/* The following functions should be used only with some knowledge
-	of what the specific class of this object uses a Logger for.
-
-	Logging is sometimes used for outputting important data!
-	*/
-public:
 	void enableLogging();
 	void disableLogging();
 

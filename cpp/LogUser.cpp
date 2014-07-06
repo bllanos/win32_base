@@ -29,7 +29,7 @@ LogUser::~LogUser(void) {
 	if (m_logger != 0) {
 		delete m_logger;
 		m_logger = 0;
-	} if( m_pastLogger != 0 && m_pastLogger != g_defaultLogger ) {
+	} if( m_pastLogger != 0 ) {
 		delete m_pastLogger;
 		m_pastLogger = 0;
 	}
@@ -40,13 +40,11 @@ HRESULT LogUser::setLogger(bool allocLogFile, const std::wstring filename, bool 
 		Logger* newLogger;
 		newLogger = new Logger(allocLogFile, filename, holdAndReplaceFile, allocLogConsole);
 		if (m_logger != 0) {
-			if( m_pastLogger != 0 && m_pastLogger != g_defaultLogger ) {
+			if( m_pastLogger != 0 ) {
 				delete m_pastLogger;
 			}
-			m_pastLogger = m_logger;
-		} else {
-			m_pastLogger = g_defaultLogger;
 		}
+		m_pastLogger = m_logger;
 		m_logger = newLogger;
 		return ERROR_SUCCESS;
 	}
@@ -56,19 +54,10 @@ HRESULT LogUser::setLogger(bool allocLogFile, const std::wstring filename, bool 
 }
 
 HRESULT LogUser::revertLogger(void) {
-	if( m_pastLogger == 0 ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
-	} else {
-		if( m_logger != 0 ) {
-			delete m_logger;
-			m_logger = 0;
-		}
-		if( m_pastLogger != g_defaultLogger ) {
-			m_logger = m_pastLogger;
-		}
-		m_pastLogger = 0;
-		return ERROR_SUCCESS;
-	}
+	Logger* temp = m_logger;
+	m_logger = m_pastLogger;
+	m_pastLogger = temp;
+	return ERROR_SUCCESS;
 }
 
 void LogUser::enableLogging() {

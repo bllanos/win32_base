@@ -101,15 +101,17 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 				logMessage(L"Error getting a Logger to output parsing report to the file.");
 				result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			} else {
-				toggleTimestamp(false);
+				toggleTimestamp(false); // Lines need to start with the comment symbol, not a timestamp
 				setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_PREFIX);
-				if( FAILED(logMsgStore(true, false, true, filename)) ) {
-					revertLogger();
-					setMsgPrefix(L"FlatAtomicConfigIO reading " + filename + L">");
+				HRESULT tempResult = logMsgStore(true, false, true, filename);
+				setMsgPrefix(L"FlatAtomicConfigIO reading " + filename + L">");
+				revertLogger();
+
+				if( FAILED(tempResult) ) {
 					logMessage(L"Problem appending parsing error messages to the file.");
 					result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 				} else {
-					revertLogger();
+					logMessage(L"Parsing error messages appended to the file.");
 				}
 			}
 		}
