@@ -169,7 +169,7 @@ bool textProcessing::hasPrefix(const char* str, const char* prefix) {
 	// Error checking
 	if( str == 0 || prefix == 0 ) {
 		// This is a Microsoft-specific constructor
-		throw std::exception("hasPrefix() was passed null pointers.");
+		throw std::exception("hasPrefix() was passed null pointer(s).");
 	}
 	while( *prefix != '\0' ) {
 		if( *str != *prefix ) {
@@ -180,6 +180,28 @@ bool textProcessing::hasPrefix(const char* str, const char* prefix) {
 	}
 	return true;
 }
+
+bool textProcessing::hasSubstr(const char* const str, const char* const sub, size_t& index) {
+	// Error checking
+	if( str == 0 || sub == 0 ) {
+		// This is a Microsoft-specific constructor
+		throw std::exception("hasSubstr() was passed null pointer(s).");
+	}
+	if( *str == '\0' && sub == '\0' ) {
+		index = 0;
+		return true;
+	}
+	const char* suffix = str;
+	while( *suffix != '\0' ) {
+		if( hasPrefix(suffix, sub) ) {
+			index = static_cast<size_t>(suffix - str);
+			return true;
+		}
+		++suffix;
+	}
+	return false;
+}
+
 
 HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* const in, size_t& index) {
 

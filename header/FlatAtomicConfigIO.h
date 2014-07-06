@@ -86,7 +86,12 @@ created from Config objects by instances of this class.
 #define FLATATOMICCONFIGIO_SEP_2 "::"
 #define FLATATOMICCONFIGIO_SEP_3 "="
 #define FLATATOMICCONFIGIO_COMMENT_PREFIX L"#" // For message logging
-#define FLATATOMICCONFIGIO_MAX_LINE_LENGTH 256
+#define FLATATOMICCONFIGIO_MAX_LINE_LENGTH 255
+/* Used to catch line length violations.
+   Must be two greater than the maximum allowed line length
+   (because it compensates for the null terminating character)
+*/
+#define FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH 257
 #define FLATATOMICCONFIGIO_LINE_SEP '\n'
 
 class FlatAtomicConfigIO : public IConfigIO, public LogUser {

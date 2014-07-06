@@ -90,6 +90,13 @@ namespace textProcessing {
 	*/
 	bool hasPrefix(const char* str, const char* prefix);
 
+	/* Determines if the null-terminated string 'sub'
+	is a substring of the null-terminated string 'str',
+	and if so, outputs the index at which 'sub'
+	first occurs in 'str'.
+	*/
+	bool hasSubstr(const char* const str, const char* const sub, size_t& index);
+
 	/* Converts a wide character string literal stored
 	as a substring of a null-terminated ASCII string to a wide character
 	string object. The string literal must be prefixed by 'L"' and

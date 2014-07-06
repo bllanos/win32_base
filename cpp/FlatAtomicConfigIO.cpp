@@ -61,19 +61,35 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 	HRESULT result = ERROR_SUCCESS;
 	HRESULT lineResult = ERROR_SUCCESS;
 
+	// Set up a line buffer
+	char line[FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH];
+	for( size_t i = 0; i < FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH; ++i ) {
+		line[i] = '\0';
+	}
+
 	// Process each line
-	char line[FLATATOMICCONFIGIO_MAX_LINE_LENGTH];
 	size_t lineNumber = 0;
 	bool fail = false;
 	do {
-		file.getline(line, FLATATOMICCONFIGIO_MAX_LINE_LENGTH, FLATATOMICCONFIGIO_LINE_SEP);
+		// Retrieve the line
+		file.getline(line, FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH, FLATATOMICCONFIGIO_LINE_SEP);
 		if( file.fail() ) {
 			fail = true;
 			logMessage(L"File stream bad bit or fail bit was set - Aborting read operation.");
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			break;
+		} else if( line[FLATATOMICCONFIGIO_MAX_LINE_LENGTH - 1] != '\0' ) {
+			logMessage(L"Allowed line length of " + to_wstring(FLATATOMICCONFIGIO_MAX_LINE_LENGTH) +
+				L" exceeded - Aborting read operation.");
+			m_msgStore.emplace_back(L"Line " + to_wstring(lineNumber) + L": Allowed line length of " +
+				to_wstring(FLATATOMICCONFIGIO_MAX_LINE_LENGTH) +
+				L" exceeded - Aborting read operation.");
+			result = MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+			break;
 		}
 		++lineNumber;
+
+		// Parse the line
 		lineResult = readDataLine(config, line, lineNumber);
 		if( FAILED(lineResult) ) {
 			// The readDataLine() function should already have logged an error to the message queue
@@ -246,15 +262,8 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	}
 
-	std::wstring prefix = L"Line " + std::to_wstring(lineNumber) + L": ";
+	std::wstring prefix = L"Line " + to_wstring(lineNumber) + L": ";
 
-	/*
-	// Enforce length restriction
-	if( strlen(str) >= FLATATOMICCONFIGIO_MAX_LINE_LENGTH ) {
-		m_msgStore.emplace_back(prefix + L"exceeds " + to_wstring(FLATATOMICCONFIGIO_MAX_LINE_LENGTH - 1) + L" characters.");
-		return 	MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
-	}
-	*/
 
 	// Strip whitespace and control characters
 	if( FAILED(remove_ASCII_controlAndWhitespace(str)) ) {
