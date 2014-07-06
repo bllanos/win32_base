@@ -48,6 +48,17 @@ HRESULT Config::wstringToDataType(DataType& out, const std::wstring& in) {
 	return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
 }
 
+HRESULT Config::cstrToDataType(DataType& out, const char* const in) {
+	std::string str = in;
+	std::wstring wStr;
+	if( FAILED(toWString(wStr, str)) ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	} else {
+		return wstringToDataType(out, wStr);
+	}
+}
+
+
 HRESULT Config::dataTypeToWString(std::wstring& out, const DataType& in) {
 	for( size_t i = 0; i < s_nDataTypes; ++i ) {
 		if( in == s_dataTypesInOrder[i] ) {
@@ -142,8 +153,10 @@ HRESULT Config::insert(const std::wstring& scope, const std::wstring& field,
 	const DataType type, const void* const value) {
 
 	// Prevent exceptions from being thrown later
-	if( field.length() == 0 || value == 0 ) {
+	if( field.length() == 0 ) {
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+	} else if( value == 0 ) {
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	}
 
 	// Check for existing elements

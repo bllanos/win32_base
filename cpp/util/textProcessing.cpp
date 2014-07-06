@@ -20,13 +20,14 @@ Description
 
 #include "textProcessing.h"
 #include "defs.h"
+#include <exception>
 
 HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const char* const ignore, const size_t nIgnore,
 	const char delim, const char* const specialIgnore, const size_t nSpecialIgnore) {
 
 	// Error checking
 	if( str == 0 ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	} else if( (ignore == 0 && nIgnore != 0) || (ignore != 0 && nIgnore == 0) ) {
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
 	} else if( (specialIgnore == 0 && nSpecialIgnore != 0) || (specialIgnore != 0 && nSpecialIgnore == 0) ) {
@@ -139,7 +140,7 @@ HRESULT textProcessing::findFirstNonEscaped(const char* const str, const size_t&
 
 	// Error checking
 	if( str == 0 ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	}
 
 	// Initialize result to "not found"
@@ -164,11 +165,27 @@ HRESULT textProcessing::findFirstNonEscaped(const char* const str, const size_t&
 	return ERROR_SUCCESS;
 }
 
+bool textProcessing::hasPrefix(const char* str, const char* prefix) {
+	// Error checking
+	if( str == 0 || prefix == 0 ) {
+		// This is a Microsoft-specific constructor
+		throw std::exception("hasPrefix() was passed null pointers.");
+	}
+	while( *prefix != '\0' ) {
+		if( *str != *prefix ) {
+			return false;
+		}
+		++str;
+		++prefix;
+	}
+	return true;
+}
+
 HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* const in, size_t& index) {
 
 	// Error checking
 	if( in == 0 ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	}
 
 	// Check the start of the string
@@ -213,7 +230,7 @@ HRESULT textProcessing::strToBool(bool& out, const char* const in, size_t& index
 
 	// Error checking
 	if( in == 0 ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	}
 
 	// Initialization

@@ -44,7 +44,7 @@ created from Config objects by instances of this class.
 	L"# ASCII encoding is expected."\
 	L"#\n"\
 	L"# Lines are either\n"\
-	L"# \t-Blank\n"\
+	L"# \t-Blank, or only whitespace\n"\
 	L"# \t-Comments, starting with optional whitespace,\n"\
 	L"# \t\t followed by '#', optional whitespace, and then the comment text\n"\
 	L"# \t-Configuration key-value pairs\n"\
@@ -81,11 +81,11 @@ created from Config objects by instances of this class.
 	L"# they must start with 'L\"' and end with '\"'.\n"\
 	L"# ----------------------------------------------------------------------------\n"
 
-#define FLATATOMICCONFIGIO_COMMENT_SEP '#'
+#define FLATATOMICCONFIGIO_COMMENT_SEP "#"
 #define FLATATOMICCONFIGIO_SEP_1 "--"
 #define FLATATOMICCONFIGIO_SEP_2 "::"
 #define FLATATOMICCONFIGIO_SEP_3 "="
-#define FLATATOMICCONFIGIO_COMMENT_PREFIX L"#"
+#define FLATATOMICCONFIGIO_COMMENT_PREFIX L"#" // For message logging
 #define FLATATOMICCONFIGIO_MAX_LINE_LENGTH 256
 #define FLATATOMICCONFIGIO_LINE_SEP '\n'
 
@@ -128,13 +128,9 @@ public:
 		const Config& config, const bool overwrite) override;
 
 protected:
-	/* Processes a data type, key, value line from the input file
-	(the first parameter). If successful, adds the data to the
-	Config object passed as the second parameter.
-	All newline characters, '\n' and equivalent, are expected to have
-	been stripped, and the line is expected to be null-terminated.
-	(Therefore, the 'line' could actually have been multiple lines
-	in the input file.)
+	/* Processes a data type, key, value line
+	(the 'str' parameter). If successful, adds the data to the
+	Config object passed as the 'config' parameter.
 
 	The line number is used to create more useful error messages,
 	by identifying where in the file an issue was encountered.
@@ -143,6 +139,9 @@ protected:
 	code. If it encounters improperly formatted data in the file, but does
 	not experience internal errors, it will return a success,
 	but with the ERROR_DATA_INCOMPLETE error code.
+
+	Error messages will be labelled with the 'lineNumber' parameter
+	and appended to this object's message store.
 	*/
 	HRESULT readDataLine(Config& config, char* const str, const size_t& lineNumber);
 

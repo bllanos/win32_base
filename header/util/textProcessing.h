@@ -85,6 +85,11 @@ namespace textProcessing {
 	HRESULT findFirstNonEscaped(const char* const str, const size_t& startOffset,
 		const char target, bool& found, size_t& foundOffset);
 
+	/* Determines if the null-terminated string 'prefix'
+	is a prefix of the null-terminated string 'str'
+	*/
+	bool hasPrefix(const char* str, const char* prefix);
+
 	/* Converts a wide character string literal stored
 	as a substring of a null-terminated ASCII string to a wide character
 	string object. The string literal must be prefixed by 'L"' and

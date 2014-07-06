@@ -18,8 +18,12 @@ Description
 */
 
 #include "FlatAtomicConfigIO.h"
+#include "textProcessing.h"
 #include "defs.h"
 #include <fstream>
+
+using std::to_wstring;
+using namespace textProcessing;
 
 const Config::DataType FlatAtomicConfigIO::s_supportedDataTypes[] = {
 	Config::DataType::WSTRING,
@@ -236,6 +240,45 @@ HRESULT FlatAtomicConfigIO::write(const std::wstring& filename, const Config& co
 }
 
 HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const size_t& lineNumber) {
+
+	// Error checking
+	if( str == 0 ) {
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
+	}
+
+	std::wstring prefix = L"Line " + std::to_wstring(lineNumber) + L": ";
+
+	/*
+	// Enforce length restriction
+	if( strlen(str) >= FLATATOMICCONFIGIO_MAX_LINE_LENGTH ) {
+		m_msgStore.emplace_back(prefix + L"exceeds " + to_wstring(FLATATOMICCONFIGIO_MAX_LINE_LENGTH - 1) + L" characters.");
+		return 	MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+	}
+	*/
+
+	// Strip whitespace and control characters
+	if( FAILED(remove_ASCII_controlAndWhitespace(str)) ) {
+		m_msgStore.emplace_back(prefix + L"remove_ASCII_controlAndWhitespace() failed.");
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	}
+
+	// Check for blank line
+	if( *str == '\0' ) {
+		return ERROR_SUCCESS;
+	}
+
+	// Check for comment line
+	if( hasPrefix(str, FLATATOMICCONFIGIO_COMMENT_SEP) ) {
+		return ERROR_SUCCESS;
+	}
+
+	// At this point, the line must be either a data line or garbage
+	// -------------------------------------------------------------
+	const size_t end = strlen(str);
+
+	// Check for a data type
+
+
 	return ERROR_SUCCESS;
 }
 

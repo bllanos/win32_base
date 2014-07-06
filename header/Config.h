@@ -69,6 +69,8 @@ public:
 	Returns a failure code if there is no corresponding DataType constant.
 	*/
 	static HRESULT wstringToDataType(DataType& out, const std::wstring& in);
+	// This version expects a null-terminated string as input
+	static HRESULT cstrToDataType(DataType& out, const char* const in);
 
 	/* The inverse of wstringToDataType()
 	Outpus the name corresponding to the data type enum constant
