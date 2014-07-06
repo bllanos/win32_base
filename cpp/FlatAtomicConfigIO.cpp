@@ -90,7 +90,11 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 		} else {
 			logMessage(L"File parsing complete - Problems encountered.");
 
-			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object parsing report begins --");
+			std::wstring time;
+			if( FAILED(Logger::getDateAndTime(time)) ) {
+				time.clear();
+			}
+			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object parsing report ("+time+L") begins --");
 			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object parsing report ends -->>");
 
 			/* Get an "empty" Logger for easy output to the file,

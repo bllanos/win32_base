@@ -213,7 +213,7 @@ bool Logger::toggleTimestamp(bool newState) {
 }
 
 
-HRESULT Logger::getDateAndTime(wstring& timeStr) const {
+HRESULT Logger::getDateAndTime(wstring& timeStr) {
 	std::time_t timeVal;
 	std::time(&timeVal); // Get the current timestamp
 	struct std::tm timeStruct;

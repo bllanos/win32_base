@@ -149,9 +149,10 @@ public:
 	*/
 	bool toggleTimestamp(bool newState);
 
-private:
 	// Retrieves the current local time
-	HRESULT getDateAndTime(std::wstring& timeStr) const;
+	static HRESULT getDateAndTime(std::wstring& timeStr);
+
+private:
 
 	// Outputs a message to a file
 	HRESULT logMsgToFile(const std::wstring& msg,
