@@ -120,7 +120,7 @@ namespace textProcessing {
 	(The first such substring encountered is assigned to the output parameter,
 	at which point the function returns.)
 
-	Otherwise behaves like wStrLiteralToWString
+	Otherwise behaves like wStrLiteralToWString()
 	*/
 	HRESULT strToBool(bool& out, const char* const in, size_t& index);
 

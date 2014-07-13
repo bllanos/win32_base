@@ -83,11 +83,16 @@ created from Config objects by instances of this class.
 	L"# and indicate special characters using escape codes.\n"\
 	L"# ----------------------------------------------------------------------------\n"
 
+// Formatting components identified in the above guidelines
 #define FLATATOMICCONFIGIO_COMMENT_SEP "#"
+#define FLATATOMICCONFIGIO_COMMENT_SEP_WSTR L"#" // For message logging
 #define FLATATOMICCONFIGIO_SEP_1 "--"
+#define FLATATOMICCONFIGIO_SEP_1_WSTR L"--"
 #define FLATATOMICCONFIGIO_SEP_2 "::"
+#define FLATATOMICCONFIGIO_SEP_2_WSTR L"::"
 #define FLATATOMICCONFIGIO_SEP_3 "="
-#define FLATATOMICCONFIGIO_COMMENT_PREFIX L"#" // For message logging
+#define FLATATOMICCONFIGIO_SEP_3_WSTR L"="
+
 #define FLATATOMICCONFIGIO_MAX_LINE_LENGTH 255
 /* Used to catch line length violations.
    Must be two greater than the maximum allowed line length
@@ -160,6 +165,9 @@ protected:
 	code. If it encounters unexpected data types in the Config object, but does
 	not experience internal errors, it will return a success,
 	but with the ERROR_DATA_INCOMPLETE error code.
+
+	The 'str' output parameter will set to an empty string if there
+	are errors or if there is no suitable data to output.
 	*/
 	HRESULT writeDataLine(std::wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data);
 

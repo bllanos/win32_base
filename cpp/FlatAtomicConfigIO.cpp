@@ -128,7 +128,7 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 				result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			} else {
 				toggleTimestamp(false); // Lines need to start with the comment symbol, not a timestamp
-				setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_PREFIX);
+				setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_SEP_WSTR);
 				HRESULT tempResult = logMsgStore(true, false, true, filename);
 				setMsgPrefix(L"FlatAtomicConfigIO reading " + filename + L" >");
 				revertLogger();
@@ -149,7 +149,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 
 	setMsgPrefix(L"FlatAtomicConfigIO writing to " + filename + L" >");
 
-	// Initialization
+	// Initialization of the data stream
 	std::map<Config::Key, Config::Value*>::const_iterator currentPair = config.cbegin();
 	std::map<Config::Key, Config::Value*>::const_iterator end = config.cend();
 	if( currentPair == end ) {
@@ -169,10 +169,11 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FILE_NOT_FOUND);
 	}
 
-	// Initialization
+	// Initialization of loop variables
 	HRESULT result = ERROR_SUCCESS;
 	HRESULT lineResult = ERROR_SUCCESS;
 	wstring line;
+	// Used to remember whether the operation ended due to a problem with the file output stream
 	bool notGood = false;
 
 	// Process each key-value pair in the Config object
@@ -210,14 +211,14 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 		file << FLATATOMICCONFIGIO_DATA_FORMATSPEC;
 		if( !file.good() ) {
 			notGood = true;
-			logMessage(L"File stream good() function returned false when writing formatting user guide.");
+			logMessage(L"File stream good() function returned false when writing the configuration data formatting guidelines.");
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		}
 	}
 
 	file.close();
 
-	// Write any parsing problems back to the file
+	// Write any serialization problems back to the file
 	if( m_msgStore.empty() ) {
 		logMessage(L"Config object writing complete - No invalid or unsupported data.");
 	} else {
@@ -240,7 +241,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 				result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			} else {
 				toggleTimestamp(false); // Lines need to start with the comment symbol, not a timestamp
-				setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_PREFIX);
+				setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_SEP_WSTR);
 				HRESULT tempResult = logMsgStore(true, false, true, filename);
 				setMsgPrefix(L"FlatAtomicConfigIO writing " + filename + L" >");
 				revertLogger();
@@ -397,7 +398,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 		   data types, or this switch statement must be corrected.
 		 */
 		wstring msg = prefix +
-			L"value parsing switch statement encountered default case.";
+			L"value parsing switch statement encountered default case. Code is broken.";
 		m_msgStore.emplace_back(msg);
 		logMessage(msg);
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_BROKEN_CODE);
@@ -428,5 +429,76 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 }
 
 HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data) {
+
+	// An empty string will be output in case of errors
+	str.clear();
+
+	// Split the data into its components
+	const Config::DataType dataType = data->second->getDataType();
+	wstring scope = data->first.getScope();
+	wstring field = data->first.getField();
+	const void* const value = data->second->getValue(dataType);
+
+	/* This prefix will be part of error/warning messages that are stored in the message list
+	to be appended to the configuration file by the write() function.
+	*/
+	wstring prefix = L"Key (scope, field) = (" + scope + L", " + field + L"): ";
+
+	// Check if the datatype is supported
+	if( !isSupportedDataType(dataType) ) {
+		m_msgStore.emplace_back(prefix + L"unsupported datatype found.");
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+	}
+
+	// Try to serialize the data value to a string
+	// -------------------------------------------
+
+	HRESULT serializationResult = ERROR_SUCCESS;
+	wstring valueWStr;
+	switch( dataType ) {
+	case Config::DataType::WSTRING:
+	{
+		serializationResult = wstringToWStrLiteral(valueWStr, *(static_cast<const wstring*>(value)));
+	}
+	case Config::DataType::BOOL:
+	{
+		serializationResult = boolToWString(valueWStr, *(static_cast<const bool*>(value)));
+	}
+	default:
+	{
+		/* This case should never because of the earlier check to see
+		if the datatype was supported.
+		If this case is encountered, then either the list of supported
+		data types, or this switch statement must be corrected.
+		*/
+		wstring msg = prefix +
+			L"value serialization switch statement encountered default case. Code is broken.";
+		m_msgStore.emplace_back(msg);
+		logMessage(msg);
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_BROKEN_CODE);
+	}
+	}
+
+	// Handle serialization errors
+	if( FAILED(serializationResult) ) {
+		m_msgStore.emplace_back(prefix +
+			L"the function for serializing the data value to a string returned a failure result.");
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	}
+
+	// Output the results in the correct format
+	if( FAILED(Config::dataTypeToWString(str, dataType)) ) {
+		m_msgStore.emplace_back(prefix +
+			L"failed to convert the data type enumeration constant to a name (in string form).");
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+
+	} else {
+		str += FLATATOMICCONFIGIO_SEP_1_WSTR;
+		str += scope;
+		str += FLATATOMICCONFIGIO_SEP_2_WSTR;
+		str += field;
+		str += FLATATOMICCONFIGIO_SEP_3_WSTR;
+		str += valueWStr;
+	}
 	return ERROR_SUCCESS;
 }

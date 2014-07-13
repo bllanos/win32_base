@@ -93,6 +93,10 @@ Config::Value::~Value(void) {
 	}
 }
 
+Config::DataType Config::Value::getDataType(void) const {
+	return m_type;
+}
+
 const void* const Config::Value::getValue(const DataType type) const {
 	if( type == m_type ) {
 		return m_value;

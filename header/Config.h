@@ -73,7 +73,10 @@ public:
 	static HRESULT cstrToDataType(DataType& out, const char* const in);
 
 	/* The inverse of wstringToDataType()
-	Outpus the name corresponding to the data type enum constant
+	Outputs the name corresponding to the data type enum constant
+
+	The output parameter is modified only if a data type enum constant is found
+	corresponding to the 'in' parameter and there are no internal errors.
 	*/
 	static HRESULT dataTypeToWString(std::wstring& out, const DataType& in);
 
@@ -110,6 +113,7 @@ public:
 		~Value(void);
 
 	public:
+		DataType getDataType(void) const;
 		/* Returns the value stored in this object,
 		or null, if the value is not of the input data type.
 		*/
