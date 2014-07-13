@@ -288,7 +288,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	wstring prefix = L"Line " + to_wstring(lineNumber) + L": ";
 
 	// Strip whitespace and control characters
-	char ignoreInStrLiteral[] = { ' ' };
+	char ignoreInStrLiteral[] = { ' ' }; // Characters to be preserved between matching double quotes
 	if( FAILED(remove_ASCII_controlAndWhitespace(str, 0, 0, '"', ignoreInStrLiteral, sizeof(ignoreInStrLiteral) / sizeof(char))) ) {
 		m_msgStore.emplace_back(prefix + L"remove_ASCII_controlAndWhitespace() failed.");
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
@@ -310,7 +310,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	size_t tempIndex = 0;
 	char tempChar = '\0';
 
-	// Parse the data type
+	// Parse the data type specification
 	Config::DataType dataType;
 	if( !hasSubstr(str, FLATATOMICCONFIGIO_SEP_1, index) ) {
 		m_msgStore.emplace_back(prefix + L"no datatype specifier found.");
@@ -402,6 +402,26 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 		logMessage(msg);
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_BROKEN_CODE);
 	}
+	}
+
+	// Handle errors resulting from parsing
+	if( failedParse ) {
+		m_msgStore.emplace_back(prefix + L"the function for parsing the data value section of the line returned a failure result.");
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	} else if( garbageData ) {
+		m_msgStore.emplace_back(prefix +
+			L"the function for parsing the data value section of the line did not find a valid data value.");
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+	} else if( duplicateKey ) {
+		m_msgStore.emplace_back(prefix +
+			L"There is already a value stored in the Config object under the following key: Scope = "+
+			scope+L", Field = "+field+L". Either this key was repeated in the file,"
+			L"or was already present in the Config object before this file was read.");
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+	} else if( FAILED(insertResult) ) {
+		m_msgStore.emplace_back(prefix +
+			L"a serious error occured when attempting to insert the key-data value pair into the Config object.");
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	}
 
 	return ERROR_SUCCESS;
