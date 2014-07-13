@@ -199,28 +199,31 @@ map<Config::Key, Config::Value*>::const_iterator Config::cend(void) const {
 	return m_map.cend();
 }
 
-HRESULT Config::insert(const std::wstring& scope, const std::wstring& field, const std::wstring* const value) {
-	return insert(scope, field, DataType::WSTRING, static_cast<const void* const>(value));
-}
+/* Preprocessor macros will be used to generate insertion and retrieval functions
+   specific to each DataType constant.
 
-HRESULT Config::retrieve(const std::wstring& scope, const std::wstring& field, const std::wstring*& value) const {
-	value = static_cast<const std::wstring*>(retrieve(scope, field, DataType::WSTRING));
-	if( value == 0 ) {
-		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
-	} else {
-		return ERROR_SUCCESS;
+   I don't think that I could use function templates to achieve this,
+   because I need to map type parameters to non-type parameters
+   (the DataType enumeration constants).
+ */
+
+#define MAKE_INSERT_FUNCTION(type, enumConstant) \
+	HRESULT Config::insert(const std::wstring& scope, const std::wstring& field, const type* const value) { \
+		return insert(scope, field, DataType::enumConstant, static_cast<const void* const>(value)); \
 	}
-}
 
-HRESULT Config::insert(const std::wstring& scope, const std::wstring& field, const bool* const value) {
-	return insert(scope, field, DataType::BOOL, static_cast<const void* const>(value));
-}
-
-HRESULT Config::retrieve(const std::wstring& scope, const std::wstring& field, const bool*& value) const {
-	value = static_cast<const bool*>(retrieve(scope, field, DataType::BOOL));
-	if( value == 0 ) {
-		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
-	} else {
-		return ERROR_SUCCESS;
+#define MAKE_RETRIEVE_FUNCTION(type, enumConstant) \
+	HRESULT Config::retrieve(const std::wstring& scope, const std::wstring& field, const type*& value) const { \
+		value = static_cast<const type*>(retrieve(scope, field, DataType::enumConstant)); \
+		if( value == 0 ) { \
+			return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND); \
+		} else { \
+			return ERROR_SUCCESS; \
+		} \
 	}
-}
+
+MAKE_INSERT_FUNCTION(std::wstring, WSTRING)
+MAKE_RETRIEVE_FUNCTION(std::wstring, WSTRING)
+
+MAKE_INSERT_FUNCTION(bool, BOOL)
+MAKE_RETRIEVE_FUNCTION(bool, BOOL)

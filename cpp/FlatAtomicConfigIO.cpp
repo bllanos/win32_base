@@ -257,6 +257,24 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 	return result;
 }
 
+// A macro for use only within readDataLine()
+#define PARSE_DATA_VALUE(type, parseFunction) type* const value = new type; \
+	if( FAILED(parseFunction(*value, str, tempIndex)) ) { \
+		failedParse = true; \
+		delete value; \
+	} else if( tempIndex == index ) { \
+		garbageData = true; \
+		delete value; \
+	} else { \
+		insertResult = config.insert(scope, field, value); \
+		if( FAILED(insertResult) ) { \
+			delete value; \
+		} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) { \
+			duplicateKey = true; \
+			delete value; \
+		} \
+	}
+
 HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const size_t& lineNumber) {
 
 	// Error checking
@@ -359,25 +377,17 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	bool duplicateKey = false; // The Config object already has a value under this key
 	HRESULT insertResult = ERROR_SUCCESS; // Result of attempting to insert the key-value pair into the Config object
 
+	/* Note that the following statements do not check if the value actually
+	   occupied the entire rest of the line, or only part of it.
+	 */
 	switch( dataType ) {
 	case Config::DataType::WSTRING:
 	{
-		wstring* const value = new wstring;
-		if( FAILED(wStrLiteralToWString(*value, str, tempIndex)) ) {
-			failedParse = true;
-			delete value;
-		} else if( tempIndex == index ) {
-			garbageData = true;
-			delete value;
-		} else {
-			insertResult = config.insert(scope, field, value);
-			if( FAILED(insertResult) ) {
-				delete value;
-			} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) {
-				duplicateKey = true;
-				delete value;
-			}
-		}
+		PARSE_DATA_VALUE(wstring, wStrLiteralToWString)
+	}
+	case Config::DataType::BOOL:
+	{
+		PARSE_DATA_VALUE(bool, strToBool)
 	}
 	default:
 	{
