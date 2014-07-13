@@ -67,7 +67,8 @@ created from Config objects by instances of this class.
 	L"#\n"\
 	L"# Each of the above elements can optionally be separated by whitespace\n"\
 	L"# from the others, but any whitespace within an element\n"\
-	L"# will be stripped during processing.\n"\
+	L"# will be stripped during processing, with the exception that\n"\
+	L"# spaces will not be stripped within matched double quotes ('\"').\n"\
 	L"#\n"\
 	L"# Datatypes must match one of the 'DataType' enumeration constant names\n"\
 	L"# found in Config.h that corresponds to\n"\
@@ -78,7 +79,8 @@ created from Config objects by instances of this class.
 	L"# Values are C++ literals corresponding to the datatypes\n"\
 	L"# at the start of the line.\n"\
 	L"# For exammple, in the case of WSTRING literals,\n"\
-	L"# they must start with 'L\"' and end with '\"'.\n"\
+	L"# they must start with 'L\"', end with '\"',\n"\
+	L"# and indicate special characters using escape codes.\n"\
 	L"# ----------------------------------------------------------------------------\n"
 
 #define FLATATOMICCONFIGIO_COMMENT_SEP "#"

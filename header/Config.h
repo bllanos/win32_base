@@ -103,6 +103,9 @@ public:
 		const void* const m_value;
 
 	public:
+		/* The Value object gets ownership of the 'value' pointer,
+		meaning that it will delete the pointer on destruction.
+		*/
 		Value(const DataType type, const void* const value);
 		~Value(void);
 

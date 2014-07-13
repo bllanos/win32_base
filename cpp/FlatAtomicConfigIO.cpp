@@ -23,6 +23,8 @@ Description
 #include <fstream>
 
 using std::to_wstring;
+using std::string;
+using std::wstring;
 using namespace textProcessing;
 
 const Config::DataType FlatAtomicConfigIO::s_supportedDataTypes[] = {
@@ -47,7 +49,7 @@ LogUser(true, L"FlatAtomicConfigIO >")
 
 FlatAtomicConfigIO::~FlatAtomicConfigIO(void) {}
 
-HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
+HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 
 	setMsgPrefix(L"FlatAtomicConfigIO reading " + filename + L" >");
 
@@ -110,7 +112,7 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 		logMessage(L"File parsing complete - Problems encountered.");
 		
 		if( !fail ) {
-			std::wstring time;
+			wstring time;
 			if( FAILED(Logger::getDateAndTime(time)) ) {
 				time.clear();
 			}
@@ -143,7 +145,7 @@ HRESULT FlatAtomicConfigIO::read(const std::wstring& filename, Config& config) {
 	return result;
 }
 
-HRESULT FlatAtomicConfigIO::write(const std::wstring& filename, const Config& config, const bool overwrite) {
+HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config, const bool overwrite) {
 
 	setMsgPrefix(L"FlatAtomicConfigIO writing to " + filename + L" >");
 
@@ -170,7 +172,7 @@ HRESULT FlatAtomicConfigIO::write(const std::wstring& filename, const Config& co
 	// Initialization
 	HRESULT result = ERROR_SUCCESS;
 	HRESULT lineResult = ERROR_SUCCESS;
-	std::wstring line;
+	wstring line;
 	bool notGood = false;
 
 	// Process each key-value pair in the Config object
@@ -222,7 +224,7 @@ HRESULT FlatAtomicConfigIO::write(const std::wstring& filename, const Config& co
 		logMessage(L"Config object writing complete - Problems encountered.");
 
 		if( !notGood ) {
-			std::wstring time;
+			wstring time;
 			if( FAILED(Logger::getDateAndTime(time)) ) {
 				time.clear();
 			}
@@ -262,11 +264,14 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	}
 
-	std::wstring prefix = L"Line " + to_wstring(lineNumber) + L": ";
-
+	/* This prefix will be part of error/warning messages that are stored in the message list
+	   to be appended to the configuration file by the read() function.
+	   */
+	wstring prefix = L"Line " + to_wstring(lineNumber) + L": ";
 
 	// Strip whitespace and control characters
-	if( FAILED(remove_ASCII_controlAndWhitespace(str)) ) {
+	char ignoreInStrLiteral[] = { ' ' };
+	if( FAILED(remove_ASCII_controlAndWhitespace(str, 0, 0, '"', ignoreInStrLiteral, sizeof(ignoreInStrLiteral) / sizeof(char))) ) {
 		m_msgStore.emplace_back(prefix + L"remove_ASCII_controlAndWhitespace() failed.");
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	}
@@ -283,14 +288,91 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 
 	// At this point, the line must be either a data line or garbage
 	// -------------------------------------------------------------
-	const size_t end = strlen(str);
+	size_t index = 0;
+	size_t tempIndex = 0;
+	char tempChar = '\0';
 
-	// Check for a data type
+	// Parse the data type
+	Config::DataType dataType;
+	if( !hasSubstr(str, FLATATOMICCONFIGIO_SEP_1, index) ) {
+		m_msgStore.emplace_back(prefix + L"no datatype specifier found.");
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 
+	} else {
+		// Retrieve the datatype
+		tempChar = str[index]; // Hide the rest of the string
+		str[index] = '\0';
+		if( FAILED(Config::cstrToDataType(dataType, str)) ) {
+			m_msgStore.emplace_back(prefix + L"no datatype found that corresponds to the datatype specifier.");
+			return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+		}
+		str[index] = tempChar; // Unhide the rest of the string
+
+		// Check if the datatype is supported
+		if( !isSupportedDataType(dataType) ) {
+			m_msgStore.emplace_back(prefix + L"unsupported datatype found.");
+			return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+		}
+	}
+	index += strlen(FLATATOMICCONFIGIO_SEP_1);
+
+	// Parse a key scope name
+	string scope;
+	if( !hasSubstr(str+index, FLATATOMICCONFIGIO_SEP_2, tempIndex) ) {
+		m_msgStore.emplace_back(prefix +
+			L"no separator found to mark the end of the key scope (needed even if the scope is empty).");
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+	} else {
+		tempChar = str[tempIndex]; // Hide the rest of the string
+		str[tempIndex] = '\0';
+		scope = str + index; // Assign just the scope name to the string
+		str[tempIndex] = tempChar; // Unhide the rest of the string
+	}
+	index = tempIndex + strlen(FLATATOMICCONFIGIO_SEP_2);
+
+	// Parse a key field name
+	string field;
+	if( !hasSubstr(str + index, FLATATOMICCONFIGIO_SEP_3, tempIndex) ) {
+		m_msgStore.emplace_back(prefix +
+			L"no separator found to mark the end of the key field.");
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+	} else if( index >= tempIndex ) {
+		m_msgStore.emplace_back(prefix +
+			L"found empty key field specifier (not allowed).");
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
+	} else {
+		tempChar = str[tempIndex]; // Hide the rest of the string
+		str[tempIndex] = '\0';
+		field = str + index;
+		str[tempIndex] = tempChar;
+	}
+	index = tempIndex + strlen(FLATATOMICCONFIGIO_SEP_3);
+
+	// Parse the value
+	switch( dataType ) {
+	case Config::DataType::WSTRING:
+	{
+		wstring* value = new wstring;
+
+	}
+	default:
+	{
+		/* This case should never because of the earlier check to see
+		   if the datatype was supported.
+		   If this case is encountered, then either the list of supported
+		   data types, or this switch statement must be corrected.
+		 */
+		wstring msg = prefix +
+			L"value parsing switch statement encountered default case.";
+		m_msgStore.emplace_back(msg);
+		logMessage(msg);
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_BROKEN_CODE);
+	}
+	}
 
 	return ERROR_SUCCESS;
 }
 
-HRESULT FlatAtomicConfigIO::writeDataLine(std::wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data) {
+HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data) {
 	return ERROR_SUCCESS;
 }
