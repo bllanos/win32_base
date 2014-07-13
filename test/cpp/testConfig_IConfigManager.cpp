@@ -76,9 +76,9 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 		temp = new wstring(value + std::to_wstring(i));
 		result = config.insert(scope + std::to_wstring(i % nScopes), field + std::to_wstring(i),
 			temp);
-		if( SUCCEEDED(result) ) {
+		if( HRESULT_CODE(result) != ERROR_ALREADY_ASSIGNED ) {
 			finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-			logger->logMessage(L"Success code returned for duplicate insertion on iteration "
+			logger->logMessage(L"No error code returned for duplicate insertion on iteration "
 				+ std::to_wstring(i));
 		} else {
 			delete temp;
@@ -122,7 +122,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 		result = config.retrieve(scope + std::to_wstring(i % nScopes),
 			field + std::to_wstring(i), currValue);
 
-		if( FAILED(result) ) {
+		if( FAILED(result) || HRESULT_CODE(result) == ERROR_DATA_NOT_FOUND ) {
 			finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			logger->logMessage(L"Failed to retrieve value by key parameters on iteration "
 				+ std::to_wstring(i));
@@ -188,7 +188,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 		result = config.retrieve(L"2"+scope + std::to_wstring(i % nScopes),
 			field + std::to_wstring(i), currValue);
 
-		if( SUCCEEDED(result) || currValue != 0 ) {
+		if( HRESULT_CODE(result) != ERROR_DATA_NOT_FOUND || currValue != 0 ) {
 			finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			logger->logMessage(L"Retrieved a value for an invalid scope on iteration "
 				+ std::to_wstring(i));
@@ -197,7 +197,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 		result = config.retrieve(scope + std::to_wstring(i % nScopes),
 			L"2" + field + std::to_wstring(i), currValue);
 
-		if( SUCCEEDED(result) || currValue != 0 ) {
+		if( HRESULT_CODE(result) != ERROR_DATA_NOT_FOUND || currValue != 0 ) {
 			finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			logger->logMessage(L"Retrieved a value for an invalid field on iteration "
 				+ std::to_wstring(i));
@@ -206,7 +206,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 		result = config.retrieve(scope + std::to_wstring(i % nScopes),
 			field + std::to_wstring(i), boolPtr);
 
-		if( SUCCEEDED(result) || boolPtr != 0 ) {
+		if( HRESULT_CODE(result) != ERROR_DATA_NOT_FOUND || boolPtr != 0 ) {
 			finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			logger->logMessage(L"Retrieved a value for an invalid data type (bool) on iteration "
 				+ std::to_wstring(i));

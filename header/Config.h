@@ -170,6 +170,8 @@ private:
 	/* All insertion functions call this function
 	Returns a failure code and does nothing if another map element
 	is stored under the same key parameters.
+	(In this case, it returns a success result, but with the error
+	code ERROR_ALREADY_ASSIGNED)
 	*/
 	HRESULT insert(const std::wstring& scope, const std::wstring& field,
 		const DataType type, const void* const value);
@@ -199,18 +201,25 @@ public:
 
 	// The public interface: insertion and retrieval of field data
 	// -----------------------------------------------------------
-	/* All retrieval functions return null as their final (output) parameter
+	/* All retrieval functions output null as their final (output) parameter
 	if there is no value corresponding to the key parameters,
 	or if there is a value corresponding to the key parameters,
 	but it has a type other than the given parameter type.
+	In these cases they will return a success result, but with
+	the ERROR_DATA_NOT_FOUND error code.
 
 	The output parameter of a retrieval function is a reference to a pointer.
 	The pointer is a pointer to a constant object.
 
-	Insertion functions will return a failure code if the Config
-	object already has a value stored with the given key parameters,
-	if the value to be stored is a null pointer, or if the field string
-	is empty.
+	Retrieval functions will return failure results for internal errors.
+
+	Insertion functions will return a success result, but the
+	ERROR_ALREADY_ASSIGNED error code if the Config
+	object already has a value stored with the given key parameters.
+
+	A failure result will be returned by insertion functions
+	if the value to be stored is a null pointer, if the field string
+	is empty, or if there is an internal error.
 	*/
 public:
 	

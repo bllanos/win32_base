@@ -317,7 +317,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	index += strlen(FLATATOMICCONFIGIO_SEP_1);
 
 	// Parse a key scope name
-	string scope;
+	wstring scope;
 	if( !hasSubstr(str+index, FLATATOMICCONFIGIO_SEP_2, tempIndex) ) {
 		m_msgStore.emplace_back(prefix +
 			L"no separator found to mark the end of the key scope (needed even if the scope is empty).");
@@ -325,13 +325,13 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	} else {
 		tempChar = str[tempIndex]; // Hide the rest of the string
 		str[tempIndex] = '\0';
-		scope = str + index; // Assign just the scope name to the string
+		toWString(scope, str + index); // Assign just the scope name to the string
 		str[tempIndex] = tempChar; // Unhide the rest of the string
 	}
 	index = tempIndex + strlen(FLATATOMICCONFIGIO_SEP_2);
 
 	// Parse a key field name
-	string field;
+	wstring field;
 	if( !hasSubstr(str + index, FLATATOMICCONFIGIO_SEP_3, tempIndex) ) {
 		m_msgStore.emplace_back(prefix +
 			L"no separator found to mark the end of the key field.");
@@ -343,17 +343,41 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	} else {
 		tempChar = str[tempIndex]; // Hide the rest of the string
 		str[tempIndex] = '\0';
-		field = str + index;
+		toWString(field, str + index);
 		str[tempIndex] = tempChar;
 	}
-	index = tempIndex + strlen(FLATATOMICCONFIGIO_SEP_3);
+	tempIndex += strlen(FLATATOMICCONFIGIO_SEP_3);
+	// The two must match in order to check for the success of data value parsing later
+	index = tempIndex;
 
-	// Parse the value
+	// Parse and store the value
+	// -------------------------
+
+	// Error handling variables
+	bool failedParse = false; // The parsing function failed
+	bool garbageData = false; // The parsing function could not find valid data
+	bool duplicateKey = false; // The Config object already has a value under this key
+	HRESULT insertResult = ERROR_SUCCESS; // Result of attempting to insert the key-value pair into the Config object
+
 	switch( dataType ) {
 	case Config::DataType::WSTRING:
 	{
-		wstring* value = new wstring;
-
+		wstring* const value = new wstring;
+		if( FAILED(wStrLiteralToWString(*value, str, tempIndex)) ) {
+			failedParse = true;
+			delete value;
+		} else if( tempIndex == index ) {
+			garbageData = true;
+			delete value;
+		} else {
+			insertResult = config.insert(scope, field, value);
+			if( FAILED(insertResult) ) {
+				delete value;
+			} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) {
+				duplicateKey = true;
+				delete value;
+			}
+		}
 	}
 	default:
 	{

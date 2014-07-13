@@ -162,7 +162,7 @@ HRESULT Config::insert(const std::wstring& scope, const std::wstring& field,
 	// Check for existing elements
 	Key key(scope, field);
 	if( m_map.count(key) != 0 ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_ALREADY_ASSIGNED);
+		return 	MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_ALREADY_ASSIGNED);
 	} else {
 		Value* pvalueObj = new Value(type, value);
 		m_map[key] = pvalueObj;
@@ -206,7 +206,7 @@ HRESULT Config::insert(const std::wstring& scope, const std::wstring& field, con
 HRESULT Config::retrieve(const std::wstring& scope, const std::wstring& field, const std::wstring*& value) const {
 	value = static_cast<const std::wstring*>(retrieve(scope, field, DataType::WSTRING));
 	if( value == 0 ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
 	} else {
 		return ERROR_SUCCESS;
 	}
@@ -219,7 +219,7 @@ HRESULT Config::insert(const std::wstring& scope, const std::wstring& field, con
 HRESULT Config::retrieve(const std::wstring& scope, const std::wstring& field, const bool*& value) const {
 	value = static_cast<const bool*>(retrieve(scope, field, DataType::BOOL));
 	if( value == 0 ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
 	} else {
 		return ERROR_SUCCESS;
 	}
