@@ -370,7 +370,7 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	}
 
 	// Write to the second file
-	std::wstring configFilename2 = DEFAULT_CONFIG_PATH_TEST;
+	std::wstring configFilename2 = DEFAULT_CONFIG_PATH_TEST_WRITE;
 	configFilename2 += L"testFlatAtomicConfigIO2.txt";
 	result = configIO.write(configFilename2, config1, true);
 	if( FAILED(result) ) {
@@ -392,7 +392,7 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	}
 
 	// Write to the third file
-	std::wstring configFilename3 = DEFAULT_CONFIG_PATH_TEST;
+	std::wstring configFilename3 = DEFAULT_CONFIG_PATH_TEST_WRITE;
 	configFilename3 += L"testFlatAtomicConfigIO3.txt";
 	result = configIO.write(configFilename3, config2, true);
 	if( FAILED(result) ) {

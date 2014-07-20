@@ -1,0 +1,9 @@
+# Testing a blank line below
+
+		 # Another comment, with whitespace preceding it
+  BOOL --	space  ::	one		= true
+# 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Sun Jul 20 12:00:35 2014 ) begins --
+# Line 4: value parsing switch statement encountered default case. Code is broken.
+# -- FlatAtomicConfigIO class object parsing report ends -->>

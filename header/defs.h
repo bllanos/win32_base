@@ -58,6 +58,7 @@ from the use of the 'new' operator.
 
 // For use with unit tests
 #define DEFAULT_CONFIG_PATH_TEST	LCHAR_STRINGIFY(.\\configuration\\test\\)
+#define DEFAULT_CONFIG_PATH_TEST_WRITE	LCHAR_STRINGIFY(.\\configuration\\test\\output\\)
 
 // Used for making custom HRESULT values
 #define FACILITY_BL_ENGINE 0

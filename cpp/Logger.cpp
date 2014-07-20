@@ -186,7 +186,6 @@ HRESULT Logger::logMessage(std::list<wstring>::const_iterator start,
 		}
 
 		// Format the message
-		fullPrefix.back() = L' '; // Remove the newline character
 		fullPrefix += L"| ";
 	}
 	fullPrefix += prefix;
@@ -235,6 +234,8 @@ HRESULT Logger::getDateAndTime(wstring& timeStr) {
 	if (FAILED(toWString(timeWStr, timeCStr))) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	}
+
+	timeWStr.back() = L' '; // Remove the newline character
 
 	// Output the result
 	timeStr = timeWStr;

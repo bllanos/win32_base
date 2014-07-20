@@ -114,6 +114,7 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 				time.clear();
 			}
 			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object parsing report ("+time+L") begins --");
+			m_msgStore.emplace_front(WSTR_FLATATOMICCONFIGIO_LINE_SEP);
 			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object parsing report ends -->>");
 
 			/* Get an "empty" Logger for easy output to the file,
