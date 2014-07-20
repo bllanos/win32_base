@@ -344,6 +344,7 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	HRESULT result = ERROR_SUCCESS;
 	HRESULT finalResult = ERROR_SUCCESS;
 
+	wstring errorStr;
 	Config config1; // For the first read-write
 	Config config2; // For the second read-write
 
@@ -351,9 +352,8 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	result = configIO.setLogger(true, logFilename, false, false);
 	if( FAILED(result) ) {
 		logger->logMessage(L"Failed to redirect logging output of the FlatAtomicConfigIO object.");
-		std::wstring errorCode = L"Error code: ";
-		errorCode += std::to_wstring(HRESULT_CODE(result));
-		logger->logMessage(errorCode);
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
 		finalResult = result;
 	}
 
@@ -363,9 +363,8 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	result = configIO.read(configFilename1, config1);
 	if( FAILED(result) ) {
 		logger->logMessage(L"Failed to read the first configuration file: " + configFilename1);
-		std::wstring errorCode = L"Error code: ";
-		errorCode += std::to_wstring(HRESULT_CODE(result));
-		logger->logMessage(errorCode);
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
 		finalResult = result;
 	}
 
@@ -375,9 +374,8 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	result = configIO.write(configFilename2, config1, true);
 	if( FAILED(result) ) {
 		logger->logMessage(L"Failed to write to the second configuration file: " + configFilename2);
-		std::wstring errorCode = L"Error code: ";
-		errorCode += std::to_wstring(HRESULT_CODE(result));
-		logger->logMessage(errorCode);
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
 		finalResult = result;
 	}
 
@@ -385,9 +383,8 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	result = configIO.read(configFilename2, config2);
 	if( FAILED(result) ) {
 		logger->logMessage(L"Failed to read the second configuration file: " + configFilename2);
-		std::wstring errorCode = L"Error code: ";
-		errorCode += std::to_wstring(HRESULT_CODE(result));
-		logger->logMessage(errorCode);
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
 		finalResult = result;
 	}
 
@@ -397,9 +394,8 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	result = configIO.write(configFilename3, config2, true);
 	if( FAILED(result) ) {
 		logger->logMessage(L"Failed to write to the third configuration file: " + configFilename3);
-		std::wstring errorCode = L"Error code: ";
-		errorCode += std::to_wstring(HRESULT_CODE(result));
-		logger->logMessage(errorCode);
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
 		finalResult = result;
 	}
 

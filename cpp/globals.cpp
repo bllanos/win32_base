@@ -80,3 +80,16 @@ HRESULT extractPath(std::wstring& path, const std::wstring& filenameAndPath) {
 	delete[] pathBuffer;
 	return result;
 }
+
+HRESULT prettyPrintHRESULT(std::wstring& out, HRESULT in) {
+	out = L"HRESULT ";
+	out += std::to_wstring(in);
+	out += L" = (sev ";
+	out += std::to_wstring(HRESULT_SEVERITY(in));
+	out += L", fac ";
+	out += std::to_wstring(HRESULT_FACILITY(in));
+	out += L", code ";
+	out += std::to_wstring(HRESULT_CODE(in));
+	out += L")";
+	return ERROR_SUCCESS;
+}

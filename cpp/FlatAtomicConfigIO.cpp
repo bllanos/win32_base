@@ -72,7 +72,7 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 	do {
 		// Retrieve the line
 		file.getline(line, FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH, FLATATOMICCONFIGIO_LINE_SEP);
-		if( file.fail() ) {
+		if( file.fail() && !file.eof() ) {
 			fail = true;
 			logMessage(L"File stream bad bit or fail bit was set - Aborting read operation.");
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
@@ -114,7 +114,6 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 				time.clear();
 			}
 			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object parsing report ("+time+L") begins --");
-			m_msgStore.emplace_front(WSTR_FLATATOMICCONFIGIO_LINE_SEP);
 			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object parsing report ends -->>");
 
 			/* Get an "empty" Logger for easy output to the file,
@@ -126,8 +125,15 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 				result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			} else {
 				toggleTimestamp(false); // Lines need to start with the comment symbol, not a timestamp
-				setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_SEP_WSTR);
-				HRESULT tempResult = logMsgStore(true, false, true, filename);
+
+				// First insert a blank line
+				setMsgPrefix(L"");
+				HRESULT tempResult = logMessage(WSTR_FLATATOMICCONFIGIO_LINE_SEP, false, true, filename);
+				if( SUCCEEDED(tempResult) ) {
+					// Now log the parsing report
+					setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_SEP_WSTR);
+					tempResult = logMsgStore(true, false, true, filename);
+				}
 				setMsgPrefix(L"FlatAtomicConfigIO reading " + filename + L" >");
 				revertLogger();
 
@@ -229,7 +235,6 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 				time.clear();
 			}
 			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object Config writing report (" + time + L") begins --");
-			m_msgStore.emplace_front(WSTR_FLATATOMICCONFIGIO_LINE_SEP);
 			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object Config writing report ends -->>");
 
 			/* Get an "empty" Logger for easy output to the file,
@@ -241,8 +246,15 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 				result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 			} else {
 				toggleTimestamp(false); // Lines need to start with the comment symbol, not a timestamp
-				setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_SEP_WSTR);
-				HRESULT tempResult = logMsgStore(true, false, true, filename);
+
+				// First insert a blank line
+				setMsgPrefix(L"");
+				HRESULT tempResult = logMessage(WSTR_FLATATOMICCONFIGIO_LINE_SEP, false, true, filename);
+				if( SUCCEEDED(tempResult) ) {
+					// Now log the serialization report
+					setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_SEP_WSTR);
+					tempResult = logMsgStore(true, false, true, filename);
+				}
 				setMsgPrefix(L"FlatAtomicConfigIO writing " + filename + L" >");
 				revertLogger();
 
@@ -274,7 +286,8 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 			duplicateKey = true; \
 			delete value; \
 		} \
-	}
+	} \
+	break;
 
 HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const size_t& lineNumber) {
 

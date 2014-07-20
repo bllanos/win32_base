@@ -44,3 +44,11 @@ HRESULT toWString(std::wstring& wStr, const std::string& str);
    on the path (either a file or a directory name).
  */
 HRESULT extractPath(std::wstring& path, const std::wstring& filenameAndPath);
+
+/* Convert an HRESULT value to a more readable form,
+   with each of its components identified
+
+   The return value indicates whether the function
+   is successful.
+ */
+HRESULT prettyPrintHRESULT(std::wstring& out, HRESULT in);
