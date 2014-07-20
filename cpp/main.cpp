@@ -158,11 +158,6 @@ Run the application, possibly through a top-level control object
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
 	// testBasicWindow::openNWindows(1, false);
-	testConfig_IConfigManager::testConfigWithStringValues(14, 3);
-	testConfig_IConfigManager::testConfigWithStringAndBoolValues();
-	// testLogger_LogUser::testBulkLogging(false);
-	// testLogger_LogUser::testLocking();
-	// testLogger_LogUser::testAppendMode();
-	// testTextProcessing::testControlStrip();
+	testConfig_IConfigManager::testFlatAtomicConfigIO();
 	return ERROR_SUCCESS;
 }

@@ -26,6 +26,7 @@ Description
 #include "defs.h"
 #include "Config.h"
 #include "Logger.h"
+#include "FlatAtomicConfigIO.h"
 
 using std::wstring;
 
@@ -325,4 +326,90 @@ HRESULT testConfig_IConfigManager::testConfigWithStringAndBoolValues(void) {
 
 	return finalResult;
 
+}
+
+HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
+
+	// Create a file for logging the test results
+	Logger* logger = 0;
+	std::wstring logFilename;
+	try {
+		logFilename = DEFAULT_LOG_PATH_TEST;
+		logFilename += L"testFlatAtomicConfigIO.txt";
+		logger = new Logger(true, logFilename, false, false);
+	} catch( ... ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
+	}
+
+	HRESULT result = ERROR_SUCCESS;
+	HRESULT finalResult = ERROR_SUCCESS;
+
+	Config config1; // For the first read-write
+	Config config2; // For the second read-write
+
+	FlatAtomicConfigIO configIO;
+	result = configIO.setLogger(true, logFilename, false, false);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to redirect logging output of the FlatAtomicConfigIO object.");
+		std::wstring errorCode = L"Error code: ";
+		errorCode += std::to_wstring(HRESULT_CODE(result));
+		logger->logMessage(errorCode);
+		finalResult = result;
+	}
+
+	// Read in the first file
+	std::wstring configFilename1 = DEFAULT_CONFIG_PATH_TEST;
+	configFilename1 += L"testFlatAtomicConfigIO1.txt";
+	result = configIO.read(configFilename1, config1);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to read the first configuration file: " + configFilename1);
+		std::wstring errorCode = L"Error code: ";
+		errorCode += std::to_wstring(HRESULT_CODE(result));
+		logger->logMessage(errorCode);
+		finalResult = result;
+	}
+
+	// Write to the second file
+	std::wstring configFilename2 = DEFAULT_CONFIG_PATH_TEST;
+	configFilename2 += L"testFlatAtomicConfigIO2.txt";
+	result = configIO.write(configFilename2, config1, true);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to write to the second configuration file: " + configFilename2);
+		std::wstring errorCode = L"Error code: ";
+		errorCode += std::to_wstring(HRESULT_CODE(result));
+		logger->logMessage(errorCode);
+		finalResult = result;
+	}
+
+	// Read in the second file
+	result = configIO.read(configFilename2, config2);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to read the second configuration file: " + configFilename2);
+		std::wstring errorCode = L"Error code: ";
+		errorCode += std::to_wstring(HRESULT_CODE(result));
+		logger->logMessage(errorCode);
+		finalResult = result;
+	}
+
+	// Write to the third file
+	std::wstring configFilename3 = DEFAULT_CONFIG_PATH_TEST;
+	configFilename3 += L"testFlatAtomicConfigIO3.txt";
+	result = configIO.write(configFilename3, config2, true);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to write to the third configuration file: " + configFilename3);
+		std::wstring errorCode = L"Error code: ";
+		errorCode += std::to_wstring(HRESULT_CODE(result));
+		logger->logMessage(errorCode);
+		finalResult = result;
+	}
+
+	if( SUCCEEDED(finalResult) ) {
+		logger->logMessage(L"All tests passed.");
+	} else {
+		logger->logMessage(L"Some or all tests failed.");
+	}
+
+	delete logger;
+
+	return finalResult;
 }

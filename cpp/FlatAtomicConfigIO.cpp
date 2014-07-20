@@ -192,7 +192,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 			result = lineResult;
 		} else {
 			// Write valid data to the file
-			file << line << W_FLATATOMICCONFIGIO_LINE_SEP;
+			file << line << WSTR_FLATATOMICCONFIGIO_LINE_SEP;
 		}
 		++currentPair;
 		if( !file.good() ) {
@@ -205,7 +205,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 
 	// Write the configuration format to the file for reference
 	if( !notGood ) {
-		file << W_FLATATOMICCONFIGIO_LINE_SEP;
+		file << WSTR_FLATATOMICCONFIGIO_LINE_SEP;
 		file << FLATATOMICCONFIGIO_DATA_FORMATSPEC;
 		if( !file.good() ) {
 			notGood = true;
@@ -228,7 +228,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 				time.clear();
 			}
 			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object Config writing report (" + time + L") begins --");
-			m_msgStore.emplace_front(W_FLATATOMICCONFIGIO_LINE_SEP);
+			m_msgStore.emplace_front(WSTR_FLATATOMICCONFIGIO_LINE_SEP);
 			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object Config writing report ends -->>");
 
 			/* Get an "empty" Logger for easy output to the file,

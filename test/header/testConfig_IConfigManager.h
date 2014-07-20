@@ -42,4 +42,11 @@ namespace testConfig_IConfigManager {
 	*/
 	HRESULT testConfigWithStringAndBoolValues(void);
 
+	/* Tests that the FlatAtomicConfigIO class can read in a configuration
+	   file and then write the data back to another file.
+
+	   Next, the written file is read into a second configuration object,
+	   which is written to a third file.
+	 */
+	HRESULT testFlatAtomicConfigIO(void);
 }

@@ -99,7 +99,7 @@ created from Config objects by instances of this class.
 */
 #define FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH 257
 #define FLATATOMICCONFIGIO_LINE_SEP '\n'
-#define W_FLATATOMICCONFIGIO_LINE_SEP L'\n'
+#define WSTR_FLATATOMICCONFIGIO_LINE_SEP L"\n"
 
 class FlatAtomicConfigIO : public IConfigIO, public LogUser {
 

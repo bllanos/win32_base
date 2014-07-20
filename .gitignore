@@ -6,3 +6,4 @@
 *.vcxproj.filters
 Debug/
 logger_output/
+configuration/test/output/

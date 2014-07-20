@@ -47,12 +47,17 @@ from the use of the 'new' operator.
 // ----------------------------
 // (To be overridden with values loaded from a configuration file)
 
-#define DEFAULT_LOG_PATH		LCHAR_STRINGIFY(.\\logger_output\\)
+#define DEFAULT_LOG_PATH			LCHAR_STRINGIFY(.\\logger_output\\)
 
 // For the results of unit tests
-#define DEFAULT_LOG_PATH_TEST   LCHAR_STRINGIFY(.\\logger_output\\test\\)
+#define DEFAULT_LOG_PATH_TEST		LCHAR_STRINGIFY(.\\logger_output\\test\\)
 
-#define DEFAULT_LOG_FILENAME	LCHAR_STRINGIFY(log.txt)
+#define DEFAULT_LOG_FILENAME		LCHAR_STRINGIFY(log.txt)
+
+#define DEFAULT_CONFIG_PATH			LCHAR_STRINGIFY(.\\configuration\\)
+
+// For use with unit tests
+#define DEFAULT_CONFIG_PATH_TEST	LCHAR_STRINGIFY(.\\configuration\\test\\)
 
 // Used for making custom HRESULT values
 #define FACILITY_BL_ENGINE 0
