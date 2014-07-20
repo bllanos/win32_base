@@ -472,10 +472,12 @@ HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::K
 	case Config::DataType::WSTRING:
 	{
 		serializationResult = wstringToWStrLiteral(valueWStr, *(static_cast<const wstring*>(value)));
+		break;
 	}
 	case Config::DataType::BOOL:
 	{
 		serializationResult = boolToWString(valueWStr, *(static_cast<const bool*>(value)));
+		break;
 	}
 	default:
 	{

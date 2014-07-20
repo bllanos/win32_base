@@ -41,7 +41,7 @@ created from Config objects by instances of this class.
 	L"# The FlatAtomicConfigIO class, used to generate this file \n"\
 	L"# defines the following file format:\n"\
 	L"#\n"\
-	L"# ASCII encoding is expected."\
+	L"# ASCII encoding is expected.\n"\
 	L"#\n"\
 	L"# Lines are either\n"\
 	L"# \t-Blank, or only whitespace\n"\
@@ -68,7 +68,7 @@ created from Config objects by instances of this class.
 	L"# Each of the above elements can optionally be separated by whitespace\n"\
 	L"# from the others, but any whitespace within an element\n"\
 	L"# will be stripped during processing, with the exception that\n"\
-	L"# spaces will not be stripped within matched double quotes ('\"').\n"\
+	L"# spaces will not be stripped within matched double quotes (\" \").\n"\
 	L"#\n"\
 	L"# Datatypes must match one of the 'DataType' enumeration constant names\n"\
 	L"# found in Config.h that corresponds to\n"\
@@ -79,8 +79,8 @@ created from Config objects by instances of this class.
 	L"# Values are similar to C++ literals corresponding to the datatypes\n"\
 	L"# at the start of the line.\n"\
 	L"# Refer to the functions in the textProcessing namespace for details.\n"\
-	L"# (These functions are used for reading and writing data values.)\n"\
-	L"# ----------------------------------------------------------------------------\n"
+	L"# (These functions are used for parsing and serializing data values.)\n"\
+	L"# ----------------------------------------------------------------------------"
 
 // Formatting components identified in the above guidelines
 #define FLATATOMICCONFIGIO_COMMENT_SEP "#"
