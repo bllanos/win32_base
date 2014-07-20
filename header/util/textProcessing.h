@@ -23,8 +23,6 @@ Description
 #include <windows.h> // For the HRESULT type
 #include <string>
 
-#define ESCAPE_CHAR '\\'
-
 namespace textProcessing {
 
 	/* Removes characters from the character array (which must be null-terminated)
@@ -97,7 +95,7 @@ namespace textProcessing {
 	*/
 	bool hasSubstr(const char* const str, const char* const sub, size_t& index);
 
-	/* Converts a wide character string literal stored
+	/* Converts a wide character C++-style string literal stored
 	as a substring of a null-terminated ASCII string to a wide character
 	string object. The string literal must be prefixed by 'L"' and
 	postfixed by '"' (not escaped) in order to be accepted.
@@ -109,10 +107,16 @@ namespace textProcessing {
 	the index parameter and output string parameter are not modified.)
 
 	Failure codes are returned due to internal errors.
+
+	NOTE: Character escape codes are not recognized in the string literal,
+		except for the following: \", \t and \n
 	*/
 	HRESULT wStrLiteralToWString(std::wstring& out, const char* const in, size_t& index);
 
-	/* Essentially the inverse of wStrLiteralToWString() */
+	/* Essentially the inverse of wStrLiteralToWString()
+
+	   Character escape codes will be output for the following characters: ", \t and \n
+	 */
 	HRESULT wstringToWStrLiteral(std::wstring& out, const std::wstring& in);
 
 	/* Converts the null-terminated

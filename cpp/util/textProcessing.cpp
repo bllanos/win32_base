@@ -22,6 +22,9 @@ Description
 #include "defs.h"
 #include <exception>
 
+#define ESCAPE_CHAR '\\'
+#define W_ESCAPE_CHAR L'\\'
+
 HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const char* const ignore, const size_t nIgnore,
 	const char delim, const char* const specialIgnore, const size_t nSpecialIgnore) {
 
@@ -202,6 +205,19 @@ bool textProcessing::hasSubstr(const char* const str, const char* const sub, siz
 	return false;
 }
 
+static const wchar_t s_escapeSequenceEnds[] = {
+	L'"',
+	L't',
+	L'n'
+};
+
+static const wchar_t s_escapeSequenceResults[] = {
+	L'"',
+	L'\t',
+	L'\n'
+};
+
+static const size_t s_nEscapeSequences = sizeof(s_escapeSequenceEnds) / sizeof(s_escapeSequenceEnds[0]);
 
 HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* const in, size_t& index) {
 
@@ -223,6 +239,8 @@ HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* cons
 		} else if( foundEnd ) {
 
 			// The string contains a string literal
+
+			// Convert to a wide-character string
 			size_t wSize = endIndex - beginIndex;
 			wchar_t* wCStr = new wchar_t[wSize];
 			size_t convertedChars = 0;
@@ -231,6 +249,49 @@ HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* cons
 			if( convertedChars != wSize ) {
 				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
 			}
+
+			// Convert recognized escape codes to characters
+			wchar_t* copyTo = wCStr;
+			wchar_t* copyFrom = wCStr;
+			bool escaped = false;
+			bool isEscapeSeq = false;
+			size_t escapeSeqIndex = 0;
+			while( *copyFrom != L'\0' ) {
+				if( !escaped ) {
+					if( *copyFrom == W_ESCAPE_CHAR ) {
+						escaped = true;
+					} else {
+						*copyTo = *copyFrom;
+						++copyTo;
+					}
+				} else {
+					escaped = false;
+					// Check for a recognized escape sequence
+					for( escapeSeqIndex = 0; escapeSeqIndex < s_nEscapeSequences; ++escapeSeqIndex ) {
+						if( *copyFrom == s_escapeSequenceEnds[escapeSeqIndex] ) {
+							isEscapeSeq = true;
+							break;
+						}
+					}
+					if( isEscapeSeq ) {
+						// Convert the escape sequence
+						*copyTo = s_escapeSequenceResults[escapeSeqIndex];
+					} else {
+						// Copy the unrecognized escape sequence
+						*copyTo = *(copyFrom - 1);
+						++copyTo;
+						*copyTo = *copyFrom;	
+					}
+					++copyTo;
+				}
+				++copyFrom;
+			}
+
+			if( *(copyFrom - 1) == W_ESCAPE_CHAR ) {
+				*copyTo = *(copyFrom - 1);
+				++copyTo;
+			}
+			*copyTo = *copyFrom; // Copy the null-terminating character
 
 			out = wCStr;
 			delete[] wCStr;
@@ -243,7 +304,36 @@ HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* cons
 
 HRESULT textProcessing::wstringToWStrLiteral(std::wstring& out, const std::wstring& in) {
 	out = L"L\"";
-	out += in;
+
+	// Convert recognized special characters to escape sequences
+
+	// The result can at most double in size
+	wchar_t* const wCStr_out = new wchar_t[in.length() * 2 + 1];
+	const wchar_t* const wCStr_in = in.c_str();
+
+	const wchar_t* copyFrom = wCStr_in;
+	wchar_t* copyTo = wCStr_out;
+	size_t escapeSeqIndex = 0;
+	while( *copyFrom != L'\0' ) {
+		for( escapeSeqIndex = 0; escapeSeqIndex < s_nEscapeSequences; ++escapeSeqIndex ) {
+			if( *copyFrom == s_escapeSequenceResults[escapeSeqIndex] ) {
+				// Found a recognized special character
+				*copyTo = W_ESCAPE_CHAR;
+				++copyTo;
+				break;
+			}
+		}
+		*copyTo = *copyFrom;
+		++copyFrom;
+		++copyTo;
+	}
+
+	// Null-terminate the result
+	*copyTo = *copyFrom;
+
+	out += wCStr_out;
+	delete[] wCStr_out;
+
 	out += L'"';
 	return ERROR_SUCCESS;
 }

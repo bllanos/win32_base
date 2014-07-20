@@ -76,11 +76,10 @@ created from Config objects by instances of this class.
 	L"# The matching is case-sensitive,\n"\
 	L"# and is implemented in the Config::wstringToDataType() function.\n"\
 	L"#\n"\
-	L"# Values are C++ literals corresponding to the datatypes\n"\
+	L"# Values are similar to C++ literals corresponding to the datatypes\n"\
 	L"# at the start of the line.\n"\
-	L"# For exammple, in the case of WSTRING literals,\n"\
-	L"# they must start with 'L\"', end with '\"',\n"\
-	L"# and indicate special characters using escape codes.\n"\
+	L"# Refer to the functions in the textProcessing namespace for details.\n"\
+	L"# (These functions are used for reading and writing data values.)\n"\
 	L"# ----------------------------------------------------------------------------\n"
 
 // Formatting components identified in the above guidelines
@@ -100,6 +99,7 @@ created from Config objects by instances of this class.
 */
 #define FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH 257
 #define FLATATOMICCONFIGIO_LINE_SEP '\n'
+#define W_FLATATOMICCONFIGIO_LINE_SEP L'\n'
 
 class FlatAtomicConfigIO : public IConfigIO, public LogUser {
 

@@ -64,10 +64,7 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 	HRESULT lineResult = ERROR_SUCCESS;
 
 	// Set up a line buffer
-	char line[FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH];
-	for( size_t i = 0; i < FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH; ++i ) {
-		line[i] = '\0';
-	}
+	char line[FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH] = { '\0' };
 
 	// Process each line
 	size_t lineNumber = 0;
@@ -195,7 +192,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 			result = lineResult;
 		} else {
 			// Write valid data to the file
-			file << line << L'\n';
+			file << line << W_FLATATOMICCONFIGIO_LINE_SEP;
 		}
 		++currentPair;
 		if( !file.good() ) {
@@ -208,6 +205,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 
 	// Write the configuration format to the file for reference
 	if( !notGood ) {
+		file << W_FLATATOMICCONFIGIO_LINE_SEP;
 		file << FLATATOMICCONFIGIO_DATA_FORMATSPEC;
 		if( !file.good() ) {
 			notGood = true;
@@ -230,6 +228,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 				time.clear();
 			}
 			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object Config writing report (" + time + L") begins --");
+			m_msgStore.emplace_front(W_FLATATOMICCONFIGIO_LINE_SEP);
 			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object Config writing report ends -->>");
 
 			/* Get an "empty" Logger for easy output to the file,
@@ -499,6 +498,13 @@ HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::K
 		str += field;
 		str += FLATATOMICCONFIGIO_SEP_3_WSTR;
 		str += valueWStr;
+	}
+
+	// Catch line length violations
+	if( str.length() > FLATATOMICCONFIGIO_MAX_LINE_LENGTH ) {
+		m_msgStore.emplace_back(prefix + L"line length is too long to be read by this class's file parser.");
+		str.clear();
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 	}
 	return ERROR_SUCCESS;
 }
