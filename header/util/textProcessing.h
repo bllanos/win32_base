@@ -92,8 +92,12 @@ namespace textProcessing {
 	is a substring of the null-terminated string 'str',
 	and if so, outputs the index at which 'sub'
 	first occurs in 'str'.
+
+	The 'startOffset' parameter is the index at which to start searching
+	the string
 	*/
-	bool hasSubstr(const char* const str, const char* const sub, size_t& index);
+	bool hasSubstr(const char* const str, const char* const sub, size_t& index,
+		const size_t& startOffset = 0);
 
 	/* Converts a wide character C++-style string literal stored
 	as a substring of a null-terminated ASCII string to a wide character

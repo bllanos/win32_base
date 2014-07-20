@@ -350,7 +350,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 
 	// Parse a key scope name
 	wstring scope;
-	if( !hasSubstr(str+index, FLATATOMICCONFIGIO_SEP_2, tempIndex) ) {
+	if( !hasSubstr(str, FLATATOMICCONFIGIO_SEP_2, tempIndex, index) ) {
 		m_msgStore.emplace_back(prefix +
 			L"no separator found to mark the end of the key scope (needed even if the scope is empty).");
 		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
@@ -364,7 +364,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 
 	// Parse a key field name
 	wstring field;
-	if( !hasSubstr(str + index, FLATATOMICCONFIGIO_SEP_3, tempIndex) ) {
+	if( !hasSubstr(str, FLATATOMICCONFIGIO_SEP_3, tempIndex, index) ) {
 		m_msgStore.emplace_back(prefix +
 			L"no separator found to mark the end of the key field.");
 		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);

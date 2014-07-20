@@ -184,17 +184,24 @@ bool textProcessing::hasPrefix(const char* str, const char* prefix) {
 	return true;
 }
 
-bool textProcessing::hasSubstr(const char* const str, const char* const sub, size_t& index) {
+bool textProcessing::hasSubstr(const char* const str, const char* const sub, size_t& index,
+	const size_t& startOffset) {
+
 	// Error checking
 	if( str == 0 || sub == 0 ) {
 		// This is a Microsoft-specific constructor
 		throw std::exception("hasSubstr() was passed null pointer(s).");
 	}
+	if( startOffset >= strlen(str) ) {
+		// This is a Microsoft-specific constructor
+		throw std::exception("hasSubstr() was passed a starting index greater than or equal to the length of the string.");
+	}
+
 	if( *str == '\0' && sub == '\0' ) {
 		index = 0;
 		return true;
 	}
-	const char* suffix = str;
+	const char* suffix = str + startOffset;
 	while( *suffix != '\0' ) {
 		if( hasPrefix(suffix, sub) ) {
 			index = static_cast<size_t>(suffix - str);
