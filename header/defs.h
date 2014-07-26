@@ -60,11 +60,12 @@ from the use of the 'new' operator.
 #define DEFAULT_CONFIG_PATH_TEST	LCHAR_STRINGIFY(.\\configuration\\test\\)
 #define DEFAULT_CONFIG_PATH_TEST_WRITE	LCHAR_STRINGIFY(.\\configuration\\test\\output\\)
 
+// Custom error code definitions
+// -----------------------------
+
 // Used for making custom HRESULT values
 #define FACILITY_BL_ENGINE 0
 
-// Custom error code definitions
-// -----------------------------
 /* These error codes will take precedence over system-defined error codes
 in case of conflict. (In other words, a system-defined error code
 interpretation will be ignored if the error code number also matches

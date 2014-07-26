@@ -31,22 +31,28 @@ Description
 #include <Shlwapi.h>
 
 HRESULT toWString(std::wstring& wStr, const std::string& str) {
-	/* To convert an ASCII character string to a wide character string
-	See http://msdn.microsoft.com/en-us/library/ms235631.aspx
-	for more information on converting between string types.
-	*/
-	const char* cStr = str.c_str();
-	size_t wSize = strlen(cStr) + 1;
-	wchar_t* wCStr = new wchar_t[wSize];
-	size_t convertedChars = 0;
-	mbstowcs_s(&convertedChars, wCStr, wSize, cStr, _TRUNCATE);
 
-	if (convertedChars != wSize) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+	size_t wSize = str.length() + 1; // Buffer length, not string length!
+
+	if( wSize > 1 ) {
+		/* To convert an ASCII character string to a wide character string
+		See http://msdn.microsoft.com/en-us/library/ms235631.aspx
+		for more information on converting between string types.
+		*/
+		const char* cStr = str.c_str();
+		wchar_t* wCStr = new wchar_t[wSize];
+		size_t convertedChars = 0;
+		mbstowcs_s(&convertedChars, wCStr, wSize, cStr, _TRUNCATE);
+
+		if( convertedChars != wSize ) {
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+		}
+
+		wStr = wCStr;
+		delete[] wCStr;
+	} else {
+		wStr = L"";
 	}
-
-	wStr = wCStr;
-	delete[] wCStr;
 	return ERROR_SUCCESS;
 }
 

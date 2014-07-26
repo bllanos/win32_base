@@ -242,7 +242,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 	file.close();
 
 	// Write any serialization problems back to the file
-	if( m_msgStore.empty() ) {
+	if( m_msgStore.empty() && !notGood ) {
 		logMessage(L"Config object writing complete - No invalid or unsupported data.");
 	} else {
 		logMessage(L"Config object writing complete - Problems encountered.");

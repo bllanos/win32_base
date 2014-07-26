@@ -233,7 +233,9 @@ HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* cons
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	}
 
-	// Check the start of the string
+	/* Check the start of the string
+	   Note: This condition statement screens out the empty string
+	 */
 	if( in[index] == 'L' && in[index + 1] == '"' ) {
 
 		// Find the end of the string literal
@@ -241,67 +243,85 @@ HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* cons
 		size_t beginIndex = index + 2;
 		size_t endIndex = 0;
 		if( FAILED(findFirstNonEscaped(in, beginIndex, '"', foundEnd, endIndex)) ) {
-			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 
 		} else if( foundEnd ) {
 
 			// The string contains a string literal
+			// ------------------------------------
 
-			// Convert to a wide-character string
-			size_t wSize = endIndex - beginIndex;
-			wchar_t* wCStr = new wchar_t[wSize];
-			size_t convertedChars = 0;
-			mbstowcs_s(&convertedChars, wCStr, wSize, in + beginIndex, _TRUNCATE);
+			size_t wSize = endIndex - beginIndex + 1; // Buffer length, not string length!
 
-			if( convertedChars != wSize ) {
-				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
-			}
+			// The string is not empty
+			if( wSize > 1 ) {
 
-			// Convert recognized escape codes to characters
-			wchar_t* copyTo = wCStr;
-			wchar_t* copyFrom = wCStr;
-			bool escaped = false;
-			bool isEscapeSeq = false;
-			size_t escapeSeqIndex = 0;
-			while( *copyFrom != L'\0' ) {
-				if( !escaped ) {
-					if( *copyFrom == W_ESCAPE_CHAR ) {
-						escaped = true;
-					} else {
-						*copyTo = *copyFrom;
-						++copyTo;
-					}
-				} else {
-					escaped = false;
-					// Check for a recognized escape sequence
-					for( escapeSeqIndex = 0; escapeSeqIndex < s_nEscapeSequences; ++escapeSeqIndex ) {
-						if( *copyFrom == s_escapeSequenceEnds[escapeSeqIndex] ) {
-							isEscapeSeq = true;
-							break;
+				// Convert to a wide-character string
+				wchar_t* wCStr = new wchar_t[wSize];
+				size_t convertedChars = 0;
+				mbstowcs_s(&convertedChars, wCStr, wSize, in + beginIndex, _TRUNCATE);
+
+				if( convertedChars != wSize ) {
+					delete[] wCStr;
+					return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+				}
+
+				// Convert recognized escape codes to characters
+				wchar_t* copyTo = wCStr;
+				wchar_t* copyFrom = wCStr;
+				bool escaped = false;
+				bool isEscapeSeq = false;
+				size_t escapeSeqIndex = 0;
+				while( *copyFrom != L'\0' ) {
+					if( !escaped ) {
+						if( *copyFrom == W_ESCAPE_CHAR ) {
+							escaped = true;
+						} else {
+							*copyTo = *copyFrom;
+							++copyTo;
 						}
-					}
-					if( isEscapeSeq ) {
-						// Convert the escape sequence
-						*copyTo = s_escapeSequenceResults[escapeSeqIndex];
 					} else {
-						// Copy the unrecognized escape sequence
-						*copyTo = *(copyFrom - 1);
+						escaped = false;
+						// Check for a recognized escape sequence
+						for( escapeSeqIndex = 0; escapeSeqIndex < s_nEscapeSequences; ++escapeSeqIndex ) {
+							if( *copyFrom == s_escapeSequenceEnds[escapeSeqIndex] ) {
+								isEscapeSeq = true;
+								break;
+							}
+						}
+						if( isEscapeSeq ) {
+							// Convert the escape sequence
+							*copyTo = s_escapeSequenceResults[escapeSeqIndex];
+						} else {
+							// Copy the unrecognized escape sequence
+							*copyTo = *(copyFrom - 1);
+							++copyTo;
+							*copyTo = *copyFrom;
+						}
 						++copyTo;
-						*copyTo = *copyFrom;	
 					}
+					++copyFrom;
+				}
+
+				if( escaped ) {
+					*copyTo = *(copyFrom - 1);
 					++copyTo;
 				}
-				++copyFrom;
+				*copyTo = *copyFrom; // Copy the null-terminating character
+
+				out = wCStr;
+				delete[] wCStr;
 			}
 
-			if( *(copyFrom - 1) == W_ESCAPE_CHAR ) {
-				*copyTo = *(copyFrom - 1);
-				++copyTo;
+			// The string is empty
+			else if( wSize == 1 ) {
+				out = L"";
 			}
-			*copyTo = *copyFrom; // Copy the null-terminating character
 
-			out = wCStr;
-			delete[] wCStr;
+			// Something went wrong
+			else {
+				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_BROKEN_CODE);
+			}
+
 			index = endIndex + 1;
 		}
 	}
