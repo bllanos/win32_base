@@ -2,7 +2,55 @@
 
 		 # Another comment, with whitespace preceding it
   BOOL --	space  ::	one		= true 
-
+# Testing an empty scope name
+BOOL--::two=false
+# Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which	ee6
+BOOL--	::three=false
 # <<-- FlatAtomicConfigIO class object parsing report (Sun Jul 20 17:05:47 2014 ) begins --
 # Line 4: the function for parsing the data value section of the line did not find a valid data value.
+# -- FlatAtomicConfigIO class object parsing report ends -->>
+ 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Fri Jul 25 15:19:57 2014 ) begins --
+# Line 6: Allowed line length of 255 exceeded - Aborting read operation.
+# -- FlatAtomicConfigIO class object parsing report ends -->>
+ 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Fri Jul 25 15:21:01 2014 ) begins --
+# Line 6: Allowed line length of 255 exceeded - Aborting read operation.
+# -- FlatAtomicConfigIO class object parsing report ends -->>
+ 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Fri Jul 25 15:23:23 2014 ) begins --
+# Line 7: Allowed line length of 255 exceeded - Aborting read operation.
+# -- FlatAtomicConfigIO class object parsing report ends -->>
+ 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Fri Jul 25 15:46:50 2014 ) begins --
+# Line 7: Allowed line length of 255 exceeded - Aborting read operation.
+# -- FlatAtomicConfigIO class object parsing report ends -->>
+ 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Fri Jul 25 15:47:45 2014 ) begins --
+# Line 7: Allowed line length of 255 exceeded - Aborting read operation.
+# -- FlatAtomicConfigIO class object parsing report ends -->>
+ 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Fri Jul 25 15:49:13 2014 ) begins --
+# Line 7: Allowed line length of 255 exceeded - Aborting read operation.
+# -- FlatAtomicConfigIO class object parsing report ends -->>
+ 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Fri Jul 25 15:50:44 2014 ) begins --
+# Line 7: Allowed line length of 255 exceeded - Aborting read operation.
+# -- FlatAtomicConfigIO class object parsing report ends -->>
+ 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Fri Jul 25 16:00:36 2014 ) begins --
+# Line 7: Allowed line length of 255 exceeded - Aborting read operation.
+# -- FlatAtomicConfigIO class object parsing report ends -->>
+ 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Fri Jul 25 16:02:57 2014 ) begins --
+# Line 7: Allowed line length of 255 exceeded - Aborting read operation.
 # -- FlatAtomicConfigIO class object parsing report ends -->>

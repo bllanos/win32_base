@@ -120,6 +120,9 @@ namespace textProcessing {
 	/* Essentially the inverse of wStrLiteralToWString()
 
 	   Character escape codes will be output for the following characters: ", \t and \n
+	   Note that the output string is otherwise not 'sanitized' in any way.
+	   In particular, nothing is done to ensure that it contains
+	   only printable ASCII characters (as could be done by using remove_ASCII_controlAndWhitespace() ).
 	 */
 	HRESULT wstringToWStrLiteral(std::wstring& out, const std::wstring& in);
 

@@ -91,6 +91,7 @@ created from Config objects by instances of this class.
 #define FLATATOMICCONFIGIO_SEP_2_WSTR L"::"
 #define FLATATOMICCONFIGIO_SEP_3 "="
 #define FLATATOMICCONFIGIO_SEP_3_WSTR L"="
+#define FLATATOMICCONFIGIO_WHITESPACE_SEP L"\t" // To add whitespace during serialization, for readability
 
 #define FLATATOMICCONFIGIO_MAX_LINE_LENGTH 255
 /* Used to catch line length violations.
@@ -98,8 +99,9 @@ created from Config objects by instances of this class.
    (because it compensates for the null terminating character)
 */
 #define FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH 257
+
 #define FLATATOMICCONFIGIO_LINE_SEP '\n'
-#define WSTR_FLATATOMICCONFIGIO_LINE_SEP L"\n"
+#define FLATATOMICCONFIGIO_LINE_SEP_WSTR L"\n"
 
 class FlatAtomicConfigIO : public IConfigIO, public LogUser {
 

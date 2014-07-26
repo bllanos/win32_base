@@ -70,14 +70,29 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 	size_t lineNumber = 0;
 	bool fail = false;
 	do {
+		++lineNumber; // Line numbers start at 1
+
 		// Retrieve the line
 		file.getline(line, FLATATOMICCONFIGIO_LINE_BUFFER_LENGTH, FLATATOMICCONFIGIO_LINE_SEP);
+
+		/* getline() sets the fail bit if it does not read any characters.
+		   Therefore, it will set the fail bit if the file ends with an empty line.
+		   In this case, I check if the fail bit was set at the end of the file, and assume that,
+		   if so, everything is still good.
+
+		   See http://www.cplusplus.com/reference/istream/istream/getline/
+		*/
 		if( file.fail() && !file.eof() ) {
 			fail = true;
-			logMessage(L"File stream bad bit or fail bit was set - Aborting read operation.");
+			logMessage(L"File stream bad bit or fail bit was set - To be determined if this is due to line length.");
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-			break;
-		} else if( line[FLATATOMICCONFIGIO_MAX_LINE_LENGTH - 1] != '\0' ) {
+		}
+		if( line[FLATATOMICCONFIGIO_MAX_LINE_LENGTH - 1] != '\0' ) {
+			/* getline() will set the fail bit for a line longer than the buffer,
+			   but I assume that the file is still useable in this case,
+			   so I set 'fail' to false
+			 */
+			fail = false;
 			logMessage(L"Allowed line length of " + to_wstring(FLATATOMICCONFIGIO_MAX_LINE_LENGTH) +
 				L" exceeded - Aborting read operation.");
 			m_msgStore.emplace_back(L"Line " + to_wstring(lineNumber) + L": Allowed line length of " +
@@ -86,7 +101,10 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 			result = MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 			break;
 		}
-		++lineNumber;
+
+		if( fail ) {
+			break;
+		}
 
 		// Parse the line
 		lineResult = readDataLine(config, line, lineNumber);
@@ -103,7 +121,7 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 	file.close();
 
 	// Write any parsing problems back to the file
-	if( m_msgStore.empty() ) {
+	if( m_msgStore.empty() && !fail ) {
 		logMessage(L"File parsing complete - No invalid data.");
 	} else {
 		logMessage(L"File parsing complete - Problems encountered.");
@@ -128,7 +146,7 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 
 				// First insert a blank line
 				setMsgPrefix(L"");
-				HRESULT tempResult = logMessage(WSTR_FLATATOMICCONFIGIO_LINE_SEP, false, true, filename);
+				HRESULT tempResult = logMessage(FLATATOMICCONFIGIO_LINE_SEP_WSTR, false, true, filename);
 				if( SUCCEEDED(tempResult) ) {
 					// Now log the parsing report
 					setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_SEP_WSTR);
@@ -199,7 +217,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 			result = lineResult;
 		} else {
 			// Write valid data to the file
-			file << line << WSTR_FLATATOMICCONFIGIO_LINE_SEP;
+			file << line << FLATATOMICCONFIGIO_LINE_SEP_WSTR;
 		}
 		++currentPair;
 		if( !file.good() ) {
@@ -212,7 +230,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 
 	// Write the configuration format to the file for reference
 	if( !notGood ) {
-		file << WSTR_FLATATOMICCONFIGIO_LINE_SEP;
+		file << FLATATOMICCONFIGIO_LINE_SEP_WSTR;
 		file << FLATATOMICCONFIGIO_DATA_FORMATSPEC;
 		if( !file.good() ) {
 			notGood = true;
@@ -249,7 +267,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 
 				// First insert a blank line
 				setMsgPrefix(L"");
-				HRESULT tempResult = logMessage(WSTR_FLATATOMICCONFIGIO_LINE_SEP, false, true, filename);
+				HRESULT tempResult = logMessage(FLATATOMICCONFIGIO_LINE_SEP_WSTR, false, true, filename);
 				if( SUCCEEDED(tempResult) ) {
 					// Now log the serialization report
 					setMsgPrefix(FLATATOMICCONFIGIO_COMMENT_SEP_WSTR);
@@ -508,11 +526,15 @@ HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::K
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 
 	} else {
+		str += FLATATOMICCONFIGIO_WHITESPACE_SEP;
 		str += FLATATOMICCONFIGIO_SEP_1_WSTR;
+		str += FLATATOMICCONFIGIO_WHITESPACE_SEP;
 		str += scope;
 		str += FLATATOMICCONFIGIO_SEP_2_WSTR;
 		str += field;
+		str += FLATATOMICCONFIGIO_WHITESPACE_SEP;
 		str += FLATATOMICCONFIGIO_SEP_3_WSTR;
+		str += FLATATOMICCONFIGIO_WHITESPACE_SEP;
 		str += valueWStr;
 	}
 
