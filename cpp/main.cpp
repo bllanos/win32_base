@@ -160,5 +160,8 @@ HRESULT applicationLoop(WPARAM& quit_wParam) {
 	// testBasicWindow::openNWindows(1, false);
 	// testConfig_IConfigManager::testFlatAtomicConfigIO();
 	testTextProcessing::testStrToDouble();
+	testTextProcessing::testStrToFloat();
+	testTextProcessing::testStrToInt();
+	testTextProcessing::testStrToUInt();
 	return ERROR_SUCCESS;
 }

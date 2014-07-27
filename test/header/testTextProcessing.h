@@ -28,9 +28,28 @@ namespace testTextProcessing {
 	*/
 	HRESULT testControlStrip(void);
 
-	/* Tests the strToDouble() function,
-	   as well as its inverse, doubleToWString()
+	/* Tests the strToNumber() function,
+	   as well as its inverse, numberToWString(),
+	   for values of type 'double'
 	*/
 	HRESULT testStrToDouble(void);
+
+	/* Tests the strToNumber() function,
+	as well as its inverse, numberToWString(),
+	for values of type 'float'
+	*/
+	HRESULT testStrToFloat(void);
+
+	/* Tests the strToNumber() function,
+	as well as its inverse, numberToWString(),
+	for values of type 'int'
+	*/
+	HRESULT testStrToInt(void);
+
+	/* Tests the strToNumber() function,
+	as well as its inverse, numberToWString(),
+	for values of type 'unsigned int'
+	*/
+	HRESULT testStrToUInt(void);
 
 }

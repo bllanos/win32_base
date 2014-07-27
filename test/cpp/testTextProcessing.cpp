@@ -139,7 +139,7 @@ HRESULT testTextProcessing::testStrToDouble(void) {
 		" ",
 		"1.0000000000000001e+070",
 		"1.0000000000000001e-070",
-		"123456789", // Too precise for single precision
+		"-123456789", // Too precise for single precision
 		"9999999999999999999999999999999999999999999999999999999999999999999999", // Too precise
 		"9ab",
 		" 54 ",
@@ -181,7 +181,270 @@ HRESULT testTextProcessing::testStrToDouble(void) {
 				logger->logMessage(L"\tError outputting value using numberToWString().");
 				finalResult = result;
 			}
-			WOSStream << L"\tOutput using doubleToWString(): " << str;
+			WOSStream << L"\tOutput using numberToWString(): " << str;
+			logger->logMessage(WOSStream.str());
+		}
+	}
+
+	if( SUCCEEDED(finalResult) ) {
+		logger->logMessage(L"All tests ran without errors.");
+	} else {
+		logger->logMessage(L"Some or all tests encountered errors.");
+	}
+
+	for( size_t i = 0; i < nStr; ++i ) {
+		delete[] pStrings[i];
+		pStrings[i] = 0;
+	}
+
+	delete[] pStrings;
+	delete logger;
+
+	return finalResult;
+}
+
+HRESULT testTextProcessing::testStrToFloat(void) {
+
+	// Create a file for logging the test results
+	Logger* logger = 0;
+	try {
+		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
+		logFilename += L"testStrToFloat.txt";
+		logger = new Logger(true, logFilename, true, false);
+	} catch( ... ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
+	}
+
+	HRESULT result = ERROR_SUCCESS;
+	HRESULT finalResult = ERROR_SUCCESS;
+
+	// Create an array of test strings
+	const char* const pConstStrings[] = {
+		"3.14159",
+		"0",
+		"0.0",
+		"hello",
+		"",
+		" ",
+		"-123456789", // Too precise for single precision
+		"9999999999999999999999999999999999999999999999999999999999999999999999", // Too precise
+		"9ab",
+		" 54 ",
+		" 4 5 ",
+		" 5.4e2",
+		"4.5f"
+	};
+	size_t nStr = sizeof(pConstStrings) / sizeof(char*);
+
+	// Copy the test strings to a modifiable array
+	char** pStrings = new char*[nStr];
+	for( size_t i = 0; i < nStr; ++i ) {
+		size_t bufferSize = strlen(pConstStrings[i]) + 1;
+		pStrings[i] = new char[bufferSize];
+		strcpy_s(pStrings[i], bufferSize, pConstStrings[i]);
+	}
+
+	// Run the tests
+	std::wstring str;
+	float out;
+	size_t index;
+	std::wostringstream WOSStream;
+
+	for( size_t i = 0; i < nStr; ++i ) {
+		out = 0.0;
+		index = 0;
+		textProcessing::strToNumber(out, pStrings[i], index);
+		if( FAILED(result) ) {
+			logger->logMessage(L"Test failed.");
+			finalResult = result;
+		} else {
+			WOSStream.str(L""); // Clear the string stream
+			toWString(str, pStrings[i]);
+			WOSStream << L"\"" << str << L"\" produces: " << std::scientific << out << L", parsing " << index << L" characters.";
+			logger->logMessage(WOSStream.str());
+			WOSStream.str(L""); // Clear the string stream
+			result = textProcessing::numberToWString(str, out);
+			if( FAILED(result) ) {
+				logger->logMessage(L"\tError outputting value using numberToWString().");
+				finalResult = result;
+			}
+			WOSStream << L"\tOutput using numberToWString(): " << str;
+			logger->logMessage(WOSStream.str());
+		}
+	}
+
+	if( SUCCEEDED(finalResult) ) {
+		logger->logMessage(L"All tests ran without errors.");
+	} else {
+		logger->logMessage(L"Some or all tests encountered errors.");
+	}
+
+	for( size_t i = 0; i < nStr; ++i ) {
+		delete[] pStrings[i];
+		pStrings[i] = 0;
+	}
+
+	delete[] pStrings;
+	delete logger;
+
+	return finalResult;
+}
+
+HRESULT testTextProcessing::testStrToInt(void) {
+
+	// Create a file for logging the test results
+	Logger* logger = 0;
+	try {
+		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
+		logFilename += L"testStrToInt.txt";
+		logger = new Logger(true, logFilename, true, false);
+	} catch( ... ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
+	}
+
+	HRESULT result = ERROR_SUCCESS;
+	HRESULT finalResult = ERROR_SUCCESS;
+
+	// Create an array of test strings
+	const char* const pConstStrings[] = {
+		"3.14159",
+		"0",
+		"0.0",
+		"hello",
+		"",
+		" ",
+		"-123456789",
+		"9999999999999999999999999999999999999999999999999999999999999999999999",
+		"9ab",
+		" 54 ",
+		" 4 5 ",
+		" 54e2",
+	};
+	size_t nStr = sizeof(pConstStrings) / sizeof(char*);
+
+	// Copy the test strings to a modifiable array
+	char** pStrings = new char*[nStr];
+	for( size_t i = 0; i < nStr; ++i ) {
+		size_t bufferSize = strlen(pConstStrings[i]) + 1;
+		pStrings[i] = new char[bufferSize];
+		strcpy_s(pStrings[i], bufferSize, pConstStrings[i]);
+	}
+
+	// Run the tests
+	std::wstring str;
+	int out;
+	size_t index;
+	std::wostringstream WOSStream;
+
+	for( size_t i = 0; i < nStr; ++i ) {
+		out = 0;
+		index = 0;
+		textProcessing::strToNumber(out, pStrings[i], index);
+		if( FAILED(result) ) {
+			logger->logMessage(L"Test failed.");
+			finalResult = result;
+		} else {
+			WOSStream.str(L""); // Clear the string stream
+			toWString(str, pStrings[i]);
+			WOSStream << L"\"" << str << L"\" produces: " << std::scientific << out << L", parsing " << index << L" characters.";
+			logger->logMessage(WOSStream.str());
+			WOSStream.str(L""); // Clear the string stream
+			result = textProcessing::numberToWString(str, out);
+			if( FAILED(result) ) {
+				logger->logMessage(L"\tError outputting value using numberToWString().");
+				finalResult = result;
+			}
+			WOSStream << L"\tOutput using numberToWString(): " << str;
+			logger->logMessage(WOSStream.str());
+		}
+	}
+
+	if( SUCCEEDED(finalResult) ) {
+		logger->logMessage(L"All tests ran without errors.");
+	} else {
+		logger->logMessage(L"Some or all tests encountered errors.");
+	}
+
+	for( size_t i = 0; i < nStr; ++i ) {
+		delete[] pStrings[i];
+		pStrings[i] = 0;
+	}
+
+	delete[] pStrings;
+	delete logger;
+
+	return finalResult;
+}
+
+HRESULT testTextProcessing::testStrToUInt(void) {
+
+	// Create a file for logging the test results
+	Logger* logger = 0;
+	try {
+		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
+		logFilename += L"testStrToUInt.txt";
+		logger = new Logger(true, logFilename, true, false);
+	} catch( ... ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
+	}
+
+	HRESULT result = ERROR_SUCCESS;
+	HRESULT finalResult = ERROR_SUCCESS;
+
+	// Create an array of test strings
+	const char* const pConstStrings[] = {
+		"3.14159",
+		"0",
+		"0.0",
+		"hello",
+		"",
+		" ",
+		"-123456789",
+		"9999999999999999999999999999999999999999999999999999999999999999999999",
+		"9ab",
+		" 54 ",
+		" 4 5 ",
+		" 54e2",
+		" -54e2",
+		" 54E2",
+		" 0x54e2",
+		" 0x54E2"
+	};
+	size_t nStr = sizeof(pConstStrings) / sizeof(char*);
+
+	// Copy the test strings to a modifiable array
+	char** pStrings = new char*[nStr];
+	for( size_t i = 0; i < nStr; ++i ) {
+		size_t bufferSize = strlen(pConstStrings[i]) + 1;
+		pStrings[i] = new char[bufferSize];
+		strcpy_s(pStrings[i], bufferSize, pConstStrings[i]);
+	}
+
+	// Run the tests
+	std::wstring str;
+	unsigned int out;
+	size_t index;
+	std::wostringstream WOSStream;
+
+	for( size_t i = 0; i < nStr; ++i ) {
+		out = 0;
+		index = 0;
+		textProcessing::strToNumber(out, pStrings[i], index);
+		if( FAILED(result) ) {
+			logger->logMessage(L"Test failed.");
+			finalResult = result;
+		} else {
+			WOSStream.str(L""); // Clear the string stream
+			toWString(str, pStrings[i]);
+			WOSStream << L"\"" << str << L"\" produces: " << std::scientific << out << L", parsing " << index << L" characters.";
+			logger->logMessage(WOSStream.str());
+			WOSStream.str(L""); // Clear the string stream
+			result = textProcessing::numberToWString(str, out);
+			if( FAILED(result) ) {
+				logger->logMessage(L"\tError outputting value using numberToWString().");
+				finalResult = result;
+			}
+			WOSStream << L"\tOutput using numberToWString(): " << str;
 			logger->logMessage(WOSStream.str());
 		}
 	}

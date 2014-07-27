@@ -22,8 +22,8 @@ Description
 
 #include <windows.h> // For the HRESULT type
 #include <string>
-#include <limits>
 #include <sstream>
+#include <limits>
 #include "defs.h"
 
 namespace textProcessing {
@@ -145,17 +145,13 @@ namespace textProcessing {
 	   using the istringstream class
 	   (http://www.cplusplus.com/reference/sstream/istringstream/)
 
-	   If the 'hex' parameter is true, and the output parameter
-	   is of an integer type, the value will be parsed
-	   as a hexadecimal number, rather than a decimal number.
-
 	   Note: There is currently (on July 27, 2014) no check to ensure
 	   that the output value is an exact representation of the input,
 	   or that it is accurate to within a specified tolerance.
 
 	   Otherwise behaves like wStrLiteralToWString()
 	*/
-	template<typename T> HRESULT strToNumber(T& out, const char* const in, size_t& index, const bool hex = false) {
+	template<typename T> HRESULT strToNumber(T& out, const char* const in, size_t& index) {
 		// Error checking
 		if( in == 0 ) {
 			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
@@ -164,16 +160,8 @@ namespace textProcessing {
 			return ERROR_SUCCESS;
 		}
 
-		std::istringstream inStream(in + index);
-		if( hex ) {
-			if( std::numeric_limits<T>::is_integer ) {
-				inStream.setf(std::ios_base::hex);
-			} else {
-				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
-			}
-		}
-
 		HRESULT result = ERROR_SUCCESS;
+		std::istringstream inStream(in + index);
 		T temp;
 		inStream >> temp; // Note that this operation will ignore leading whitespace
 
@@ -198,21 +186,10 @@ namespace textProcessing {
 	}
 
 	/* The inverse of strToNumber(), using the wostringstream class
-
-	   If the 'hex' parameter is true, and the input parameter
-	   is of an integer type, the output will be in hexadecimal
-	   notation, rather than decimal notation.
 	 */
-	template<typename T> HRESULT numberToWString(std::wstring& out, const T& in, const bool hex = false) {
+	template<typename T> HRESULT numberToWString(std::wstring& out, const T& in) {
 		std::wostringstream outStream;
-		if( std::numeric_limits<T>::is_integer ) {
-			if( hex ) {
-				outStream.setf(std::ios_base::hex);
-			}
-		} else {
-			if( hex ) {
-				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
-			}
+		if( !std::numeric_limits<T>::is_integer ) {
 			outStream.precision(16); // This sets the number of post-decimal digits
 			outStream.setf(std::ios_base::scientific);
 		}
