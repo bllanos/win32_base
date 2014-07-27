@@ -137,6 +137,9 @@ HRESULT testTextProcessing::testStrToDouble(void) {
 		"hello",
 		"",
 		" ",
+		"1.0000000000000001e+070",
+		"1.0000000000000001e-070",
+		"123456789", // Too precise for single precision
 		"9999999999999999999999999999999999999999999999999999999999999999999999", // Too precise
 		"9ab",
 		" 54 ",
@@ -170,7 +173,15 @@ HRESULT testTextProcessing::testStrToDouble(void) {
 		} else {
 			WOSStream.str(L""); // Clear the string stream
 			toWString(str, pStrings[i]);
-			WOSStream << L"\"" << str << L"\" produces: " << out << L", parsing " << index << L" characters.";
+			WOSStream << L"\"" << str << L"\" produces: " << std::scientific << out << L", parsing " << index << L" characters.";
+			logger->logMessage(WOSStream.str());
+			WOSStream.str(L""); // Clear the string stream
+			result = textProcessing::doubleToWString(str, out);
+			if( FAILED(result) ) {
+				logger->logMessage(L"\tError outputting value using doubleToWString().");
+				finalResult = result;
+			}
+			WOSStream << L"\tOutput using doubleToWString(): " << str;
 			logger->logMessage(WOSStream.str());
 		}
 	}

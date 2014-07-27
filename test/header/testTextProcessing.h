@@ -28,7 +28,8 @@ namespace testTextProcessing {
 	*/
 	HRESULT testControlStrip(void);
 
-	/* Tests the strToDouble() function
+	/* Tests the strToDouble() function,
+	   as well as its inverse, doubleToWString()
 	*/
 	HRESULT testStrToDouble(void);
 

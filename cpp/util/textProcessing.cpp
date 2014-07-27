@@ -456,7 +456,18 @@ HRESULT textProcessing::strToDouble(double& out, const char* const in, size_t& i
 	return result;
 }
 
-HRESULT textProcessing::doubleToWString(wstring& out, const double& in);
+HRESULT textProcessing::doubleToWString(wstring& out, const double& in) {
+	wostringstream outStream;
+	outStream.precision(16); // This sets the number of post-decimal digits
+	outStream.setf(std::ios_base::scientific);
+	outStream << in;
+	if( outStream.good() ) {
+		out = outStream.str();
+		return ERROR_SUCCESS;
+	} else {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+	}
+}
 
 HRESULT textProcessing::strToFloat(float& out, const char* const in, size_t& index);
 
