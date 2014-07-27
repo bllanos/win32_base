@@ -289,6 +289,7 @@ HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* cons
 							}
 						}
 						if( isEscapeSeq ) {
+							isEscapeSeq = false;
 							// Convert the escape sequence
 							*copyTo = s_escapeSequenceResults[escapeSeqIndex];
 						} else {
@@ -334,23 +335,37 @@ HRESULT textProcessing::wstringToWStrLiteral(std::wstring& out, const std::wstri
 
 	// Convert recognized special characters to escape sequences
 
-	// The result can at most double in size
+	/* The result can at most double in size,
+	   due to the expansion of special characters into escape sequences
+	 */
 	wchar_t* const wCStr_out = new wchar_t[in.length() * 2 + 1];
 	const wchar_t* const wCStr_in = in.c_str();
 
 	const wchar_t* copyFrom = wCStr_in;
 	wchar_t* copyTo = wCStr_out;
 	size_t escapeSeqIndex = 0;
+	bool isEscapeSeq = false;
 	while( *copyFrom != L'\0' ) {
 		for( escapeSeqIndex = 0; escapeSeqIndex < s_nEscapeSequences; ++escapeSeqIndex ) {
 			if( *copyFrom == s_escapeSequenceResults[escapeSeqIndex] ) {
+
 				// Found a recognized special character
+				isEscapeSeq = true;
+
+				// Insert the escape
 				*copyTo = W_ESCAPE_CHAR;
 				++copyTo;
 				break;
 			}
 		}
-		*copyTo = *copyFrom;
+
+		// Insert the sequence after the escape
+		if( isEscapeSeq ) {
+			isEscapeSeq = false;
+			*copyTo = s_escapeSequenceEnds[escapeSeqIndex];
+		} else {
+			*copyTo = *copyFrom;
+		}
 		++copyFrom;
 		++copyTo;
 	}

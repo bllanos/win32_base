@@ -20,16 +20,28 @@ WSTRING -- strings :: 08 = L"\ string "
 WSTRING -- strings :: 09 = L"\\ Double backslash"
 WSTRING -- strings :: 10 = L"\\\ Triple backslash"
 WSTRING -- strings :: 11 = L"\n Escape \n sequence \n"
-WSTRING -- strings :: 12 = L"\\" Results \\" in truncation \\""
+WSTRING -- strings :: 12 = L"\\" Results \\" in entire line not being parsed \\""
 WSTRING -- strings :: 121 = L"\" Escape \" sequence \""
 WSTRING -- strings :: 13 = L"\\\t Escape \\\t sequence \\\t"
+WSTRING -- strings :: 14 = L"\\t No escape \\t sequences \\t"
+
+# Testing some additional invalid data
+BOOL -- no::value = felse
+WSTRING -- no::value = "none"
+WSTRING -- no::value = Lnone"
+WSTRING -- no::value = L"none
+WSTRING -- no::value = none
+
+# Testing a duplicate key
+  BOOL --	space  ::	one		= false
+
+# Testing some improperly formatted data
+BOOL - no::value = false
+BOL -- no::value = false
+BOOL -- no:value = false
+BOOL -- no::value ! false
+BOOL -- no:: = false
 
 # Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long
 # The following data should not be parsed
-BOOL--	::afterLongLine=false 
-
-# <<-- FlatAtomicConfigIO class object parsing report (Sat Jul 26 14:19:39 2014 ) begins --
-# Line 13: the function for parsing the data value section of the line did not find a valid data value.
-# Line 15: the function for parsing the data value section of the line did not find a valid data value.
-# Line 26: Allowed line length of 255 exceeded - Aborting read operation.
-# -- FlatAtomicConfigIO class object parsing report ends -->>
+BOOL--	::afterLongLine=false

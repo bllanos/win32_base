@@ -72,12 +72,12 @@ created from Config objects by instances of this class.
 	L"#\n"\
 	L"# Datatypes must match one of the 'DataType' enumeration constant names\n"\
 	L"# found in Config.h that corresponds to\n"\
-	L"# either a wide character string or a fundamental type.\n"\
+	L"# either a wide-character string or a fixed-size data type.\n"\
 	L"# The matching is case-sensitive,\n"\
 	L"# and is implemented in the Config::wstringToDataType() function.\n"\
 	L"#\n"\
 	L"# Values are similar to C++ literals corresponding to the datatypes\n"\
-	L"# at the start of the line.\n"\
+	L"# named at the start of the key-value pair lines.\n"\
 	L"# Refer to the functions in the textProcessing namespace for details.\n"\
 	L"# (These functions are used for parsing and serializing data values.)\n"\
 	L"# ----------------------------------------------------------------------------"

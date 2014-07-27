@@ -448,12 +448,18 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 		m_msgStore.emplace_back(prefix +
 			L"There is already a value stored in the Config object under the following key: Scope = "+
 			scope+L", Field = "+field+L". Either this key was repeated in the file,"
-			L"or was already present in the Config object before this file was read.");
+			L" or was already present in the Config object before this file was read.");
 		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 	} else if( FAILED(insertResult) ) {
 		m_msgStore.emplace_back(prefix +
 			L"a serious error occured when attempting to insert the key-data value pair into the Config object.");
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+
+		// Check if the entire line was parsed
+	} else if( str[tempIndex] != '\0' ) {
+		m_msgStore.emplace_back(prefix +
+			L"the function for parsing the data value section of the line did not convert the entire rest of the line into a data value.");
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 	}
 
 	return ERROR_SUCCESS;
