@@ -21,6 +21,11 @@ Description
 #include "textProcessing.h"
 #include "defs.h"
 #include <exception>
+#include <sstream>
+
+using std::istringstream;
+using std::wostringstream;
+using std::wstring;
 
 #define ESCAPE_CHAR '\\'
 #define W_ESCAPE_CHAR L'\\'
@@ -226,7 +231,7 @@ static const wchar_t s_escapeSequenceResults[] = {
 
 static const size_t s_nEscapeSequences = sizeof(s_escapeSequenceEnds) / sizeof(s_escapeSequenceEnds[0]);
 
-HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* const in, size_t& index) {
+HRESULT textProcessing::wStrLiteralToWString(wstring& out, const char* const in, size_t& index) {
 
 	// Error checking
 	if( in == 0 ) {
@@ -330,7 +335,7 @@ HRESULT textProcessing::wStrLiteralToWString(std::wstring& out, const char* cons
 	return ERROR_SUCCESS;
 }
 
-HRESULT textProcessing::wstringToWStrLiteral(std::wstring& out, const std::wstring& in) {
+HRESULT textProcessing::wstringToWStrLiteral(wstring& out, const wstring& in) {
 	out = L"L\"";
 
 	// Convert recognized special characters to escape sequences
@@ -407,7 +412,7 @@ HRESULT textProcessing::strToBool(bool& out, const char* const in, size_t& index
 	return ERROR_SUCCESS;
 }
 
-HRESULT textProcessing::boolToWString(std::wstring& out, const bool& in) {
+HRESULT textProcessing::boolToWString(wstring& out, const bool& in) {
 	if( in ) {
 		out = L"true";
 	} else {
@@ -415,3 +420,52 @@ HRESULT textProcessing::boolToWString(std::wstring& out, const bool& in) {
 	}
 	return ERROR_SUCCESS;
 }
+
+HRESULT textProcessing::strToDouble(double& out, const char* const in, size_t& index) {
+
+	// Error checking
+	if( in == 0 ) {
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
+	} else if( *in == '\0' ) {
+		// Empty string
+		return ERROR_SUCCESS;
+	}
+
+	HRESULT result = ERROR_SUCCESS;
+	istringstream inStream(in + index);
+	double temp;
+	inStream >> temp; // Note that this operation will ignore leading whitespace
+
+	if( !inStream.fail() ) {
+		// A valid value was recovered
+
+		// Determine how many characters were read
+		if( inStream.eof() ) {
+			index += strlen(in + index);
+			out = temp;
+		} else {
+			std::streampos inc = inStream.tellg();
+			if( inc > 0 ) {
+				index += static_cast<size_t>(inc);
+				out = temp;
+			} else {
+				result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+			}
+		}
+	}
+	return result;
+}
+
+HRESULT textProcessing::doubleToWString(wstring& out, const double& in);
+
+HRESULT textProcessing::strToFloat(float& out, const char* const in, size_t& index);
+
+HRESULT textProcessing::floatToWString(wstring& out, const float& in);
+
+HRESULT textProcessing::strToUInt(unsigned int& out, const char* const in, size_t& index, const bool hex);
+
+HRESULT textProcessing::uIntToWString(wstring& out, const unsigned int& in, const bool hex);
+
+HRESULT textProcessing::strToInt(int& out, const char* const in, size_t& index);
+
+HRESULT textProcessing::intToWString(wstring& out, const int& in);

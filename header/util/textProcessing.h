@@ -138,4 +138,48 @@ namespace textProcessing {
 	/* Essentially the inverse of strToBool() */
 	HRESULT boolToWString(std::wstring& out, const bool& in);
 
+	/* Parses a double value from a null-terminated string,
+	   using the istringstream class
+	   (http://www.cplusplus.com/reference/sstream/istringstream/)
+
+	   Otherwise behaves like wStrLiteralToWString()
+	*/
+	HRESULT strToDouble(double& out, const char* const in, size_t& index);
+
+	/* The inverse of strToDouble(), using the wostringstream class */
+	HRESULT doubleToWString(std::wstring& out, const double& in);
+
+	/* Parses a float value from a null-terminated string,
+	   essentially by calling strToDouble()
+
+	   Otherwise behaves like wStrLiteralToWString()
+	*/
+	HRESULT strToFloat(float& out, const char* const in, size_t& index);
+
+	/* The inverse of strToFloat(), using the wostringstream class */
+	HRESULT floatToWString(std::wstring& out, const float& in);
+
+	/* Parses an unsigned integer value from a null-terminated string,
+	   using the istringstream class
+	   (http://www.cplusplus.com/reference/sstream/istringstream/)
+
+	   If the 'hex' parameter is true, the value will be parsed
+	   as a hexadecimal number, rather than a decimal number.
+
+	   Otherwise behaves like wStrLiteralToWString()
+	*/
+	HRESULT strToUInt(unsigned int& out, const char* const in, size_t& index, const bool hex = false);
+
+	/* The inverse of strToUInt(), using the wostringstream class */
+	HRESULT uIntToWString(std::wstring& out, const unsigned int& in, const bool hex = false);
+
+	/* Parses a signed integer value from a null-terminated string,
+	   essentially by calling strToUInt()
+
+	   Otherwise behaves like wStrLiteralToWString()
+	*/
+	HRESULT strToInt(int& out, const char* const in, size_t& index);
+
+	/* The inverse of strToInt(), using the wostringstream class */
+	HRESULT intToWString(std::wstring& out, const int& in);
 }
