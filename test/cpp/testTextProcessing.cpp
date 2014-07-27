@@ -166,7 +166,7 @@ HRESULT testTextProcessing::testStrToDouble(void) {
 	for( size_t i = 0; i < nStr; ++i ) {
 		out = 0.0;
 		index = 0;
-		textProcessing::strToDouble(out, pStrings[i], index);
+		textProcessing::strToNumber(out, pStrings[i], index);
 		if( FAILED(result) ) {
 			logger->logMessage(L"Test failed.");
 			finalResult = result;
@@ -176,9 +176,9 @@ HRESULT testTextProcessing::testStrToDouble(void) {
 			WOSStream << L"\"" << str << L"\" produces: " << std::scientific << out << L", parsing " << index << L" characters.";
 			logger->logMessage(WOSStream.str());
 			WOSStream.str(L""); // Clear the string stream
-			result = textProcessing::doubleToWString(str, out);
+			result = textProcessing::numberToWString(str, out);
 			if( FAILED(result) ) {
-				logger->logMessage(L"\tError outputting value using doubleToWString().");
+				logger->logMessage(L"\tError outputting value using numberToWString().");
 				finalResult = result;
 			}
 			WOSStream << L"\tOutput using doubleToWString(): " << str;

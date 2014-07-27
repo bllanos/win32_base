@@ -22,6 +22,9 @@ Description
 
 #include <windows.h> // For the HRESULT type
 #include <string>
+#include <limits>
+#include <sstream>
+#include "defs.h"
 
 namespace textProcessing {
 
@@ -138,48 +141,87 @@ namespace textProcessing {
 	/* Essentially the inverse of strToBool() */
 	HRESULT boolToWString(std::wstring& out, const bool& in);
 
-	/* Parses a double value from a null-terminated string,
+	/* Parses a numerical value from a null-terminated string,
 	   using the istringstream class
 	   (http://www.cplusplus.com/reference/sstream/istringstream/)
 
-	   Otherwise behaves like wStrLiteralToWString()
-	*/
-	HRESULT strToDouble(double& out, const char* const in, size_t& index);
-
-	/* The inverse of strToDouble(), using the wostringstream class */
-	HRESULT doubleToWString(std::wstring& out, const double& in);
-
-	/* Parses a float value from a null-terminated string,
-	   essentially by calling strToDouble()
-
-	   Otherwise behaves like wStrLiteralToWString()
-	*/
-	HRESULT strToFloat(float& out, const char* const in, size_t& index);
-
-	/* The inverse of strToFloat(), using the wostringstream class */
-	HRESULT floatToWString(std::wstring& out, const float& in);
-
-	/* Parses an unsigned integer value from a null-terminated string,
-	   using the istringstream class
-	   (http://www.cplusplus.com/reference/sstream/istringstream/)
-
-	   If the 'hex' parameter is true, the value will be parsed
+	   If the 'hex' parameter is true, and the output parameter
+	   is of an integer type, the value will be parsed
 	   as a hexadecimal number, rather than a decimal number.
 
-	   Otherwise behaves like wStrLiteralToWString()
-	*/
-	HRESULT strToUInt(unsigned int& out, const char* const in, size_t& index, const bool hex = false);
-
-	/* The inverse of strToUInt(), using the wostringstream class */
-	HRESULT uIntToWString(std::wstring& out, const unsigned int& in, const bool hex = false);
-
-	/* Parses a signed integer value from a null-terminated string,
-	   essentially by calling strToUInt()
+	   Note: There is currently (on July 27, 2014) no check to ensure
+	   that the output value is an exact representation of the input,
+	   or that it is accurate to within a specified tolerance.
 
 	   Otherwise behaves like wStrLiteralToWString()
 	*/
-	HRESULT strToInt(int& out, const char* const in, size_t& index);
+	template<typename T> HRESULT strToNumber(T& out, const char* const in, size_t& index, const bool hex = false) {
+		// Error checking
+		if( in == 0 ) {
+			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
+		} else if( in[index] == '\0' ) {
+			// Empty string
+			return ERROR_SUCCESS;
+		}
 
-	/* The inverse of strToInt(), using the wostringstream class */
-	HRESULT intToWString(std::wstring& out, const int& in);
+		std::istringstream inStream(in + index);
+		if( hex ) {
+			if( std::numeric_limits<T>::is_integer ) {
+				inStream.setf(std::ios_base::hex);
+			} else {
+				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+			}
+		}
+
+		HRESULT result = ERROR_SUCCESS;
+		T temp;
+		inStream >> temp; // Note that this operation will ignore leading whitespace
+
+		if( !inStream.fail() ) {
+			// A valid value was recovered
+
+			// Determine how many characters were read
+			if( inStream.eof() ) {
+				index += strlen(in + index);
+				out = temp;
+			} else {
+				std::streampos inc = inStream.tellg();
+				if( inc > 0 ) {
+					index += static_cast<size_t>(inc);
+					out = temp;
+				} else {
+					result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+				}
+			}
+		}
+		return result;
+	}
+
+	/* The inverse of strToNumber(), using the wostringstream class
+
+	   If the 'hex' parameter is true, and the input parameter
+	   is of an integer type, the output will be in hexadecimal
+	   notation, rather than decimal notation.
+	 */
+	template<typename T> HRESULT numberToWString(std::wstring& out, const T& in, const bool hex = false) {
+		std::wostringstream outStream;
+		if( std::numeric_limits<T>::is_integer ) {
+			if( hex ) {
+				outStream.setf(std::ios_base::hex);
+			}
+		} else {
+			if( hex ) {
+				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+			}
+			outStream.precision(16); // This sets the number of post-decimal digits
+			outStream.setf(std::ios_base::scientific);
+		}
+		outStream << in;
+		if( outStream.good() ) {
+			out = outStream.str();
+			return ERROR_SUCCESS;
+		} else {
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+		}
+	}
 }
