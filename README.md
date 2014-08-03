@@ -1,7 +1,9 @@
 # A small win32 'Engine'
 
 **Created for:** Spring 2014 Direct3D 11 Learning
+
 **By:** Bernard Llanos
+
 **Project started:** May 18, 2014
 
 ## Description
@@ -9,7 +11,7 @@ This program is intended as a platform on which DirectX experiments
 can be built. It is designed to provide a number of useful services
 (once fully implemented):
 - Loading parameters from text files at runtime, as well as saving parameters
-to files.
+to files
 - Management of simple windows on which to display rendered images
 - Handling Windows messages, including for keyboard and mouse input
 - Logging debugging messages to files and/or a console window
@@ -44,20 +46,20 @@ for all configurations, when using Visual Studio.
 ## Additional Linker Dependencies
 In addition to the default dependencies added by Visual Studio 2013,
 I have added the following libraries as dependencies
-- Shlwapi.lib (for filepath-related functions)
+- `Shlwapi.lib` (for filepath-related functions)
 
 ## Dependency on Windows
 This project makes use of the Standard Template Library
 to allow for platform-independent code in most places.
 The major areas in which the code is dependent on the Windows environment
 are as follows:
-- Error reporting makes use of the HRESULT data type,
-  and occasionally some error codes that are defined
+- Error reporting makes use of the `HRESULT` data type,
+  and occasionally some error codes (the 'code' portion of an `HRESULT` value that are defined
   within Windows header files.
 - All GUI-related code is Windows-specific
-- The program uses the Shlwapi.lib library for performing checks
+- The program uses the `Shlwapi.lib` library for performing checks
   relating to directory existence and file paths.
-- Exceptions of type std::exception are created using a
+- Exceptions of type `std::exception` are created using a
   Microsoft-specific constructor that accepts a string argument.
 
 ## License and Usage
@@ -73,5 +75,5 @@ of this program. For instance, there is the Hieroglyph 3 engine,
 available at http://hieroglyph3.codeplex.com/ under a very flexible license.
 Nevertheless, if you have comments on this project or wish to use
 large portions of the code, I would appreciate if you sent me an email
-at llanbe_t3mp@yahoo.ca (primarily because I value any opportunity
+at _llanbe_t3mp@yahoo.ca_ (primarily because I value any opportunity
 to learn from you in the process).
