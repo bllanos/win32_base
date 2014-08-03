@@ -48,7 +48,7 @@ In addition to the default dependencies added by Visual Studio 2013,
 I have added the following libraries as dependencies
 - `Shlwapi.lib` (for filepath-related functions)
 
-## Dependency on Windows
+## Dependency on Microsoft Windows
 This project makes use of the Standard Template Library
 to allow for platform-independent code in most places.
 The major areas in which the code is dependent on the Windows environment
@@ -61,7 +61,7 @@ are as follows:
   - See [_Using Macros for Error Handling_ at MSDN]
     (http://msdn.microsoft.com/en-us/library/windows/desktop/ms691242%28v=vs.85%29.aspx)
 	for more information.
-- All GUI-related code is Windows-specific
+- All GUI-related code is Windows-specific.
 - The program uses the `Shlwapi.lib` library for performing checks
   relating to directory existence and file paths.
 - Exceptions of type `std::exception` are created using a
@@ -80,5 +80,5 @@ of this program. For instance, there is the Hieroglyph 3 engine,
 available at http://hieroglyph3.codeplex.com/ under a very flexible license.
 Nevertheless, if you have comments on this project or wish to use
 large portions of the code, I would appreciate if you sent me an email
-at _llanbe_t3mp@yahoo.ca_ (primarily because I value any opportunity
+at llanbe_t3mp@yahoo.ca (primarily because I value any opportunity
 to learn from you in the process).
