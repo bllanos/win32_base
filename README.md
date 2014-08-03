@@ -54,8 +54,13 @@ to allow for platform-independent code in most places.
 The major areas in which the code is dependent on the Windows environment
 are as follows:
 - Error reporting makes use of the `HRESULT` data type,
-  and occasionally some error codes (the 'code' portion of an `HRESULT` value that are defined
-  within Windows header files.
+  and occasionally some error codes (the 'code' portion of an `HRESULT` value)
+  that are defined within Windows header files.
+  - Note that it would be trivial to define macros to recreate this
+    functionality on other platforms.
+  - See [_Using Macros for Error Handling_ at MSDN]
+    (http://msdn.microsoft.com/en-us/library/windows/desktop/ms691242%28v=vs.85%29.aspx)
+	for more information.
 - All GUI-related code is Windows-specific
 - The program uses the `Shlwapi.lib` library for performing checks
   relating to directory existence and file paths.
