@@ -38,13 +38,6 @@ extern Logger* g_defaultLogger;
 // Convert a string object to an equivalent wstring object
 HRESULT toWString(std::wstring& wStr, const std::string& str);
 
-/* Extract the (relative or absolute) path
-   from a combined filepath and file/directory name string.
-   To be exact, if successful, this function strips the last name
-   on the path (either a file or a directory name).
- */
-HRESULT extractPath(std::wstring& path, const std::wstring& filenameAndPath);
-
 /* Convert an HRESULT value to a more readable form,
    with each of its components identified
 

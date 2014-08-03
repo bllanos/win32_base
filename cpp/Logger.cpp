@@ -20,6 +20,7 @@ Description
 #include "Logger.h"
 #include "defs.h"
 #include "globals.h"
+#include "fileUtil.h"
 #include <ctime>
 #include <exception>
 #include <cctype>
@@ -87,7 +88,7 @@ m_timestampEnabled(true)
 			if( !PathFileExists(m_filename.c_str()) ) {
 				// Check if the directory where the file will be created is valid
 				wstring path;
-				if( FAILED(extractPath(path, m_filename)) ) {
+				if( FAILED(fileUtil::extractPath(path, m_filename)) ) {
 					// This is a Microsoft-specific constructor
 					throw std::exception("Failure retrieving the primary logging output file's path.");
 				} else if( path.length() != 0 && !PathIsDirectory(path.c_str()) ){
