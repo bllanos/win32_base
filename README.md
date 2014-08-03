@@ -1,4 +1,4 @@
-# A small win32 'Engine'
+# A Small win32 'Engine'
 
 **Created for:** Spring 2014 Direct3D 11 Learning
 
