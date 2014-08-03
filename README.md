@@ -16,12 +16,12 @@ to files.
 
 ## References
 The following works were consulted for ideas during development
-- Horton, Ivor. Beginning Visual C++ 2008.
+- Horton, Ivor. _Beginning Visual C++ 2008._
   Indianapolis: Wiley Publishing Inc., 2008.
-- Luna, Frank D. 3D Game Programming with DirectX 11.
+- Luna, Frank D. _3D Game Programming with DirectX 11._
   Dulles: Mercury Learning and Information, 2012.
 - Zink, Jason, Matt Pettineo and Jack Hoxley.
-  Practical Rendering and Computation with Direct 3D 11.
+  _Practical Rendering and Computation with Direct 3D 11._
   Boca Raton: CRC Press Taylor & Francis Group, 2011.
 - My game development group project for the course COMP2501A
   (Offered Winter 2014 at Carleton University)
