@@ -7,7 +7,7 @@ By: Bernard Llanos
 May 31, 2014
 
 Primary basis: None
-Other references: Horton, Ivor. Beginning Visual C++ 2008. Indianapolis: Wiley Publishing Inc., 2008
+Other references: Horton, Ivor. Beginning Visual C++ 2008. Indianapolis: Wiley Publishing Inc., 2008.
   (Specifically the 'calculator' program in Chapter 6)
 
 Development environment: Visual Studio 2013 running on Windows 7, 64-bit
