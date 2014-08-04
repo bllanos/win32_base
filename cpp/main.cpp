@@ -159,9 +159,10 @@ HRESULT applicationLoop(WPARAM& quit_wParam) {
 
 	// testBasicWindow::openNWindows(1, false);
 	// testConfig_IConfigManager::testFlatAtomicConfigIO();
-	testTextProcessing::testStrToDouble();
-	testTextProcessing::testStrToFloat();
-	testTextProcessing::testStrToInt();
-	testTextProcessing::testStrToUInt();
+	// testTextProcessing::testStrToDouble();
+	// testTextProcessing::testStrToFloat();
+	// testTextProcessing::testStrToInt();
+	// testTextProcessing::testStrToUInt();
+	testLogger_LogUser::testAppendMode();
 	return ERROR_SUCCESS;
 }

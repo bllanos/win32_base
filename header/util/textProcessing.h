@@ -201,4 +201,25 @@ namespace textProcessing {
 			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
 		}
 	}
+
+	/* Converts the null-terminated ASCII string containing a fully-qualified
+	filename into a 'validated' filename.
+	
+	To be accepted, the string must be prefixed and postfixed with '"'
+	(e.g. in order to protect its contents from any use of
+	remove_ASCII_controlAndWhitespace() by the client code).
+	It must contain a relative or absolute filepath that does not
+	trigger the output of any message strings by
+	fileUtil::inspectFilenameAndPath().
+
+	Otherwise behaves like wStrLiteralToWString()
+	*/
+	HRESULT strToFilename(std::wstring& out, const char* const in, size_t& index);
+
+	/* Essentially the inverse of strToFilename()
+	   Note that the filename is validated by
+	   fileUtil::inspectFilenameAndPath() before being output
+	   (and is not output if it is invalid).
+	 */
+	HRESULT filenameToWString(std::wstring& out, std::wstring& in);
 }

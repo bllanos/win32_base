@@ -19,6 +19,7 @@ Description
 */
 
 #include "textProcessing.h"
+#include "fileUtil.h"
 #include "defs.h"
 #include <exception>
 
@@ -417,3 +418,63 @@ HRESULT textProcessing::boolToWString(wstring& out, const bool& in) {
 	}
 	return ERROR_SUCCESS;
 }
+
+HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, size_t& index) {
+
+	// Error checking
+	if( in == 0 ) {
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
+	}
+
+	HRESULT result = ERROR_SUCCESS;
+
+	/* Check the start of the string
+	   Note: This condition statement screens out the empty string
+	*/
+	if( in[index] == '"' ) {
+		
+		// Find a matching quotation mark
+		size_t endIndex = index + 1;
+		char c = in[endIndex];
+		while( c != '\0' && c != '"' ) {
+			++endIndex;
+			c = in[endIndex];
+		}
+
+		// The string has matched double quotes
+		if( c != '\0' ) {
+
+			size_t wSize = endIndex - index; // Buffer length, not string length!
+
+			// The string is not empty
+			if( wSize > 1 ) {
+
+				// Convert to a wide-character string
+				wchar_t* wCStr = new wchar_t[wSize];
+				size_t convertedChars = 0;
+				mbstowcs_s(&convertedChars, wCStr, wSize, in + index + 1, _TRUNCATE);
+				if( convertedChars != wSize ) {
+					result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+				} else {
+
+					// Validate the filename and path
+					std::string msg;
+					std::wstring tempFilename = wCStr;
+
+					if( FAILED(fileUtil::inspectFilenameAndPath(tempFilename, msg)) ) {
+						result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+					} else if( msg.empty() ) {
+						// Validation complete
+						out = wCStr;
+						index = endIndex + 1;
+					}
+				}
+				delete[] wCStr;
+			}
+		}
+	}
+
+	return result;
+}
+
+HRESULT textProcessing::filenameToWString(std::wstring& out, std::wstring& in);
