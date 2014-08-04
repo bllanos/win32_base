@@ -84,4 +84,12 @@ list of all error codes used in the program.
 #define ERROR_LIBRARY_CALL			1805 // Error in a call to a library function
 #define ERROR_DATA_INCOMPLETE		1806 // Data entered or returned is not complete or is partially corrupted
 #define ERROR_NULL_INPUT			1807 // A null pointer was passed to a function
-#define ERROR_BROKEN_CODE			1808 // The program logic is faulty and should be fixed by a developer
+#define ERROR_INVALID_INPUT			1808 // Bad input was passed to a function (excluding null pointers)
+#define ERROR_BROKEN_CODE			1809 // The program logic is faulty and should be fixed by a developer
+
+/* Error codes defined in Windows headers used in this program
+   (Their meanings as normally used in this program are provided below.)
+ */
+// ---------------------------------------------------------------------
+// ERROR_INVALID_DATA			// The data within an object is invalid
+// ERROR_ALREADY_ASSIGNED		// A data structure already contains this data item

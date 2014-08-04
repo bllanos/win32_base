@@ -202,6 +202,119 @@ namespace textProcessing {
 		}
 	}
 
+	/* An array form of strToNumber() which parses an array
+	   of 'n' comma-separated values from a string.
+	   The 'startCh' and 'endCh' parameters are the delimation
+	   characters to mark the start and end of an array literal.
+	   (e.g. '(' and ')', '[' and ']', etc.)
+
+	   The 'out' parameter is expected to be a reference to a null pointer
+	   when passed in.
+
+	   Operates by calling strToNumber() repeatedly.
+	 */
+	template<typename T> HRESULT strToNumberArray(T*& out, const char* const in, size_t& index,
+		const size_t& n, const char startCh = '[', const char endCh = ']') {
+
+		// Error checking
+		if( in == 0 ) {
+			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
+		} else if( out != 0 ) {
+			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
+		}
+
+		HRESULT result = ERROR_SUCCESS;
+
+		/* Check the start of the string
+		   Note: This condition statement screens out the empty string
+		*/
+		if( in[index] == startCh ) {
+
+			// Find the end delimiter
+			size_t tempIndex1 = index + 1;
+			const char* endPtr = strchr(in + tempIndex1, endCh);
+
+			// The string has matched delimiters
+			if( endPtr != 0 ) {
+
+				bool cleanup = false;
+
+				// Parse each array value
+				T* tempOut = new T[n];
+				T tempElement;
+				size_t tempIndex2 = tempIndex1;
+				for( size_t i = 0; i < n; ++i ) {
+					if( FAILED(strToNumber(tempElement, in, tempIndex2)) ) {
+						result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+						cleanup = true;
+						break;
+					} else if( tempIndex1 == tempIndex2 ) {
+						cleanup = true;
+						break;
+
+						// Check for proper comma-delimation
+					} else if( (in[tempIndex2] == ','   && i < (n - 1)) ||
+							(in[tempIndex2] == endCh && i == (n - 1)) ) {
+							++tempIndex2;
+							tempIndex1 = tempIndex2;
+							tempOut[i] = tempElement;	
+					} else {
+						// Improper comma-delimation
+						cleanup = true;
+						break;
+					}
+				}
+
+				// Cleanup if necessary
+				if( cleanup ) {
+					delete[] tempOut;
+				} else {
+					// Data validated
+					out = tempOut;
+					index = tempIndex2;
+				}
+			}
+		}
+		return result;
+	}
+
+	/* The inverse of strToNumberArray()
+	   Operates by calling numberToWString() repeatedly,
+	   inserting TEXTPROCESSING_COMMA_SEP between each number.
+
+	   Note that this function does not alter or delete the 'in' array
+	   of numbers; The client is responsible for freeing memory.
+
+	   If the array is empty, 'in' is expected to be a null pointer,
+	   and 'n' is expected to be zero.
+	*/
+#define TEXTPROCESSING_COMMA_SEP L", "
+	template<typename T> HRESULT numberToWString(std::wstring& out, const T*& in,
+		const size_t& n, const wchar_t startCh = L'[', const wchar_t endCh = L']') {
+
+		// Error checking
+		if( (in == 0 && n != 0) || (in != 0 && n == 0) ) {
+			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+		}
+
+		std::wostringstream& tempOut;
+		tempOut << startCh;
+		std::wstring& tempOutElement;
+		for( size_t i = 0; i < n; ++i ) {
+			if( FAILED(numberToWString(tempOutElement, in[i])) ) {
+				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+			} else {
+				tempOut << tempOutElement;
+				if( i < (n - 1) ) {
+					tempOut << TEXTPROCESSING_COMMA_SEP;
+				}
+			}
+		}
+		tempOut << endCh;
+		out = tempOut.str();
+		return ERROR_SUCCESS;
+	}
+
 	/* Converts the null-terminated ASCII string containing a fully-qualified
 	filename into a 'validated' filename.
 	
@@ -212,14 +325,19 @@ namespace textProcessing {
 	trigger the output of any message strings by
 	fileUtil::inspectFilenameAndPath().
 
-	Otherwise behaves like wStrLiteralToWString()
+	Otherwise behaves like wStrLiteralToWString().
+
+	Note: wStrLiteralToWString() expects 'L"' as a prefix,
+	      not '"', which allows wide string literals to be distinguished
+		  from filenames.
 	*/
 	HRESULT strToFilename(std::wstring& out, const char* const in, size_t& index);
 
 	/* Essentially the inverse of strToFilename()
-	   Note that the filename is validated by
-	   fileUtil::inspectFilenameAndPath() before being output
-	   (and is not output if it is invalid).
+	   Note that the filename is NOT validated by
+	   fileUtil::inspectFilenameAndPath() before being output.
+	   This allows, for instance, for delays between the creation
+	   of a file output object and the actual creation of the file.
 	 */
 	HRESULT filenameToWString(std::wstring& out, std::wstring& in);
 }

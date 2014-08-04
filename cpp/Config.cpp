@@ -158,7 +158,7 @@ HRESULT Config::insert(const std::wstring& scope, const std::wstring& field,
 
 	// Prevent exceptions from being thrown later
 	if( field.length() == 0 ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 	} else if( value == 0 ) {
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	}

@@ -36,11 +36,11 @@ HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const
 	if( str == 0 ) {
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	} else if( (ignore == 0 && nIgnore != 0) || (ignore != 0 && nIgnore == 0) ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 	} else if( (specialIgnore == 0 && nSpecialIgnore != 0) || (specialIgnore != 0 && nSpecialIgnore == 0) ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 	} else if( delim == ESCAPE_CHAR ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 	}
 
 	HRESULT result = ERROR_SUCCESS;
@@ -474,4 +474,9 @@ HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, s
 	return result;
 }
 
-HRESULT textProcessing::filenameToWString(std::wstring& out, std::wstring& in);
+HRESULT textProcessing::filenameToWString(std::wstring& out, std::wstring& in) {
+	out = L'"';
+	out += in;
+	out += L'"';
+	return ERROR_SUCCESS;
+}
