@@ -19,14 +19,17 @@ Description
 
 #include "fileUtil.h"
 #include "defs.h"
+#include <cctype>
 
 /* For PathCchRemoveFileSpec() (Windows-specific)
-Requires linking Pathcch.lib
+   Requires linking Pathcch.lib
 */
 // #include <Pathcch.h> (Available only on Windows 8)
 
-/* For PathRemoveFileSpec() (Deprecated, but available on Windows 7)
-Requires linking Shlwapi.lib
+/* For PathRemoveFileSpec() (deprecated, but available on Windows 7),
+   as well as for directory/file existence checks (Windows-specific)
+
+   Requires linking Shlwapi.lib
 */
 #include <Shlwapi.h>
 
@@ -60,5 +63,91 @@ HRESULT fileUtil::extractPath(std::wstring& path, const std::wstring& filenameAn
 		path = pathBuffer;
 	}
 	delete[] pathBuffer;
+	return result;
+}
+
+// Constants used by inspectFilename()
+#define FILEUTIL_DOT L'.'
+#define FILEUTIL_USCORE L'_'
+#define FILEUTIL_DOT_STR "'.'"
+#define FILEUTIL_USCORE_STR "'_'"
+
+HRESULT fileUtil::inspectFilename(const std::wstring& filename, std::string& msg) {
+
+	msg.clear();
+
+	const wchar_t* const filenameCStr = PathFindFileName(filename.c_str());
+	size_t filenameCStrSize = wcslen(filenameCStr);
+
+	if( filenameCStr[0] == FILEUTIL_DOT || filenameCStr[filenameCStrSize - 1] == FILEUTIL_DOT ) {
+		msg = "Filename starts or ends with ";
+		msg += FILEUTIL_DOT_STR;
+	} else if( filenameCStr[0] == FILEUTIL_USCORE ) {
+		msg = "Filename starts with ";
+		msg += FILEUTIL_USCORE_STR;
+	} else {
+
+		size_t dotPos = static_cast<size_t>(0);
+		for( size_t i = 0; i < filenameCStrSize; ++i ) {
+			if( filenameCStr[i] == FILEUTIL_DOT ) {
+				if( dotPos != static_cast<size_t>(0) ) {
+					msg = "Filename has multiple occurrences of ";
+					msg += FILEUTIL_DOT_STR;
+					break;
+				} else {
+					dotPos = i;
+				}
+			} else if( !isalnum(filenameCStr[i]) ) {
+				if( filenameCStr[i] != FILEUTIL_USCORE ) {
+					msg = "Filename has a non-alphanumeric character other than ";
+					msg += FILEUTIL_DOT_STR;
+					msg += " or ";
+					msg += FILEUTIL_USCORE_STR;
+					break;
+				} else if( dotPos != static_cast<size_t>(0) ) {
+					msg = "Filename has ";
+					msg += FILEUTIL_USCORE_STR;
+					msg += " after ";
+					msg += FILEUTIL_DOT_STR;
+					break;
+				}
+			}
+		}
+
+		// If no problems have been reported yet, perform the remaining checks.
+		if( msg.empty() ) {
+			if( dotPos == static_cast<size_t>(0) ) {
+				msg = "Filename does not contain ";
+				msg += FILEUTIL_DOT_STR;
+			} else if( filenameCStr[dotPos - static_cast<size_t>(1)] == FILEUTIL_USCORE ) {
+				msg = "Filename has ";
+				msg += FILEUTIL_USCORE_STR;
+				msg += " immediately before ";
+				msg += FILEUTIL_DOT_STR;
+			}
+		}
+	}
+	return ERROR_SUCCESS;
+}
+
+HRESULT fileUtil::inspectFilenameAndPath(const std::wstring& filepath, std::string& msg) {
+
+	HRESULT result = ERROR_SUCCESS;
+	msg.clear();
+
+	// Check if the directory where the file will be created is valid
+	wstring path;
+	if( FAILED(extractPath(path, filepath)) ) {
+		msg = "Failure retrieving the file's path.";
+	} else if( !path.empty() && !PathIsDirectory(path.c_str()) ) {
+		// The location of the file is invalid
+		msg = "File's path is invalid.";
+	} else {
+		// Validate the filename
+		if( FAILED(inspectFilename(filepath, msg)) ) {
+			msg = "Call to fileUtil::inspectFilename() failed.";
+			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		}
+	}
 	return result;
 }

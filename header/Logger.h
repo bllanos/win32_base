@@ -71,7 +71,7 @@ public:
 	If 'allocLogConsole' is true, a console window will be created.
 	If the 'allocLogFile' parameter is true, an output text file will be created
 	(or simply opened, if it already exists).
-	The 'filename' parameter sets the name of the primary log file.
+	The 'filename' parameter sets the name and path of the primary log file.
 
 	If the 'holdAndReplaceFile' parameter is true:
 	  The primary log file is opened by the constructor and closed
@@ -81,21 +81,15 @@ public:
 	  The primary log file is opened and appended to only when messages
 	  are being written to it. The original contents of the file are added to,
 	  not overwritten.
-	  If the directory in which the logging file is to be found/created does not
-	  exist, an exception will be thrown.
 
-	  In this case, the constructor does not open the file, but checks
-	  that the directory in which the file is/would be located is valid.
-	  It also attempts to validate the filename (without opening the file)
-	  by permitting only the following:
-	    -All characters are either alphanumeric, '_', or '.'
-		-There is one occurrence of '.', and it is not at the beginning or end.
-		-Occurrences of '_' are not at the beginning, immediately before '.',
-		 or anywhere after '.'
+	  To try and ensure that logging will be possible, **if the output file
+	  does not already exist**, the function fileUtil::inspectFilenameAndPath()
+	  is called on the 'filename' parameter.
+	  In this case, if inspectFilenameAndPath() outputs a message,
+	  this constructor throws an exception with the message as its what() result.
 
-		(I could not find an easy check for a valid filename.
-		See http://msdn.microsoft.com/en-us/library/aa365247.aspx for more
-		information on filenames in Windows.)
+	  Note that, when 'holdAndReplaceFile' is false,
+	  the constructor does not open the output file.
 
 	Basically, the constructor attempts to ensure that pointers to Logger objects
 	will either be null or will refer to functional objects,
