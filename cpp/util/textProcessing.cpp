@@ -22,6 +22,7 @@ Description
 #include "fileUtil.h"
 #include "defs.h"
 #include <exception>
+#include <cstring>
 
 using std::wstring;
 
@@ -434,16 +435,12 @@ HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, s
 	if( in[index] == '"' ) {
 		
 		// Find a matching quotation mark
-		size_t endIndex = index + 1;
-		char c = in[endIndex];
-		while( c != '\0' && c != '"' ) {
-			++endIndex;
-			c = in[endIndex];
-		}
+		const char* endPtr = strchr(in + index + 1, '"');
 
 		// The string has matched double quotes
-		if( c != '\0' ) {
+		if( endPtr != 0 ) {
 
+			size_t endIndex = endPtr - in;
 			size_t wSize = endIndex - index; // Buffer length, not string length!
 
 			// The string is not empty
