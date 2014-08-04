@@ -1,0 +1,65 @@
+/*
+higherLevelIO.h
+----------------
+
+Created for: Spring 2014 Direct3D 11 Learning
+By: Bernard Llanos
+August 4, 2014
+
+Primary basis: None
+Other references: None
+
+Development environment: Visual Studio 2013 running on Windows 7, 64-bit
+  -Note that the "Character Set" project property (Configuration Properties > General)
+   should be set to Unicode for all configurations, when using Visual Studio.
+
+Description
+  -A namespace containing functions which make use of the functions in the
+   textProcessing namespace to parse and serialize higher-level data types.
+  -Functions in this namespace operate on strings at a higher-level than
+   character manipulations.
+*/
+
+#pragma once;
+
+#include <windows.h> // For the HRESULT type
+#include <string>
+#include <DirectXMath.h>
+
+namespace higherLevelIO {
+
+	/* Converts a single-precision 4-tuple literal stored
+	   as a substring of a null-terminated ASCII string to an XMFLOAT4 structure.
+	   
+	   The literal must be of the form "(x,y,z,w)" (no whitespace)
+	   to be accepted, where 'x', 'y', 'z' and 'w' are floating-point values.
+
+	   The index parameter is the point in the string at which to start
+	   parsing, and is moved to after the end of the parsed section if a
+	   valid literal is found.
+	   (Otherwise, if a valid literal is not found,
+	    the index parameter and output parameter are not modified.)
+
+	   Failure codes are returned due to internal errors.
+	 */
+	HRESULT strToXMFLOAT4(DirectX::XMFLOAT4& out, const char* const in, size_t& index);
+
+	/* Essentially the inverse of strToXMFLOAT4() */
+	HRESULT XMFLOAT4ToWString(std::wstring& out, const DirectX::XMFLOAT4& in);
+
+	/* Similar to strToXMFLOAT4() except that the
+	   data literal is expected to contain only integer components
+	   in the range of 0-255.
+	   
+	   The 'out' parameter is obtained by converting each component
+	   of the input value to single-point precision, and then
+	   dividing by 255.
+	*/
+	HRESULT strToColor(DirectX::XMFLOAT4& out, const char* const in, size_t& index);
+
+	/* Essentially the inverse of strToColor()
+	   All components of the 'in' parameter must
+	   be in the range of 0 (inclusive) to 1 (inclusive).
+	 */
+	HRESULT colorToWString(std::wstring& out, const DirectX::XMFLOAT4& in);
+}

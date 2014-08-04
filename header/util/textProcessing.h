@@ -209,7 +209,10 @@ namespace textProcessing {
 	   (e.g. '(' and ')', '[' and ']', etc.)
 
 	   The 'out' parameter is expected to be a reference to a null pointer
-	   when passed in.
+	   when passed in. If 'n' is zero and a valid empty array literal
+	   is detected, 'out' will still be a null pointer when
+	   the function returns, but the 'index' parameter will be moved
+	   past the array literal.
 
 	   Operates by calling strToNumber() repeatedly.
 	 */
@@ -220,7 +223,7 @@ namespace textProcessing {
 		if( in == 0 ) {
 			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 		} else if( out != 0 ) {
-			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
+			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 		}
 
 		HRESULT result = ERROR_SUCCESS;
@@ -237,48 +240,57 @@ namespace textProcessing {
 			// The string has matched delimiters
 			if( endPtr != 0 ) {
 
-				bool cleanup = false;
+				// Empty array case
+				if( n == 0 ) {
+					if( in[tempIndex1] == endCh ) {
+						// Valid empty array
+						index = tempIndex1 + 1;
+					}
+				} else {
 
-				// Parse each array value
-				T* tempOut = new T[n];
-				T tempElement;
-				size_t tempIndex2 = tempIndex1;
-				for( size_t i = 0; i < n; ++i ) {
-					if( FAILED(strToNumber(tempElement, in, tempIndex2)) ) {
-						result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-						cleanup = true;
-						break;
-					} else if( tempIndex1 == tempIndex2 ) {
-						cleanup = true;
-						break;
+					bool cleanup = false;
 
-						// Check for proper comma-delimation
-					} else if( (in[tempIndex2] == ','   && i < (n - 1)) ||
+					// Parse each array value
+					T* tempOut = new T[n];
+					T tempElement;
+					size_t tempIndex2 = tempIndex1;
+					for( size_t i = 0; i < n; ++i ) {
+						if( FAILED(strToNumber(tempElement, in, tempIndex2)) ) {
+							result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+							cleanup = true;
+							break;
+						} else if( tempIndex1 == tempIndex2 ) {
+							cleanup = true;
+							break;
+
+							// Check for proper comma-delimation
+						} else if( (in[tempIndex2] == ','   && i < (n - 1)) ||
 							(in[tempIndex2] == endCh && i == (n - 1)) ) {
 							++tempIndex2;
 							tempIndex1 = tempIndex2;
-							tempOut[i] = tempElement;	
-					} else {
-						// Improper comma-delimation
-						cleanup = true;
-						break;
+							tempOut[i] = tempElement;
+						} else {
+							// Improper comma-delimation
+							cleanup = true;
+							break;
+						}
 					}
-				}
 
-				// Cleanup if necessary
-				if( cleanup ) {
-					delete[] tempOut;
-				} else {
-					// Data validated
-					out = tempOut;
-					index = tempIndex2;
+					// Cleanup if necessary
+					if( cleanup ) {
+						delete[] tempOut;
+					} else {
+						// Data validated
+						out = tempOut;
+						index = tempIndex2;
+					}
 				}
 			}
 		}
 		return result;
 	}
 
-	/* The inverse of strToNumberArray()
+	/* The inverse of strToNumberArray().
 	   Operates by calling numberToWString() repeatedly,
 	   inserting TEXTPROCESSING_COMMA_SEP between each number.
 
@@ -289,7 +301,7 @@ namespace textProcessing {
 	   and 'n' is expected to be zero.
 	*/
 #define TEXTPROCESSING_COMMA_SEP L", "
-	template<typename T> HRESULT numberToWString(std::wstring& out, const T*& in,
+	template<typename T> HRESULT numberArrayToWString(std::wstring& out, const T*& in,
 		const size_t& n, const wchar_t startCh = L'[', const wchar_t endCh = L']') {
 
 		// Error checking

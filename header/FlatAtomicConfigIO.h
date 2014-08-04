@@ -78,7 +78,8 @@ created from Config objects by instances of this class.
 	L"#\n"\
 	L"# Values are similar to C++ literals corresponding to the datatypes\n"\
 	L"# named at the start of the key-value pair lines.\n"\
-	L"# Refer to the functions in the textProcessing namespace for details.\n"\
+	L"# Refer to the functions in the textProcessing and higherLevelIO\n"\
+    L"# namespaces for details.\n"\
 	L"# (These functions are used for parsing and serializing data values.)\n"\
 	L"# ----------------------------------------------------------------------------"
 
