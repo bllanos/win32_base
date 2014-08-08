@@ -319,6 +319,7 @@ HRESULT testTextProcessing::testStrToInt(void) {
 		" 54 ",
 		" 4 5 ",
 		" 54e2",
+		"a9b8"
 	};
 	size_t nStr = sizeof(pConstStrings) / sizeof(char*);
 

@@ -31,7 +31,7 @@ namespace higherLevelIO {
 	/* Converts a single-precision 4-tuple literal stored
 	   as a substring of a null-terminated ASCII string to an XMFLOAT4 structure.
 	   
-	   The literal must be of the form "(x,y,z,w)" (no whitespace)
+	   The literal must be of the form "(x,y,z,w)" (with whitespace stripped)
 	   to be accepted, where 'x', 'y', 'z' and 'w' are floating-point values.
 
 	   The index parameter is the point in the string at which to start
@@ -49,17 +49,18 @@ namespace higherLevelIO {
 
 	/* Similar to strToXMFLOAT4() except that the
 	   data literal is expected to contain only integer components
-	   in the range of 0-255.
+	   in the range of 0-255, representing Red, Green, Blue and Alpha
+	   components.
 	   
 	   The 'out' parameter is obtained by converting each component
 	   of the input value to single-point precision, and then
-	   dividing by 255.
+	   dividing by 255 (MAX_RGBA_UINT defined in defs.h).
 	*/
-	HRESULT strToColor(DirectX::XMFLOAT4& out, const char* const in, size_t& index);
+	HRESULT strToColorRGBA(DirectX::XMFLOAT4& out, const char* const in, size_t& index);
 
-	/* Essentially the inverse of strToColor()
+	/* Essentially the inverse of strToColorRGBA()
 	   All components of the 'in' parameter must
-	   be in the range of 0 (inclusive) to 1 (inclusive).
+	   be in the range of 0.0 (inclusive) to 1.0 (inclusive).
 	 */
-	HRESULT colorToWString(std::wstring& out, const DirectX::XMFLOAT4& in);
+	HRESULT colorRGBAToWString(std::wstring& out, const DirectX::XMFLOAT4& in);
 }

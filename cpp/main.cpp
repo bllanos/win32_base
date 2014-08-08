@@ -161,8 +161,8 @@ HRESULT applicationLoop(WPARAM& quit_wParam) {
 	// testConfig_IConfigManager::testFlatAtomicConfigIO();
 	// testTextProcessing::testStrToDouble();
 	// testTextProcessing::testStrToFloat();
-	// testTextProcessing::testStrToInt();
+	testTextProcessing::testStrToInt();
 	// testTextProcessing::testStrToUInt();
-	testLogger_LogUser::testAppendMode();
+	// testLogger_LogUser::testAppendMode();
 	return ERROR_SUCCESS;
 }

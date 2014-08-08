@@ -93,3 +93,10 @@ list of all error codes used in the program.
 // ---------------------------------------------------------------------
 // ERROR_INVALID_DATA			// The data within an object is invalid
 // ERROR_ALREADY_ASSIGNED		// A data structure already contains this data item
+
+
+// Constants
+// ---------
+
+#define MIN_RGBA_UINT 0		// Minimum value of an integer RGBA color component
+#define MAX_RGBA_UINT 255	// Maximum value of an integer RGBA color component

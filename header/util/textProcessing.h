@@ -204,6 +204,8 @@ namespace textProcessing {
 
 	/* An array form of strToNumber() which parses an array
 	   of 'n' comma-separated values from a string.
+	   Whitespace must have been stripped previously, if necessary.
+
 	   The 'startCh' and 'endCh' parameters are the delimation
 	   characters to mark the start and end of an array literal.
 	   (e.g. '(' and ')', '[' and ']', etc.)
@@ -270,7 +272,7 @@ namespace textProcessing {
 							tempIndex1 = tempIndex2;
 							tempOut[i] = tempElement;
 						} else {
-							// Improper comma-delimation
+							// Improper comma-delimation or array literal is too long
 							cleanup = true;
 							break;
 						}
@@ -309,9 +311,9 @@ namespace textProcessing {
 			return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 		}
 
-		std::wostringstream& tempOut;
+		std::wostringstream tempOut;
 		tempOut << startCh;
-		std::wstring& tempOutElement;
+		std::wstring tempOutElement;
 		for( size_t i = 0; i < n; ++i ) {
 			if( FAILED(numberToWString(tempOutElement, in[i])) ) {
 				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
@@ -337,13 +339,18 @@ namespace textProcessing {
 	trigger the output of any message strings by
 	fileUtil::inspectFilenameAndPath().
 
+	The 'msg' parameter is optional. If it is not null, it will
+	be assigned the output messsages of inspectFilenameAndPath().
+	(If there are no output messages, it will be set to the empty string.)
+
 	Otherwise behaves like wStrLiteralToWString().
 
 	Note: wStrLiteralToWString() expects 'L"' as a prefix,
 	      not '"', which allows wide string literals to be distinguished
 		  from filenames.
 	*/
-	HRESULT strToFilename(std::wstring& out, const char* const in, size_t& index);
+	HRESULT strToFilename(std::wstring& out, const char* const in, size_t& index,
+		std::wstring* const msg = 0);
 
 	/* Essentially the inverse of strToFilename()
 	   Note that the filename is NOT validated by

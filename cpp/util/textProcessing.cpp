@@ -21,6 +21,7 @@ Description
 #include "textProcessing.h"
 #include "fileUtil.h"
 #include "defs.h"
+#include "globals.h"
 #include <exception>
 #include <cstring>
 
@@ -420,7 +421,8 @@ HRESULT textProcessing::boolToWString(wstring& out, const bool& in) {
 	return ERROR_SUCCESS;
 }
 
-HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, size_t& index) {
+HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, size_t& index,
+	std::wstring* const msg) {
 
 	// Error checking
 	if( in == 0 ) {
@@ -455,15 +457,21 @@ HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, s
 				} else {
 
 					// Validate the filename and path
-					std::string msg;
+					std::string tempMsg;
 					std::wstring tempFilename = wCStr;
 
-					if( FAILED(fileUtil::inspectFilenameAndPath(tempFilename, msg)) ) {
+					if( FAILED(fileUtil::inspectFilenameAndPath(tempFilename, tempMsg)) ) {
 						result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-					} else if( msg.empty() ) {
-						// Validation complete
+					} else if( tempMsg.empty() ) {
+						// Validation complete and passed
 						out = wCStr;
 						index = endIndex + 1;
+						if( msg != 0 ) {
+							msg->clear();
+						}
+					} else if( msg != 0 ) {
+						// Pass inspection message back to the client
+						toWString(*msg, tempMsg);
 					}
 				}
 				delete[] wCStr;
