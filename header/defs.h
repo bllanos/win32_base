@@ -98,5 +98,7 @@ list of all error codes used in the program.
 // Constants
 // ---------
 
-#define MIN_RGBA_UINT 0		// Minimum value of an integer RGBA color component
-#define MAX_RGBA_UINT 255	// Maximum value of an integer RGBA color component
+#define MIN_RGBA_UINT 0u		// Minimum value of a non-normalized RGBA color component
+#define MIN_RGBA_FLOAT 0.0f
+#define MAX_RGBA_UINT 255u		// Maximum value of a non-normalized RGBA color component
+#define MAX_RGBA_FLOAT 255.0f

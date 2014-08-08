@@ -20,8 +20,10 @@ Description
 #include "higherLevelIO.h"
 #include "textProcessing.h"
 #include "defs.h"
+#include "DirectXPackedVector.h" // For the XMCOLOR datatype and associated functions
 
 using DirectX::XMFLOAT4;
+using DirectX::XMVECTOR;
 using std::wstring;
 
 #define FLOAT4_SIZE 4
@@ -67,6 +69,60 @@ HRESULT XMFLOAT4ToWString(wstring& out, const XMFLOAT4& in) {
 	}
 }
 
-HRESULT strToColorRGBA(XMFLOAT4& out, const char* const in, size_t& index);
+HRESULT strToColorRGBA(XMFLOAT4& out, const char* const in, size_t& index) {
 
-HRESULT colorRGBAToWString(wstring& out, const XMFLOAT4& in);
+	// Error checking
+	if( in == 0 ) {
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
+	}
+
+	XMFLOAT4 tempOut;
+	size_t tempIndex = index;
+	if( FAILED(strToXMFLOAT4(tempOut, in, tempIndex)) ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+
+	} else if( tempIndex != index ) {
+		// Valid data XMFLOAT4 found
+
+		// Check ranges of each component
+		if( !((tempOut.x < MIN_RGBA_FLOAT || tempOut.x > MAX_RGBA_FLOAT) ||
+			  (tempOut.y < MIN_RGBA_FLOAT || tempOut.y > MAX_RGBA_FLOAT) ||
+			  (tempOut.z < MIN_RGBA_FLOAT || tempOut.z > MAX_RGBA_FLOAT) ||
+			  (tempOut.w < MIN_RGBA_FLOAT || tempOut.w > MAX_RGBA_FLOAT)   ) ) {
+			out.x = tempOut.x / MAX_RGBA_FLOAT;
+			out.y = tempOut.y / MAX_RGBA_FLOAT;
+			out.z = tempOut.z / MAX_RGBA_FLOAT;
+			out.w = tempOut.w / MAX_RGBA_FLOAT;
+			index = tempIndex;
+		}
+	}
+	return ERROR_SUCCESS;
+}
+
+HRESULT colorRGBAToWString(wstring& out, const XMFLOAT4& in) {
+
+	// Process the input into the proper format
+	XMVECTOR vectorIn = DirectX::XMLoadFloat4(&in);
+	DirectX::PackedVector::XMCOLOR scaledIn;
+	/* This clamps components to the range 0.0 - 1.0
+	 * and multiplies the vector by 255.
+	 * See http://msdn.microsoft.com/en-us/library/windows/desktop/microsoft.directx_sdk.reference.xmcolor%28v=vs.85%29.aspx
+	 */
+	DirectX::PackedVector::XMStoreColor(&scaledIn, vectorIn);
+	unsigned char arrayOut[] = {
+		scaledIn.r,
+		scaledIn.g,
+		scaledIn.b,
+		scaledIn.a
+	};
+
+	wstring tempOut;
+	const unsigned char* pArrayOut = arrayOut;
+	if( FAILED(textProcessing::numberArrayToWString(
+		tempOut, pArrayOut, static_cast<size_t>(FLOAT4_SIZE), START_CH_W, END_CH_W)) ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	} else {
+		out = tempOut;
+		return ERROR_SUCCESS;
+	}
+}

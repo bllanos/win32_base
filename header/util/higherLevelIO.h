@@ -48,19 +48,21 @@ namespace higherLevelIO {
 	HRESULT XMFLOAT4ToWString(std::wstring& out, const DirectX::XMFLOAT4& in);
 
 	/* Similar to strToXMFLOAT4() except that the
-	   data literal is expected to contain only integer components
+	   data literal is expected to contain only components
 	   in the range of 0-255, representing Red, Green, Blue and Alpha
 	   components.
 	   
-	   The 'out' parameter is obtained by converting each component
-	   of the input value to single-point precision, and then
-	   dividing by 255 (MAX_RGBA_UINT defined in defs.h).
+	   The 'out' parameter is obtained by parsing each component
+	   of the input value as a single-point precision number, and then
+	   dividing by 255 (MAX_RGBA_FLOAT defined in defs.h).
 	*/
 	HRESULT strToColorRGBA(DirectX::XMFLOAT4& out, const char* const in, size_t& index);
 
 	/* Essentially the inverse of strToColorRGBA()
-	   All components of the 'in' parameter must
-	   be in the range of 0.0 (inclusive) to 1.0 (inclusive).
+	   All components of the 'in' parameter will be clamped
+	   to the range of 0.0 (inclusive) to 1.0 (inclusive),
+	   multiplied by 255 (MAX_RGBA_FLOAT defined in defs.h)
+	   and converted to integers before being output.
 	 */
 	HRESULT colorRGBAToWString(std::wstring& out, const DirectX::XMFLOAT4& in);
 }
