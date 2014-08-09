@@ -37,6 +37,7 @@ Issues
 #include <map>
 #include <iterator>
 #include <string>
+#include <DirectXMath.h>
 
 class Config {
 
@@ -234,38 +235,43 @@ public:
 	*/
 public:
 	
-	template<DataType D, typename T> HRESULT insert(const std::wstring& scope, const std::wstring& field, const T* const value) {
-		return insert(scope, field, D, static_cast<const void* const>(value)); \
-	}
+	template<DataType D, typename T> HRESULT insert(const std::wstring& scope, const std::wstring& field, const T* const value);
 
-	template<DataType D, typename T> HRESULT retrieve(const std::wstring& scope, const std::wstring& field, const T*& value) const {			
-		value = static_cast<const T*>(retrieve(scope, field, D));
-		if( value == 0 ) {
-			return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
-		} else {
-			return ERROR_SUCCESS;
-		}
-	}
+	template<DataType D, typename T> HRESULT retrieve(const std::wstring& scope, const std::wstring& field, const T*& value) const;
 };
 
+template<Config::DataType D, typename T> HRESULT Config::insert(const std::wstring& scope, const std::wstring& field, const T* const value) {
+	return insert(scope, field, D, static_cast<const void* const>(value));
+}
+
+template<Config::DataType D, typename T> HRESULT Config::retrieve(const std::wstring& scope, const std::wstring& field, const T*& value) const {
+	value = static_cast<const T*>(retrieve(scope, field, D));
+	if( value == 0 ) {
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
+	} else {
+		return ERROR_SUCCESS;
+	}
+}
+
 /* The following are explicit template instantiations which prevent
-  implicit instantiations elsewhere in the program.
+  ambiguity resulting from the association of the same data types
+  with multiple DataType enumeration constants.
 
   Since the template arguments are not fully specified by the function
   parameters, it may be necessary to specify the template arguments
   when calling the functions.
 
-  Example: insert<enumConstant, valueType>([parameters])
+  Example: insert<enumConstant, valueType>([function call parameters])
 
   References:
     http://en.cppreference.com/w/cpp/language/function_template
 	http://en.cppreference.com/w/cpp/language/template_argument_deduction
  */
 #define MAKE_INSERT_FUNCTION(D, T) \
-		extern template HRESULT Config::insert<Config::DataType::D,T>(const std::wstring& scope, const std::wstring& field, const T* const value);
+		template HRESULT Config::insert<Config::DataType::D,T>(const std::wstring& scope, const std::wstring& field, const T* const value);
 
 #define MAKE_RETRIEVE_FUNCTION(D, T) \
-		extern template HRESULT Config::retrieve<Config::DataType::D,T>(const std::wstring& scope, const std::wstring& field, const T*& value) const;		
+		template HRESULT Config::retrieve<Config::DataType::D,T>(const std::wstring& scope, const std::wstring& field, const T*& value) const;		
 
 MAKE_INSERT_FUNCTION(WSTRING, std::wstring)
 MAKE_RETRIEVE_FUNCTION(WSTRING, std::wstring)
@@ -279,11 +285,11 @@ MAKE_RETRIEVE_FUNCTION(INT, int)
 MAKE_INSERT_FUNCTION(DOUBLE, double)
 MAKE_RETRIEVE_FUNCTION(DOUBLE, double)
 
-MAKE_INSERT_FUNCTION(FLOAT4, XMFLOAT4)
-MAKE_RETRIEVE_FUNCTION(FLOAT4, XMFLOAT4)
+MAKE_INSERT_FUNCTION(FLOAT4, DirectX::XMFLOAT4)
+MAKE_RETRIEVE_FUNCTION(FLOAT4, DirectX::XMFLOAT4)
 
-MAKE_INSERT_FUNCTION(COLOR, XMFLOAT4)
-MAKE_RETRIEVE_FUNCTION(COLOR, XMFLOAT4)
+MAKE_INSERT_FUNCTION(COLOR, DirectX::XMFLOAT4)
+MAKE_RETRIEVE_FUNCTION(COLOR, DirectX::XMFLOAT4)
 
 MAKE_INSERT_FUNCTION(FILENAME, std::wstring)
 MAKE_RETRIEVE_FUNCTION(FILENAME, std::wstring)

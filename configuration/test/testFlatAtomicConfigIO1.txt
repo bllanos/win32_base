@@ -44,4 +44,22 @@ BOOL -- no:: = false
 
 # Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long
 # The following data should not be parsed
-BOOL--	::afterLongLine=false
+BOOL--	::afterLongLine=false 
+
+# <<-- FlatAtomicConfigIO class object parsing report (Sat Aug 09 14:26:38 2014 ) begins --
+# Line 13: the function for parsing the data value section of the line did not find a valid data value.
+# Line 15: the function for parsing the data value section of the line did not find a valid data value.
+# Line 23: the function for parsing the data value section of the line did not convert the entire rest of the line into a data value.
+# Line 29: the function for parsing the data value section of the line did not find a valid data value.
+# Line 30: the function for parsing the data value section of the line did not find a valid data value.
+# Line 31: the function for parsing the data value section of the line did not find a valid data value.
+# Line 32: the function for parsing the data value section of the line did not find a valid data value.
+# Line 33: the function for parsing the data value section of the line did not find a valid data value.
+# Line 36: There is already a value stored in the Config object under the following key: Scope = space, Field = one. Either this key was repeated in the file, or was already present in the Config object before this file was read.
+# Line 39: no datatype specifier found.
+# Line 40: no datatype found that corresponds to the datatype specifier.
+# Line 41: no separator found to mark the end of the key scope (needed even if the scope is empty).
+# Line 42: no separator found to mark the end of the key field.
+# Line 43: found empty key field specifier (not allowed).
+# Line 45: Allowed line length of 255 exceeded - Aborting read operation.
+# -- FlatAtomicConfigIO class object parsing report ends -->>

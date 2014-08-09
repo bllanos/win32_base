@@ -59,7 +59,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 	// Note that values are inserted in descending order of Key
 	if( n > 0 ) {
 		for( int i = n - 1; i >= 0; --i ) {
-			result = config.insert(scope + std::to_wstring(i % nScopes), field + std::to_wstring(i),
+			result = config.insert<Config::DataType::WSTRING, std::wstring>(scope + std::to_wstring(i % nScopes), field + std::to_wstring(i),
 				new wstring(value + std::to_wstring(i)));
 			if( FAILED(result) ) {
 				finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
@@ -75,7 +75,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 	const wstring* temp;
 	for( unsigned int i = 0; i < n; ++i ) {
 		temp = new wstring(value + std::to_wstring(i));
-		result = config.insert(scope + std::to_wstring(i % nScopes), field + std::to_wstring(i),
+		result = config.insert<Config::DataType::WSTRING, std::wstring>(scope + std::to_wstring(i % nScopes), field + std::to_wstring(i),
 			temp);
 		if( HRESULT_CODE(result) != ERROR_ALREADY_ASSIGNED ) {
 			finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
@@ -86,7 +86,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 		}
 
 		temp = 0;
-		result = config.insert(L"0" + scope + std::to_wstring(i % nScopes),
+		result = config.insert<Config::DataType::WSTRING, std::wstring>(L"0" + scope + std::to_wstring(i % nScopes),
 			field + std::to_wstring(i), temp);
 		if( SUCCEEDED(result) ) {
 			finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
@@ -94,7 +94,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 				+ std::to_wstring(i));
 		}
 		temp = new wstring(value + std::to_wstring(i));
-		result = config.insert(L"1" + scope + std::to_wstring(i % nScopes),
+		result = config.insert<Config::DataType::WSTRING, std::wstring>(L"1" + scope + std::to_wstring(i % nScopes),
 			L"", temp);
 		if( SUCCEEDED(result) ) {
 			finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
@@ -120,7 +120,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 	logger->logMessage(L"Reading values from the Config object, by scope and field...");
 
 	for( unsigned int i = 0; i < n; ++i ) {
-		result = config.retrieve(scope + std::to_wstring(i % nScopes),
+		result = config.retrieve<Config::DataType::WSTRING, std::wstring>(scope + std::to_wstring(i % nScopes),
 			field + std::to_wstring(i), currValue);
 
 		if( FAILED(result) || HRESULT_CODE(result) == ERROR_DATA_NOT_FOUND ) {
@@ -186,7 +186,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 	const bool* boolPtr = 0;
 
 	for( unsigned int i = 0; i < n; ++i ) {
-		result = config.retrieve(L"2"+scope + std::to_wstring(i % nScopes),
+		result = config.retrieve<Config::DataType::WSTRING, std::wstring>(L"2" + scope + std::to_wstring(i % nScopes),
 			field + std::to_wstring(i), currValue);
 
 		if( HRESULT_CODE(result) != ERROR_DATA_NOT_FOUND || currValue != 0 ) {
@@ -195,7 +195,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 				+ std::to_wstring(i));
 		}
 
-		result = config.retrieve(scope + std::to_wstring(i % nScopes),
+		result = config.retrieve<Config::DataType::WSTRING, std::wstring>(scope + std::to_wstring(i % nScopes),
 			L"2" + field + std::to_wstring(i), currValue);
 
 		if( HRESULT_CODE(result) != ERROR_DATA_NOT_FOUND || currValue != 0 ) {
@@ -204,7 +204,7 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 				+ std::to_wstring(i));
 		}
 
-		result = config.retrieve(scope + std::to_wstring(i % nScopes),
+		result = config.retrieve<Config::DataType::BOOL, bool>(scope + std::to_wstring(i % nScopes),
 			field + std::to_wstring(i), boolPtr);
 
 		if( HRESULT_CODE(result) != ERROR_DATA_NOT_FOUND || boolPtr != 0 ) {
@@ -253,10 +253,10 @@ HRESULT testConfig_IConfigManager::testConfigWithStringAndBoolValues(void) {
 	// Note that values are inserted in descending order of Key
 	for( int i = n - 1; i >= 0; --i ) {
 		if( i % 2 == 0 ) {
-			result = config.insert(scope + std::to_wstring(i % nScopes), field + std::to_wstring(i),
+			result = config.insert<Config::DataType::WSTRING, std::wstring>(scope + std::to_wstring(i % nScopes), field + std::to_wstring(i),
 				new wstring(value + std::to_wstring(i)));
 		} else {
-			result = config.insert(scope + std::to_wstring(i % nScopes), field + std::to_wstring(i),
+			result = config.insert<Config::DataType::BOOL, bool>(scope + std::to_wstring(i % nScopes), field + std::to_wstring(i),
 				new bool(i % 3 == 0));
 		}
 		if( FAILED(result) ) {

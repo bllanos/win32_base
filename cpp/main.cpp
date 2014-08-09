@@ -157,12 +157,8 @@ Run the application, possibly through a top-level control object
 */
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
-	// testBasicWindow::openNWindows(1, false);
-	// testConfig_IConfigManager::testFlatAtomicConfigIO();
-	// testTextProcessing::testStrToDouble();
-	// testTextProcessing::testStrToFloat();
-	testTextProcessing::testStrToInt();
-	// testTextProcessing::testStrToUInt();
-	// testLogger_LogUser::testAppendMode();
+	testConfig_IConfigManager::testFlatAtomicConfigIO();
+	testConfig_IConfigManager::testConfigWithStringValues(15, 4);
+	testConfig_IConfigManager::testConfigWithStringAndBoolValues();
 	return ERROR_SUCCESS;
 }

@@ -289,7 +289,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 }
 
 // A macro for use only within readDataLine()
-#define PARSE_DATA_VALUE(type, parseFunction) type* const value = new type; \
+#define PARSE_DATA_VALUE(enumConstant, type, parseFunction) type* const value = new type; \
 	if( FAILED(parseFunction(*value, str, tempIndex)) ) { \
 		failedParse = true; \
 		delete value; \
@@ -297,7 +297,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 		garbageData = true; \
 		delete value; \
 	} else { \
-		insertResult = config.insert(scope, field, value); \
+		insertResult = config.insert<Config::DataType::enumConstant, type>(scope, field, value); \
 		if( FAILED(insertResult) ) { \
 			delete value; \
 		} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) { \
@@ -415,11 +415,11 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	switch( dataType ) {
 	case Config::DataType::WSTRING:
 	{
-		PARSE_DATA_VALUE(wstring, wStrLiteralToWString)
+		PARSE_DATA_VALUE(WSTRING, wstring, wStrLiteralToWString)
 	}
 	case Config::DataType::BOOL:
 	{
-		PARSE_DATA_VALUE(bool, strToBool)
+		PARSE_DATA_VALUE(BOOL, bool, strToBool)
 	}
 	default:
 	{

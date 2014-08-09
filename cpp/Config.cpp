@@ -23,14 +23,13 @@ Usage Notes: See Config.h
 #include "globals.h"
 #include "defs.h"
 #include <stdexcept>
-#include <DirectXMath.h>
 
 using std::map;
 using DirectX::XMFLOAT4;
 
 const std::wstring Config::s_dataTypesNames[] = {
 	L"WSTRING",
-	L"BOOL"
+	L"BOOL",
 	L"INT",
 	L"DOUBLE",
 	L"FLOAT4",
