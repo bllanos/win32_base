@@ -89,12 +89,12 @@ m_timestampEnabled(true)
 				// Try to ensure that the file can be created
 				std::string errorMsg;
 
-				if( FAILED(fileUtil::inspectFilenameAndPath(filename, errorMsg)) ) {
+				if( FAILED(fileUtil::inspectFileOrDirNameAndPath(filename, errorMsg)) ) {
 					// This is a Microsoft-specific constructor
-					throw std::exception("Call to fileUtil::inspectFilenameAndPath() failed.");
+					throw std::exception("Call to fileUtil::inspectFileOrDirNameAndPath() failed.");
 				} else if( !errorMsg.empty() ) {
 					// This is a Microsoft-specific constructor
-					throw std::exception(("fileUtil::inspectFilenameAndPath() reported: "+errorMsg).c_str());
+					throw std::exception(("fileUtil::inspectFileOrDirNameAndPath() reported: "+errorMsg).c_str());
 				}
 			}
 		}

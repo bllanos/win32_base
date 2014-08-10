@@ -29,4 +29,8 @@ namespace testFileUtil {
 	/* Tests the fileUtil::extractPath() function
 	 */
 	HRESULT testExtractPath(void);
+
+	/* Tests the fileUtil::inspectFileOrDirName() function
+	 */
+	HRESULT testInspectFileOrDirName(void);
 }

@@ -159,6 +159,7 @@ Run the application, possibly through a top-level control object
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
 	// testConfig_IConfigManager::testFlatAtomicConfigIO();
-	testFileUtil::testExtractPath();
+	// testFileUtil::testExtractPath();
+	testFileUtil::testInspectFileOrDirName();
 	return ERROR_SUCCESS;
 }

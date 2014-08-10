@@ -341,10 +341,10 @@ namespace textProcessing {
 	remove_ASCII_controlAndWhitespace() by the client code).
 	It must contain a relative or absolute filepath that does not
 	trigger the output of any message strings by
-	fileUtil::inspectFilenameAndPath().
+	fileUtil::inspectFileOrDirNameAndPath().
 
 	The 'msg' parameter is optional. If it is not null, it will
-	be assigned the output messsages of inspectFilenameAndPath().
+	be assigned the output messsages of inspectFileOrDirNameAndPath().
 	(If there are no output messages, it will be set to the empty string.)
 
 	Otherwise behaves like wStrLiteralToWString().
@@ -358,7 +358,7 @@ namespace textProcessing {
 
 	/* Essentially the inverse of strToFilename()
 	   Note that the filename is NOT validated by
-	   fileUtil::inspectFilenameAndPath() before being output.
+	   fileUtil::inspectFileOrDirNameAndPath() before being output.
 	   This allows, for instance, for delays between the creation
 	   of a file output object and the actual creation of the file.
 	 */

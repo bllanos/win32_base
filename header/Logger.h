@@ -83,9 +83,9 @@ public:
 	  not overwritten.
 
 	  To try and ensure that logging will be possible, **if the output file
-	  does not already exist**, the function fileUtil::inspectFilenameAndPath()
+	  does not already exist**, the function fileUtil::inspectFileOrDirNameAndPath()
 	  is called on the 'filename' parameter.
-	  In this case, if inspectFilenameAndPath() outputs a message,
+	  In this case, if inspectFileOrDirNameAndPath() outputs a message,
 	  this constructor throws an exception with the message as its what() result.
 
 	  Note that, when 'holdAndReplaceFile' is false,

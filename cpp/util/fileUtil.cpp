@@ -35,14 +35,14 @@ Description
 
 using std::wstring;
 
-HRESULT fileUtil::extractPath(std::wstring& path, const std::wstring& filenameAndPath) {
+HRESULT fileUtil::extractPath(std::wstring& path, const std::wstring& nameAndPath) {
 
 	HRESULT result = ERROR_SUCCESS;
 
-	// Get a copy of the combined filename and path
-	size_t bufferLength = filenameAndPath.length() + 1;
+	// Get a copy of the combined file or directory name and path
+	size_t bufferLength = nameAndPath.length() + 1;
 	wchar_t* pathBuffer = new wchar_t[bufferLength];
-	if( wcscpy_s(pathBuffer, bufferLength, filenameAndPath.c_str()) ) {
+	if( wcscpy_s(pathBuffer, bufferLength, nameAndPath.c_str()) ) {
 		result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
 
 		// Copy operation was successful
@@ -66,71 +66,88 @@ HRESULT fileUtil::extractPath(std::wstring& path, const std::wstring& filenameAn
 	return result;
 }
 
-// Constants used by inspectFilename()
+// Constants used by inspectFileOrDirName()
 #define FILEUTIL_DOT L'.'
 #define FILEUTIL_USCORE L'_'
 #define FILEUTIL_DOT_STR "'.'"
 #define FILEUTIL_USCORE_STR "'_'"
 
-HRESULT fileUtil::inspectFilename(const std::wstring& filename, std::string& msg) {
+HRESULT fileUtil::inspectFileOrDirName(const std::wstring& name, const bool isFile, std::string& msg) {
 
 	msg.clear();
 
-	const wchar_t* const filenameCStr = PathFindFileName(filename.c_str());
-	size_t filenameCStrSize = wcslen(filenameCStr);
+	const wchar_t* const nameCStr = PathFindFileName(name.c_str());
+	size_t nameCStrSize = wcslen(nameCStr);
 
-	if( filenameCStr[0] == FILEUTIL_DOT || filenameCStr[filenameCStrSize - 1] == FILEUTIL_DOT ) {
-		msg = "Filename starts or ends with ";
-		msg += FILEUTIL_DOT_STR;
-	} else if( filenameCStr[0] == FILEUTIL_USCORE ) {
-		msg = "Filename starts with ";
-		msg += FILEUTIL_USCORE_STR;
-	} else {
+	// Common check for both file and directory names
+	if( nameCStr[0] == FILEUTIL_USCORE || nameCStr[nameCStrSize - 1] == FILEUTIL_USCORE ) {
+		 msg = "Name starts or ends with ";
+		 msg += FILEUTIL_USCORE_STR;
 
-		size_t dotPos = static_cast<size_t>(0);
-		for( size_t i = 0; i < filenameCStrSize; ++i ) {
-			if( filenameCStr[i] == FILEUTIL_DOT ) {
-				if( dotPos != static_cast<size_t>(0) ) {
-					msg = "Filename has multiple occurrences of ";
-					msg += FILEUTIL_DOT_STR;
-					break;
-				} else {
-					dotPos = i;
+		 // Process the name as a filename
+	} else if( isFile ) {
+
+		if( nameCStr[0] == FILEUTIL_DOT || nameCStr[nameCStrSize - 1] == FILEUTIL_DOT ) {
+			msg = "Filename starts or ends with ";
+			msg += FILEUTIL_DOT_STR;
+		} else {
+
+			size_t dotPos = static_cast<size_t>(0);
+			for( size_t i = 0; i < nameCStrSize; ++i ) {
+				if( nameCStr[i] == FILEUTIL_DOT ) {
+					if( dotPos != static_cast<size_t>(0) ) {
+						msg = "Filename has multiple occurrences of ";
+						msg += FILEUTIL_DOT_STR;
+						break;
+					} else {
+						dotPos = i;
+					}
+				} else if( !isalnum(nameCStr[i]) ) {
+					if( nameCStr[i] != FILEUTIL_USCORE ) {
+						msg = "Filename has a non-alphanumeric character other than ";
+						msg += FILEUTIL_DOT_STR;
+						msg += " or ";
+						msg += FILEUTIL_USCORE_STR;
+						break;
+					} else if( dotPos != static_cast<size_t>(0) ) {
+						msg = "Filename has ";
+						msg += FILEUTIL_USCORE_STR;
+						msg += " after ";
+						msg += FILEUTIL_DOT_STR;
+						break;
+					}
 				}
-			} else if( !isalnum(filenameCStr[i]) ) {
-				if( filenameCStr[i] != FILEUTIL_USCORE ) {
-					msg = "Filename has a non-alphanumeric character other than ";
+			}
+
+			// If no problems have been reported yet, perform the remaining checks.
+			if( msg.empty() ) {
+				if( dotPos == static_cast<size_t>(0) ) {
+					msg = "Filename does not contain ";
 					msg += FILEUTIL_DOT_STR;
-					msg += " or ";
-					msg += FILEUTIL_USCORE_STR;
-					break;
-				} else if( dotPos != static_cast<size_t>(0) ) {
+				} else if( nameCStr[dotPos - static_cast<size_t>(1)] == FILEUTIL_USCORE ) {
 					msg = "Filename has ";
 					msg += FILEUTIL_USCORE_STR;
-					msg += " after ";
+					msg += " immediately before ";
 					msg += FILEUTIL_DOT_STR;
-					break;
 				}
 			}
 		}
 
-		// If no problems have been reported yet, perform the remaining checks.
-		if( msg.empty() ) {
-			if( dotPos == static_cast<size_t>(0) ) {
-				msg = "Filename does not contain ";
-				msg += FILEUTIL_DOT_STR;
-			} else if( filenameCStr[dotPos - static_cast<size_t>(1)] == FILEUTIL_USCORE ) {
-				msg = "Filename has ";
+		// Process the name as a directory name
+	} else {
+		for( size_t i = 0; i < nameCStrSize; ++i ) {
+			if( !isalnum(nameCStr[i]) && nameCStr[i] != FILEUTIL_USCORE ) {
+				msg = "Directory name has a non-alphanumeric character other than ";
 				msg += FILEUTIL_USCORE_STR;
-				msg += " immediately before ";
-				msg += FILEUTIL_DOT_STR;
+				break;
 			}
 		}
 	}
+
 	return ERROR_SUCCESS;
 }
 
-HRESULT fileUtil::inspectFilenameAndPath(const std::wstring& filepath, std::string& msg) {
+HRESULT fileUtil::inspectFileOrDirNameAndPath(const std::wstring& filepath, std::string& msg) {
 
 	HRESULT result = ERROR_SUCCESS;
 	msg.clear();
@@ -144,8 +161,8 @@ HRESULT fileUtil::inspectFilenameAndPath(const std::wstring& filepath, std::stri
 		msg = "File's path is invalid.";
 	} else {
 		// Validate the filename
-		if( FAILED(inspectFilename(filepath, msg)) ) {
-			msg = "Call to fileUtil::inspectFilename() failed.";
+		if( FAILED(inspectFileOrDirName(filepath, true, msg)) ) {
+			msg = "Call to fileUtil::inspectFileOrDirName() failed.";
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		}
 	}

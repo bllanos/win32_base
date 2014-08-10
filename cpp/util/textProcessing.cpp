@@ -460,7 +460,7 @@ HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, s
 					std::string tempMsg;
 					std::wstring tempFilename = wCStr;
 
-					if( FAILED(fileUtil::inspectFilenameAndPath(tempFilename, tempMsg)) ) {
+					if( FAILED(fileUtil::inspectFileOrDirNameAndPath(tempFilename, tempMsg)) ) {
 						result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 					} else if( tempMsg.empty() ) {
 						// Validation complete and passed
