@@ -14,7 +14,7 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
    should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
-  -A namespace containing functions for processing filepaths and filenames
+  -A namespace containing functions for processing filepaths and file/directory names
 */
 
 #pragma once;
@@ -28,6 +28,10 @@ namespace fileUtil {
 	from a combined filepath and file/directory name string.
 	To be exact, if successful, this function strips the last name
 	on the path (either a file or a directory name).
+
+	Note: If the string ends in '\', the entire string will
+	  be interpreted as a path
+	  (as currently implemented, by the Windows function PathRemoveFileSpec() ).
 	*/
 	HRESULT extractPath(std::wstring& path, const std::wstring& filenameAndPath);
 

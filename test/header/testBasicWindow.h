@@ -19,6 +19,8 @@ Description
   -Boolean or HRESULT return values indicate success (true) or failure (false), where applicable.
 */
 
+#pragma once
+
 #include <Windows.h>
 
 namespace testBasicWindow {

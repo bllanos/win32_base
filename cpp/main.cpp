@@ -151,14 +151,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 #include "testConfig_IConfigManager.h"
 #include "testLogger_LogUser.h"
 #include "testTextProcessing.h"
+#include "testFileUtil.h"
 
 /*
 Run the application, possibly through a top-level control object
 */
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
-	testConfig_IConfigManager::testFlatAtomicConfigIO();
-	// testConfig_IConfigManager::testConfigWithStringValues(15, 4);
-	// testConfig_IConfigManager::testConfigWithStringAndBoolValues();
+	// testConfig_IConfigManager::testFlatAtomicConfigIO();
+	testFileUtil::testExtractPath();
 	return ERROR_SUCCESS;
 }

@@ -20,6 +20,8 @@ Description
    or failure (false), where applicable.
 */
 
+#pragma once
+
 #include <Windows.h>
 
 namespace testTextProcessing {
