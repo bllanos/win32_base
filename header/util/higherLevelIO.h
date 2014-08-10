@@ -48,9 +48,11 @@ namespace higherLevelIO {
 	HRESULT XMFLOAT4ToWString(std::wstring& out, const DirectX::XMFLOAT4& in);
 
 	/* Similar to strToXMFLOAT4() except that the
-	   data literal is expected to contain only components
-	   in the range of 0-255, representing Red, Green, Blue and Alpha
-	   components.
+	   data literal must contain only components
+	   in the range of 0.0-255.0.
+	   (These represent the Red, Green, Blue and Alpha
+	    components of a color, although currently this
+	    idea has no effect on the actual code.)
 	   
 	   The 'out' parameter is obtained by parsing each component
 	   of the input value as a single-point precision number, and then

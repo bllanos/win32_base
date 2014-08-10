@@ -482,7 +482,7 @@ HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, s
 	return result;
 }
 
-HRESULT textProcessing::filenameToWString(std::wstring& out, std::wstring& in) {
+HRESULT textProcessing::filenameToWString(std::wstring& out, const std::wstring& in) {
 	out = L'"';
 	out += in;
 	out += L'"';

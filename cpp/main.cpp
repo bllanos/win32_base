@@ -158,7 +158,7 @@ Run the application, possibly through a top-level control object
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
 	testConfig_IConfigManager::testFlatAtomicConfigIO();
-	testConfig_IConfigManager::testConfigWithStringValues(15, 4);
-	testConfig_IConfigManager::testConfigWithStringAndBoolValues();
+	// testConfig_IConfigManager::testConfigWithStringValues(15, 4);
+	// testConfig_IConfigManager::testConfigWithStringAndBoolValues();
 	return ERROR_SUCCESS;
 }

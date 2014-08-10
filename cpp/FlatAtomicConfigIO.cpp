@@ -19,17 +19,25 @@ Description
 
 #include "FlatAtomicConfigIO.h"
 #include "textProcessing.h"
+#include "higherLevelIO.h"
 #include "defs.h"
 #include <fstream>
+#include <DirectXMath.h>
 
 using std::to_wstring;
 using std::string;
 using std::wstring;
 using namespace textProcessing;
+using namespace higherLevelIO;
 
 const Config::DataType FlatAtomicConfigIO::s_supportedDataTypes[] = {
 	Config::DataType::WSTRING,
-	Config::DataType::BOOL
+	Config::DataType::BOOL,
+	Config::DataType::INT,
+	Config::DataType::DOUBLE,
+	Config::DataType::FLOAT4,
+	Config::DataType::COLOR,
+	Config::DataType::FILENAME
 };
 
 const size_t FlatAtomicConfigIO::s_nSupportedDataTypes = sizeof(s_supportedDataTypes) / sizeof(Config::DataType);
@@ -289,7 +297,8 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 }
 
 // A macro for use only within readDataLine()
-#define PARSE_DATA_VALUE(enumConstant, type, parseFunction) type* const value = new type; \
+#define PARSE_DATA_VALUE(enumConstant, type, parseFunction) \
+	type* const value = new type; \
 	if( FAILED(parseFunction(*value, str, tempIndex)) ) { \
 		failedParse = true; \
 		delete value; \
@@ -421,6 +430,58 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	{
 		PARSE_DATA_VALUE(BOOL, bool, strToBool)
 	}
+	case Config::DataType::INT:
+	{
+		PARSE_DATA_VALUE(INT, int, strToNumber)
+	}
+	case Config::DataType::DOUBLE:
+	{
+		PARSE_DATA_VALUE(DOUBLE, double, strToNumber)
+	}
+	case Config::DataType::FLOAT4:
+	{
+		PARSE_DATA_VALUE(FLOAT4, DirectX::XMFLOAT4, strToXMFLOAT4)
+	}
+	case Config::DataType::COLOR:
+	{
+		PARSE_DATA_VALUE(COLOR, DirectX::XMFLOAT4, strToColorRGBA)
+	}
+	case Config::DataType::FILENAME:
+	{
+		/* This case gets unique handling, because filenames are subject to validation
+		   that tests more than just their text representation.
+		   Therefore, as problems with a filename may not be obvious,
+		   the user gets shown the messages that are made
+		   available by this particular parsing function.
+		   */
+		wstring* const value = new wstring;
+		wstring parseMsg;
+		if( FAILED(strToFilename(*value, str, tempIndex, &parseMsg)) ) {
+			failedParse = true;
+			delete value;
+		} else if( tempIndex == index ) {
+			garbageData = true;
+			delete value;
+		} else {
+			insertResult = config.insert<Config::DataType::FILENAME, wstring>(scope, field, value);
+			if( FAILED(insertResult) ) {
+				delete value;
+			} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) {
+				duplicateKey = true;
+				delete value;
+			}
+		}
+		/* Note that the presence of a message
+		   is not assumed to indicate an error has occurred.
+		   (The other output parameters are used to test for problems.)
+		   */
+		if( !parseMsg.empty() ) {
+			m_msgStore.emplace_back(prefix +
+				L"the function for parsing the FILENAME data value reported \"" +
+				parseMsg + L"\"");
+		}
+		break;
+	}
 	default:
 	{
 		/* This case should never because of the earlier check to see
@@ -465,6 +526,10 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	return ERROR_SUCCESS;
 }
 
+#define SERIALIZE_DATA_VALUE(type, serializeFunction) \
+	serializationResult = serializeFunction(valueWStr, *(static_cast<const type*>(value))); \
+	break;
+
 HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data) {
 
 	// An empty string will be output in case of errors
@@ -495,13 +560,31 @@ HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::K
 	switch( dataType ) {
 	case Config::DataType::WSTRING:
 	{
-		serializationResult = wstringToWStrLiteral(valueWStr, *(static_cast<const wstring*>(value)));
-		break;
+		SERIALIZE_DATA_VALUE(wstring, wstringToWStrLiteral)
 	}
 	case Config::DataType::BOOL:
 	{
-		serializationResult = boolToWString(valueWStr, *(static_cast<const bool*>(value)));
-		break;
+		SERIALIZE_DATA_VALUE(bool, boolToWString)
+	}
+	case Config::DataType::INT:
+	{
+		SERIALIZE_DATA_VALUE(int, numberToWString)
+	}
+	case Config::DataType::DOUBLE:
+	{
+		SERIALIZE_DATA_VALUE(double, numberToWString)
+	}
+	case Config::DataType::FLOAT4:
+	{
+		SERIALIZE_DATA_VALUE(DirectX::XMFLOAT4, XMFLOAT4ToWString)
+	}
+	case Config::DataType::COLOR:
+	{
+		SERIALIZE_DATA_VALUE(DirectX::XMFLOAT4, colorRGBAToWString)
+	}
+	case Config::DataType::FILENAME:
+	{
+		SERIALIZE_DATA_VALUE(wstring, filenameToWString)
 	}
 	default:
 	{

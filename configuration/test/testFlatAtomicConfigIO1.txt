@@ -25,6 +25,55 @@ WSTRING -- strings :: 121 = L"\" Escape \" sequence \""
 WSTRING -- strings :: 13 = L"\\\t Escape \\\t sequence \\\t"
 WSTRING -- strings :: 14 = L"\\t No escape \\t sequences \\t"
 
+# Testing the INT data type
+INT -- ints :: 01 = 3.14
+INT -- ints :: 02 = 3.0
+INT -- ints :: 03 = 33
+INT -- ints :: 04 = 45e2
+INT -- ints :: 05 = e45e2
+INT -- ints :: 06 = 0
+
+# Testing the DOUBLE data type
+DOUBLE -- doubles :: 01 = 1.23456789123456789
+DOUBLE -- doubles :: 02 = 3.0.1
+DOUBLE -- doubles :: 03 = 33e4
+DOUBLE -- doubles :: 04 = -2e-2
+DOUBLE -- doubles :: 05 = e4.5e2
+DOUBLE -- doubles :: 06 = 0
+
+# Testing the FLOAT4 data type
+FLOAT4 -- float4s :: 01 = (1, 0.1f, -3e2, 54.0)
+FLOAT4 -- float4s :: 02 = ( 2, 0.1, -3e2, 54.0 )
+FLOAT4 -- float4s :: 03 = (3, 0.1 -3e2, 54.0)
+FLOAT4 -- float4s :: 04 = (4, 0.1, -3e2, 54.0,)
+FLOAT4 -- float4s :: 05 = ( 4, 1.23456789123456789, -3e2, 54.0)
+FLOAT4 -- float4s :: 06 = ( 4, 1.2348e5, -3e2, 54.0, 0.0)
+FLOAT4 -- float4s :: 07 = ( 4, 1.2348e5, 0.0)
+
+# Testing the COLOR data type
+COLOR -- colors :: 01 = (255, 255, 255, 255)
+COLOR -- colors :: 02 = (0, 0, 0, 0)
+COLOR -- colors :: 03 = (-0, 0.0, 0, 0)
+COLOR -- colors :: 04 = (255.0, 256, 254, 30.5)
+COLOR -- colors :: 05 = (-1, 0.01e-3, 254, 30.5)
+COLOR -- colors :: 06 = (2, 0.01e-3, 254, 30.5)
+
+# Testing the FILENAME data type
+FILENAME -- filenames :: 01 = L".\invalid.txt"
+FILENAME -- filenames :: 02 = ".\valid.txt"
+FILENAME -- filenames :: 03 = "..\valid.txt"
+FILENAME -- filenames :: 04 = .\invalid.txt"
+FILENAME -- filenames :: 05 = ".\invalid.txt
+FILENAME -- filenames :: 06 = ".\logger_output\valid.txt"
+# Directory name can be accepted if it looks like a file name
+FILENAME -- filenames :: 07 = ".\configuration\test\test.directory"
+FILENAME -- filenames :: 071 = ".\configuration\test\test.directory\text.txt"
+FILENAME -- filenames :: 08 = ".\logger_output"
+FILENAME -- filenames :: 09 = ".\logger_output_invalid"
+FILENAME -- filenames :: 10 = ".\logger_output\invalid.txt "
+# This name starts with '.', so it won't be accepted, even if the file exists
+FILENAME -- filenames :: 11 = ".\.gitignore"
+
 # Testing some additional invalid data
 BOOL -- no::value = felse
 WSTRING -- no::value = "none"
@@ -45,21 +94,3 @@ BOOL -- no:: = false
 # Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long Testing a line which is too long
 # The following data should not be parsed
 BOOL--	::afterLongLine=false 
-
-# <<-- FlatAtomicConfigIO class object parsing report (Sat Aug 09 14:26:38 2014 ) begins --
-# Line 13: the function for parsing the data value section of the line did not find a valid data value.
-# Line 15: the function for parsing the data value section of the line did not find a valid data value.
-# Line 23: the function for parsing the data value section of the line did not convert the entire rest of the line into a data value.
-# Line 29: the function for parsing the data value section of the line did not find a valid data value.
-# Line 30: the function for parsing the data value section of the line did not find a valid data value.
-# Line 31: the function for parsing the data value section of the line did not find a valid data value.
-# Line 32: the function for parsing the data value section of the line did not find a valid data value.
-# Line 33: the function for parsing the data value section of the line did not find a valid data value.
-# Line 36: There is already a value stored in the Config object under the following key: Scope = space, Field = one. Either this key was repeated in the file, or was already present in the Config object before this file was read.
-# Line 39: no datatype specifier found.
-# Line 40: no datatype found that corresponds to the datatype specifier.
-# Line 41: no separator found to mark the end of the key scope (needed even if the scope is empty).
-# Line 42: no separator found to mark the end of the key field.
-# Line 43: found empty key field specifier (not allowed).
-# Line 45: Allowed line length of 255 exceeded - Aborting read operation.
-# -- FlatAtomicConfigIO class object parsing report ends -->>

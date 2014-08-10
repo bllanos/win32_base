@@ -145,9 +145,13 @@ namespace textProcessing {
 	   using the istringstream class
 	   (http://www.cplusplus.com/reference/sstream/istringstream/)
 
-	   Note: There is currently (on July 27, 2014) no check to ensure
-	   that the output value is an exact representation of the input,
-	   or that it is accurate to within a specified tolerance.
+	   Notes:
+	     -There is currently no check to ensure
+	        that the output value is an exact representation of the input,
+	        or that it is accurate to within a specified tolerance.
+		 -Integer values cannot use scientific notation (e.g. '45e2' becomes '45')
+		 -Hexadecimal numbers are not accepted (even when prefixed with '0x').
+		    In general, non-decimal numbers will not be parsed properly.
 
 	   Otherwise behaves like wStrLiteralToWString()
 	*/
@@ -347,7 +351,7 @@ namespace textProcessing {
 
 	Note: wStrLiteralToWString() expects 'L"' as a prefix,
 	      not '"', which allows wide string literals to be distinguished
-		  from filenames.
+		  from filename literals.
 	*/
 	HRESULT strToFilename(std::wstring& out, const char* const in, size_t& index,
 		std::wstring* const msg = 0);
@@ -358,5 +362,5 @@ namespace textProcessing {
 	   This allows, for instance, for delays between the creation
 	   of a file output object and the actual creation of the file.
 	 */
-	HRESULT filenameToWString(std::wstring& out, std::wstring& in);
+	HRESULT filenameToWString(std::wstring& out, const std::wstring& in);
 }
