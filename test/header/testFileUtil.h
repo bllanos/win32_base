@@ -33,4 +33,8 @@ namespace testFileUtil {
 	/* Tests the fileUtil::inspectFileOrDirName() function
 	 */
 	HRESULT testInspectFileOrDirName(void);
+
+	/* Tests the fileUtil::inspectFileOrDirNameAndPath() function
+	 */
+	HRESULT testInspectFileOrDirNameAndPath(void);
 }

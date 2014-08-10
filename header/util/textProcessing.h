@@ -333,15 +333,23 @@ namespace textProcessing {
 		return ERROR_SUCCESS;
 	}
 
-	/* Converts the null-terminated ASCII string containing a fully-qualified
-	filename into a 'validated' filename.
+	/* Converts the null-terminated ASCII string containing a
+	file or directory name (optionally qualified with a path)
+	into a 'validated' name (and path).
+
+	If 'isFile' is true, the string will be validated as a file.
+	If 'isFile' is false, the string will be validated as a directory.
 	
 	To be accepted, the string must be prefixed and postfixed with '"'
 	(e.g. in order to protect its contents from any use of
 	remove_ASCII_controlAndWhitespace() by the client code).
-	It must contain a relative or absolute filepath that does not
+
+	The content of the string between the quotes must not
 	trigger the output of any message strings by
-	fileUtil::inspectFileOrDirNameAndPath().
+	fileUtil::inspectFileOrDirNameAndPath(). Furthermore,
+	fileUtil::inspectFileOrDirNameAndPath() must report
+	that the entity is in fact a file or directory (matching 'isFile')
+	if it already exists within the file system.
 
 	The 'msg' parameter is optional. If it is not null, it will
 	be assigned the output messsages of inspectFileOrDirNameAndPath().
@@ -351,16 +359,18 @@ namespace textProcessing {
 
 	Note: wStrLiteralToWString() expects 'L"' as a prefix,
 	      not '"', which allows wide string literals to be distinguished
-		  from filename literals.
+		  from file and directory name literals.
 	*/
-	HRESULT strToFilename(std::wstring& out, const char* const in, size_t& index,
-		std::wstring* const msg = 0);
+	HRESULT strToFileOrDirName(std::wstring& out, const char* const in,
+		const bool& isFile, size_t& index, std::wstring* const msg = 0);
 
-	/* Essentially the inverse of strToFilename()
-	   Note that the filename is NOT validated by
+	/* Essentially the inverse of strToFileOrDirName()
+
+	   Note that the file or directory name is NOT validated by
 	   fileUtil::inspectFileOrDirNameAndPath() before being output.
 	   This allows, for instance, for delays between the creation
-	   of a file output object and the actual creation of the file.
+	   of a file output object (class 'ofstream')
+	   and the actual creation of the file.
 	 */
-	HRESULT filenameToWString(std::wstring& out, const std::wstring& in);
+	HRESULT fileOrDirNameToWString(std::wstring& out, const std::wstring& in);
 }

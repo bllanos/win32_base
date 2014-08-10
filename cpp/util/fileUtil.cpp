@@ -72,7 +72,7 @@ HRESULT fileUtil::extractPath(std::wstring& path, const std::wstring& nameAndPat
 #define FILEUTIL_DOT_STR "'.'"
 #define FILEUTIL_USCORE_STR "'_'"
 
-HRESULT fileUtil::inspectFileOrDirName(const std::wstring& name, const bool isFile, std::string& msg) {
+HRESULT fileUtil::inspectFileOrDirName(const std::wstring& name, const bool& isFile, std::string& msg) {
 
 	msg.clear();
 
@@ -147,23 +147,68 @@ HRESULT fileUtil::inspectFileOrDirName(const std::wstring& name, const bool isFi
 	return ERROR_SUCCESS;
 }
 
-HRESULT fileUtil::inspectFileOrDirNameAndPath(const std::wstring& filepath, std::string& msg) {
+/* Useful starting points for more information on file management:
+     -Retrieving and Changing File Attributes
+      http://msdn.microsoft.com/en-us/library/windows/desktop/aa365522%28v=vs.85%29.aspx
+	 -File Management
+	  http://msdn.microsoft.com/en-us/library/windows/desktop/aa364229%28v=vs.85%29.aspx
+ */
+HRESULT fileUtil::inspectFileOrDirNameAndPath(const std::wstring& filepath,
+	bool& isFile, bool& hasPath, bool& exists, std::string& msg) {
 
+	// Initialization
 	HRESULT result = ERROR_SUCCESS;
+	const bool inIsFile = isFile;
+	isFile = false;
+	hasPath = false;
+	exists = false;
 	msg.clear();
 
-	// Check if the directory where the file will be created is valid
-	wstring path;
-	if( FAILED(extractPath(path, filepath)) ) {
-		msg = "Failure retrieving the file's path.";
-	} else if( !path.empty() && !PathIsDirectory(path.c_str()) ) {
-		// The location of the file is invalid
-		msg = "File's path is invalid.";
+	// Check for existence
+	const wchar_t* const filepathCStr = filepath.c_str();
+	if( PathFileExists(filepathCStr) ) {
+		exists = true;
+		// Therefore the path is also specified
+		hasPath = true;
+		// If this is not a directory, assume it is a file
+		isFile = !(PathIsDirectory(filepathCStr) != FALSE);
+		// Prevent access to system entities
+		if( PathIsSystemFolder(filepathCStr, 0) ) {
+			const char* const msgCStr = "Found attempt to inspect a system file or folder.";
+			msg = msgCStr;
+			// This is a Microsoft-specific constructor
+			throw std::exception(msgCStr);
+		}
+
+		// Attempt to validate name and path of non-existing file or directory
 	} else {
-		// Validate the filename
-		if( FAILED(inspectFileOrDirName(filepath, true, msg)) ) {
-			msg = "Call to fileUtil::inspectFileOrDirName() failed.";
+
+		// Check if the directory where the file or folder will be created is valid
+		wstring path;
+		if( FAILED(extractPath(path, filepath)) ) {
+			msg = "Failure retrieving the file's path.";
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		} else {
+			const wchar_t* const pathCStr = path.c_str();
+			if( !path.empty() ) {
+				hasPath = true;
+				if( !PathIsDirectory(pathCStr) ) {
+					// The location of the file is not a directory
+					msg = "File or directory's path is invalid.";
+				}
+				if( PathIsSystemFolder(pathCStr, 0) ) {
+					const char* const msgCStr = "Found attempt to inspect a file or folder within a system folder.";
+					msg = msgCStr;
+					// This is a Microsoft-specific constructor
+					throw std::exception(msgCStr);
+				}
+			}
+
+			// Validate the name
+			if( FAILED(inspectFileOrDirName(filepath, inIsFile, msg)) ) {
+				msg = "Call to fileUtil::inspectFileOrDirName() failed.";
+				result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+			}
 		}
 	}
 	return result;

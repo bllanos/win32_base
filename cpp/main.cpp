@@ -160,6 +160,7 @@ HRESULT applicationLoop(WPARAM& quit_wParam) {
 
 	// testConfig_IConfigManager::testFlatAtomicConfigIO();
 	// testFileUtil::testExtractPath();
-	testFileUtil::testInspectFileOrDirName();
+	// testFileUtil::testInspectFileOrDirName();
+	testFileUtil::testInspectFileOrDirNameAndPath();
 	return ERROR_SUCCESS;
 }

@@ -421,7 +421,8 @@ HRESULT textProcessing::boolToWString(wstring& out, const bool& in) {
 	return ERROR_SUCCESS;
 }
 
-HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, size_t& index,
+HRESULT textProcessing::strToFileOrDirName(std::wstring& out,
+	const char* const in, const bool& isFile, size_t& index,
 	std::wstring* const msg) {
 
 	// Error checking
@@ -457,12 +458,17 @@ HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, s
 				} else {
 
 					// Validate the filename and path
+					bool tempIsFile = isFile;
+					bool hasPath = false;
+					bool exists = false;
 					std::string tempMsg;
 					std::wstring tempFilename = wCStr;
 
-					if( FAILED(fileUtil::inspectFileOrDirNameAndPath(tempFilename, tempMsg)) ) {
+					if( FAILED(fileUtil::inspectFileOrDirNameAndPath(
+						tempFilename, tempIsFile, hasPath, exists, tempMsg)) ) {
 						result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-					} else if( tempMsg.empty() ) {
+					} else if( tempMsg.empty() &&
+						(!exists || (exists && (tempIsFile == isFile))) ) {
 						// Validation complete and passed
 						out = wCStr;
 						index = endIndex + 1;
@@ -482,7 +488,7 @@ HRESULT textProcessing::strToFilename(std::wstring& out, const char* const in, s
 	return result;
 }
 
-HRESULT textProcessing::filenameToWString(std::wstring& out, const std::wstring& in) {
+HRESULT textProcessing::fileOrDirNameToWString(std::wstring& out, const std::wstring& in) {
 	out = L'"';
 	out += in;
 	out += L'"';

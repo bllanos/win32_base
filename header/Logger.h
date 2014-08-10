@@ -82,11 +82,10 @@ public:
 	  are being written to it. The original contents of the file are added to,
 	  not overwritten.
 
-	  To try and ensure that logging will be possible, **if the output file
-	  does not already exist**, the function fileUtil::inspectFileOrDirNameAndPath()
-	  is called on the 'filename' parameter.
-	  In this case, if inspectFileOrDirNameAndPath() outputs a message,
-	  this constructor throws an exception with the message as its what() result.
+	  To try and ensure that logging will be possible, the function
+	  fileUtil::inspectFileOrDirNameAndPath() is called on the 'filename' parameter.
+	  This constructor throws an exception depending on the output of
+	  fileUtil::inspectFileOrDirNameAndPath().
 
 	  Note that, when 'holdAndReplaceFile' is false,
 	  the constructor does not open the output file.

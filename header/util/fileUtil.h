@@ -29,9 +29,12 @@ namespace fileUtil {
 	To be exact, if successful, this function strips the last name
 	on the path (either a file or a directory name).
 
-	Note: As currently implemented, if the string ends in '\',
-	  the entire string will be interpreted as a path
-	  (by the Windows function PathRemoveFileSpec() ).
+	Note:
+	  -As currently implemented, if the string ends in '\',
+	   the entire string will be interpreted as a path
+	   (by the Windows function PathRemoveFileSpec() ).
+	  -See http://msdn.microsoft.com/en-us/library/windows/desktop/bb773748%28v=vs.85%29.aspx
+	     -Paths should not contain forward slashes
 	*/
 	HRESULT extractPath(std::wstring& path, const std::wstring& nameAndPath);
 
@@ -72,25 +75,51 @@ namespace fileUtil {
 	   The function will return a failure code only in case of an internal
 	   error.
 	 */
-	HRESULT inspectFileOrDirName(const std::wstring& name, const bool isFile, std::string& msg);
+	HRESULT inspectFileOrDirName(const std::wstring& name, const bool& isFile, std::string& msg);
 
-	/* The input parameter, 'filepath' is the name of a file or directory,
-	   prefixed with its relative or absolute filepath.
+	/* Test if a file or directory exists or, if it does not exist,
+	   if it can probably be created.
+	
+	   Parameters
+	     -(in) 'filepath': The name of a file or directory,
+		    optionally prefixed with its relative or absolute filepath.
+			The file or directory does not need to exist.
+		 -(in/out) 'isFile':
+		    (in) Whether to treat the 'filepath' parameter
+			   as a file (true) or a directory (false),
+			   if the entity cannot be found in the file system
+			   (i.e. when 'exists' is false).
+			(out) If the 'filepath' string corresponds to an existing
+			   file system entity,
+			   whether it is a file (true) or a directory (false).
+			   Meaningless when 'exists' is false.
+		 -(out) 'hasPath': Whether the 'filepath' parameter contains a
+		    filepath (true) or is simply a name without a path (false).
+			The path does not need to exist.
+			If 'exists' is true, then 'hasPath' will be true.
+		 -(out) 'exists': Whether the 'filepath' parameter corresponds
+		    to an existing file system entity.
+		 -(out) 'msg': See below
 	
 	   This function writes messages to the 'msg' output parameter
-	   if any of the following are true:
+	   if 'exists' is false and any of the following are true:
 	     -The directory containing the file or directory does not exist.
-		 -The call to fileUtil::inspectFileOrDirName() fails.
-		  In this case, the function will return a failure code.
 		 -fileUtil::inspectFileOrDirName() writes a message to its output
-		    parameter when called on the file/directory name (stripped
-			of the path). In this case, the 'msg' parameter is assigned
-			 the output of inspectFileOrDirName().
+		    parameter when called on the file/directory name.
+			In this case, the 'msg' parameter is assigned
+			the output of inspectFileOrDirName().
+		 -There are internal errors.
+		    In this case, the function will return a failure code.
 
 	   If there are no issues to report, 'msg' is assigned an empty string.
 
 	   The function will return a failure code only in case of an internal
 	   error.
+
+	   Note: Throws an exception if 'filepath' points to a system file or folder,
+	   and also writes the message placed in the exception to the
+	   'msg' output parameter.
 	 */
-	HRESULT inspectFileOrDirNameAndPath(const std::wstring& filepath, std::string& msg);
+	HRESULT inspectFileOrDirNameAndPath(const std::wstring& filepath,
+		bool& isFile, bool& hasPath, bool& exists, std::string& msg);
 }

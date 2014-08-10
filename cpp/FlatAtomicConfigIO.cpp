@@ -456,7 +456,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 		   */
 		wstring* const value = new wstring;
 		wstring parseMsg;
-		if( FAILED(strToFilename(*value, str, tempIndex, &parseMsg)) ) {
+		if( FAILED(strToFileOrDirName(*value, str, true, tempIndex, &parseMsg)) ) {
 			failedParse = true;
 			delete value;
 		} else if( tempIndex == index ) {
@@ -584,7 +584,7 @@ HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::K
 	}
 	case Config::DataType::FILENAME:
 	{
-		SERIALIZE_DATA_VALUE(wstring, filenameToWString)
+		SERIALIZE_DATA_VALUE(wstring, fileOrDirNameToWString)
 	}
 	default:
 	{
