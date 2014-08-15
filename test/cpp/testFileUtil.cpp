@@ -211,6 +211,7 @@ HRESULT testFileUtil::testInspectFileOrDirNameAndPath(void) {
 		L".\\logger_output", // Valid directory
 		L".\\invalid", // Non-existing directory or file
 		L".\\text.txt", // Non-existng file
+		L"..\\text.txt", // Non-existng file
 		L".\\.gitignore", // Existing file, with unusual name
 		L".\\.git", // Existing directory, with unusual name
 		L".\\logger_output\\log.txt", // Existing file

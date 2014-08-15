@@ -357,9 +357,16 @@ namespace textProcessing {
 
 	Otherwise behaves like wStrLiteralToWString().
 
-	Note: wStrLiteralToWString() expects 'L"' as a prefix,
-	      not '"', which allows wide string literals to be distinguished
-		  from file and directory name literals.
+	Notes:
+	  -wStrLiteralToWString() expects 'L"' as a prefix,
+	     not '"', which allows wide string literals to be distinguished
+		 from file and directory name literals.
+	  -inspectFileOrDirNameAndPath() will throw an exception
+	     if the filepath corresponds to a system directory or a file
+		 in a system directory.
+		 When the exception is caught by this function, to be very cautious
+		 against manipulating system files/folders, it discards the filepath
+		 and outputs the exception message to 'msg'.
 	*/
 	HRESULT strToFileOrDirName(std::wstring& out, const char* const in,
 		const bool& isFile, size_t& index, std::wstring* const msg = 0);

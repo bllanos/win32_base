@@ -59,20 +59,10 @@ COLOR -- colors :: 05 = (-1, 0.01e-3, 254, 30.5)
 COLOR -- colors :: 06 = (2, 0.01e-3, 254, 30.5)
 
 # Testing the FILENAME data type
+# Improperly formatted literals
 FILENAME -- filenames :: 01 = L".\invalid.txt"
-FILENAME -- filenames :: 02 = ".\valid.txt"
-FILENAME -- filenames :: 03 = "..\valid.txt"
-FILENAME -- filenames :: 04 = .\invalid.txt"
-FILENAME -- filenames :: 05 = ".\invalid.txt
-FILENAME -- filenames :: 06 = ".\logger_output\valid.txt"
-# Directory name can be accepted if it looks like a file name
-FILENAME -- filenames :: 07 = ".\configuration\test\test.directory"
-FILENAME -- filenames :: 071 = ".\configuration\test\test.directory\text.txt"
-FILENAME -- filenames :: 08 = ".\logger_output"
-FILENAME -- filenames :: 09 = ".\logger_output_invalid"
-FILENAME -- filenames :: 10 = ".\logger_output\invalid.txt "
-# This name starts with '.', so it won't be accepted, even if the file exists
-FILENAME -- filenames :: 11 = ".\.gitignore"
+FILENAME -- filenames :: 02 = .\invalid.txt"
+FILENAME -- filenames :: 03 = ".\invalid.txt
 
 # Testing some additional invalid data
 BOOL -- no::value = felse

@@ -462,22 +462,46 @@ HRESULT textProcessing::strToFileOrDirName(std::wstring& out,
 					bool hasPath = false;
 					bool exists = false;
 					std::string tempMsg;
+					std::wstring wTempMsg;
 					std::wstring tempFilename = wCStr;
 
-					if( FAILED(fileUtil::inspectFileOrDirNameAndPath(
-						tempFilename, tempIsFile, hasPath, exists, tempMsg)) ) {
-						result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-					} else if( tempMsg.empty() &&
-						(!exists || (exists && (tempIsFile == isFile))) ) {
-						// Validation complete and passed
-						out = wCStr;
-						index = endIndex + 1;
-						if( msg != 0 ) {
-							msg->clear();
+					try {
+						if( FAILED(fileUtil::inspectFileOrDirNameAndPath(
+							tempFilename, tempIsFile, hasPath, exists, tempMsg)) ) {
+							result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+						} else if( tempMsg.empty() &&
+							(!exists || (exists && (tempIsFile == isFile))) ) {
+							// Validation complete and passed
+							out = wCStr;
+							index = endIndex + 1;
+							if( msg != 0 ) {
+								msg->clear();
+							}
+						} else if( msg != 0 ) {
+							// Pass inspection messages back to the client
+							if( !tempMsg.empty() ) {
+								if( FAILED(toWString(wTempMsg, tempMsg)) ) {
+									*msg = L"Error converting message from fileUtil::inspectFileOrDirNameAndPath() to a wide character string.";
+									result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+								} else {
+									*msg = wTempMsg;
+								}
+							} else if( exists && (tempIsFile != isFile) ) {
+								// inspectFileOrDirNameAndPath() will not generate messages for this situation
+								if( isFile ) {
+									*msg = L"Found an existing directory, but was asked for a file.";
+								} else {
+									*msg = L"Found an existing file, but was asked for a directory.";
+								}
+							}
 						}
-					} else if( msg != 0 ) {
-						// Pass inspection message back to the client
-						toWString(*msg, tempMsg);
+					}
+					catch( std::exception e ) {
+						if( FAILED(toWString(wTempMsg, e.what())) ) {
+							*msg = L"Error converting exception message from fileUtil::inspectFileOrDirNameAndPath() to a wide character string.";
+						} else {
+							*msg = wTempMsg;
+						}
 					}
 				}
 				delete[] wCStr;
