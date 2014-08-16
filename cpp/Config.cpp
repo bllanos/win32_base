@@ -34,7 +34,8 @@ const std::wstring Config::s_dataTypesNames[] = {
 	L"DOUBLE",
 	L"FLOAT4",
 	L"COLOR",
-	L"FILENAME"
+	L"FILENAME",
+	L"DIRECTORY"
 };
 
 const Config::DataType Config::s_dataTypesInOrder[] = {
@@ -44,7 +45,8 @@ const Config::DataType Config::s_dataTypesInOrder[] = {
 	DataType::DOUBLE,
 	DataType::FLOAT4,
 	DataType::COLOR,
-	DataType::FILENAME
+	DataType::FILENAME,
+	DataType::DIRECTORY
 };
 
 const size_t Config::s_nDataTypes = sizeof(s_dataTypesInOrder) / sizeof(Config::DataType);
@@ -109,6 +111,9 @@ Config::Value::~Value(void) {
 		delete static_cast<const XMFLOAT4* const>(m_value);
 		break;
 	case DataType::FILENAME:
+		delete static_cast<const std::wstring* const>(m_value);
+		break;
+	case DataType::DIRECTORY:
 		delete static_cast<const std::wstring* const>(m_value);
 		break;
 	default:

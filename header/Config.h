@@ -63,7 +63,8 @@ public:
 		DOUBLE,
 		FLOAT4,
 		COLOR,
-		FILENAME
+		FILENAME,
+		DIRECTORY
 	};
 	/* When adding new data types to this enumeration, also do the following:
 	- Update the 's_dataTypesNames' and 's_dataTypesInOrder' static members
@@ -293,3 +294,6 @@ MAKE_RETRIEVE_FUNCTION(COLOR, DirectX::XMFLOAT4)
 
 MAKE_INSERT_FUNCTION(FILENAME, std::wstring)
 MAKE_RETRIEVE_FUNCTION(FILENAME, std::wstring)
+
+MAKE_INSERT_FUNCTION(DIRECTORY, std::wstring)
+MAKE_RETRIEVE_FUNCTION(DIRECTORY, std::wstring)

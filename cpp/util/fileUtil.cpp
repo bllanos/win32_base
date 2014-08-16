@@ -180,38 +180,35 @@ HRESULT fileUtil::inspectFileOrDirNameAndPath(const std::wstring& filepath,
 			// This is a Microsoft-specific constructor
 			throw std::exception(msgCStr);
 		}
+	}
 
-		// Attempt to validate name and path of non-existing file or directory
+	// Check if the directory where the file or folder is or will be created is valid
+	wstring path;
+	if( FAILED(extractPath(path, filepath)) ) {
+		msg = "Failure retrieving the file's path.";
+		result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	} else {
-
-		// Check if the directory where the file or folder will be created is valid
-		wstring path;
-		if( FAILED(extractPath(path, filepath)) ) {
-			msg = "Failure retrieving the file's path.";
+		const wchar_t* const pathCStr = path.c_str();
+		if( !path.empty() && (!exists || (exists && isFile)) ) {
+			hasPath = true;
+			if( PathIsSystemFolder(pathCStr, 0) ) {
+				const char* const msgCStr = "Attempt to inspect a file or folder within a system folder.";
+				msg = msgCStr;
+				// This is a Microsoft-specific constructor
+				throw std::exception(msgCStr);
+			}
+			if( !PathIsDirectory(pathCStr) ) {
+				// The location of the file is not a directory
+				msg = "File or directory's path is not an existing location.";
+			}
+		}
+	}
+	
+	// Attempt to validate the name of a non-existing file or directory
+	if(!exists && SUCCEEDED(result) && msg.empty() ) {
+		if( FAILED(inspectFileOrDirName(filepath, inIsFile, msg)) ) {
+			msg = "Call to fileUtil::inspectFileOrDirName() failed.";
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-		} else {
-			const wchar_t* const pathCStr = path.c_str();
-			if( !path.empty() ) {
-				hasPath = true;
-				if( PathIsSystemFolder(pathCStr, 0) ) {
-					const char* const msgCStr = "Attempt to inspect a file or folder within a system folder.";
-					msg = msgCStr;
-					// This is a Microsoft-specific constructor
-					throw std::exception(msgCStr);
-				}
-				if( !PathIsDirectory(pathCStr) ) {
-					// The location of the file is not a directory
-					msg = "File or directory's path is not an existing location.";
-				}
-			}
-
-			// Validate the name, if the path seems fine
-			if( msg.empty() ) {
-				if( FAILED(inspectFileOrDirName(filepath, inIsFile, msg)) ) {
-					msg = "Call to fileUtil::inspectFileOrDirName() failed.";
-					result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-				}
-			}
 		}
 	}
 	return result;

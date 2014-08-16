@@ -37,7 +37,8 @@ const Config::DataType FlatAtomicConfigIO::s_supportedDataTypes[] = {
 	Config::DataType::DOUBLE,
 	Config::DataType::FLOAT4,
 	Config::DataType::COLOR,
-	Config::DataType::FILENAME
+	Config::DataType::FILENAME,
+	Config::DataType::DIRECTORY
 };
 
 const size_t FlatAtomicConfigIO::s_nSupportedDataTypes = sizeof(s_supportedDataTypes) / sizeof(Config::DataType);
@@ -296,7 +297,7 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 	return result;
 }
 
-// A macro for use only within readDataLine()
+// A macro for use only within readDataLine() for parsing most data types
 #define PARSE_DATA_VALUE(enumConstant, type, parseFunction) \
 	type* const value = new type; \
 	if( FAILED(parseFunction(*value, str, tempIndex)) ) { \
@@ -315,6 +316,42 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 		} \
 	} \
 	break;
+
+// A macro for use only within readDataLine() for parsing the filename and directory data types
+/* This case gets unique handling, because file and directory names/paths
+   are subject to validation that tests more than just their text representation.
+   Therefore, as problems with a filename may not be obvious,
+   the user gets shown the messages that are made
+   available by this particular parsing function.
+ */
+#define PARSE_FILENAME_OR_DIRECTORY(enumConstant, type, parseFunction, isFile) \
+	type* const value = new type; \
+	wstring parseMsg; \
+	if( FAILED(parseFunction(*value, str, isFile, tempIndex, &parseMsg)) ) { \
+		failedParse = true; \
+		delete value; \
+	} else if( tempIndex == index ) { \
+		garbageData = true; \
+		delete value; \
+	} else { \
+		insertResult = config.insert<Config::DataType::enumConstant, type>(scope, field, value); \
+		if( FAILED(insertResult) ) { \
+			delete value; \
+		} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) { \
+			duplicateKey = true; \
+			delete value; \
+		} \
+	} \
+	if( !parseMsg.empty() ) { \
+		m_msgStore.emplace_back(prefix + \
+			L"the function for parsing the " LCHAR_STRINGIFY(enumConstant) L" data value reported \"" + \
+			parseMsg + L"\""); \
+	} \
+	break;
+/* Note that the presence of a message ( "!parseMsg.empty()" )
+   is not assumed to indicate an error has occurred.
+   (The other output parameters are used to test for problems.)
+ */
 
 HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const size_t& lineNumber) {
 
@@ -354,7 +391,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	// Parse the data type specification
 	Config::DataType dataType;
 	if( !hasSubstr(str, FLATATOMICCONFIGIO_SEP_1, index) ) {
-		m_msgStore.emplace_back(prefix + L"no datatype specifier found.");
+		m_msgStore.emplace_back(prefix + L"no separator found to mark the end of the datatype specifier.");
 		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 
 	} else {
@@ -448,45 +485,17 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	}
 	case Config::DataType::FILENAME:
 	{
-		/* This case gets unique handling, because filenames are subject to validation
-		   that tests more than just their text representation.
-		   Therefore, as problems with a filename may not be obvious,
-		   the user gets shown the messages that are made
-		   available by this particular parsing function.
-		   */
-		wstring* const value = new wstring;
-		wstring parseMsg;
-		if( FAILED(strToFileOrDirName(*value, str, true, tempIndex, &parseMsg)) ) {
-			failedParse = true;
-			delete value;
-		} else if( tempIndex == index ) {
-			garbageData = true;
-			delete value;
-		} else {
-			insertResult = config.insert<Config::DataType::FILENAME, wstring>(scope, field, value);
-			if( FAILED(insertResult) ) {
-				delete value;
-			} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) {
-				duplicateKey = true;
-				delete value;
-			}
-		}
-		/* Note that the presence of a message
-		   is not assumed to indicate an error has occurred.
-		   (The other output parameters are used to test for problems.)
-		   */
-		if( !parseMsg.empty() ) {
-			m_msgStore.emplace_back(prefix +
-				L"the function for parsing the FILENAME data value reported \"" +
-				parseMsg + L"\"");
-		}
-		break;
+		PARSE_FILENAME_OR_DIRECTORY(FILENAME, wstring, strToFileOrDirName, true)
+	}
+	case Config::DataType::DIRECTORY:
+	{
+		PARSE_FILENAME_OR_DIRECTORY(DIRECTORY, wstring, strToFileOrDirName, false)
 	}
 	default:
 	{
 		/* This case should never because of the earlier check to see
 		   if the datatype was supported.
-		   If this case is encountered, then either the list of supported
+		   If this case is encountered, either the list of supported
 		   data types, or this switch statement must be corrected.
 		 */
 		wstring msg = prefix +
@@ -526,6 +535,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	return ERROR_SUCCESS;
 }
 
+// A macro for use only within writeDataLine()
 #define SERIALIZE_DATA_VALUE(type, serializeFunction) \
 	serializationResult = serializeFunction(valueWStr, *(static_cast<const type*>(value))); \
 	break;
@@ -583,6 +593,10 @@ HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::K
 		SERIALIZE_DATA_VALUE(DirectX::XMFLOAT4, colorRGBAToWString)
 	}
 	case Config::DataType::FILENAME:
+	{
+		SERIALIZE_DATA_VALUE(wstring, fileOrDirNameToWString)
+	}
+	case Config::DataType::DIRECTORY:
 	{
 		SERIALIZE_DATA_VALUE(wstring, fileOrDirNameToWString)
 	}
