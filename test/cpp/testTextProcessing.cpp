@@ -466,3 +466,124 @@ HRESULT testTextProcessing::testStrToUInt(void) {
 
 	return finalResult;
 }
+
+HRESULT testTextProcessing::testStrToIntArray(void) {
+
+	// Create a file for logging the test results
+	Logger* logger = 0;
+	try {
+		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
+		logFilename += L"testStrToIntArray.txt";
+		logger = new Logger(true, logFilename, true, false);
+	} catch( ... ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
+	}
+
+	HRESULT result = ERROR_SUCCESS;
+	HRESULT finalResult = ERROR_SUCCESS;
+
+	// Create an array of test strings
+	const char* const pConstStrings[] = {
+		"[",
+		"]",
+		"[ ]",
+		"[]",
+		"[346]",
+		"[34,56]",
+		"[43[",
+		"]43]",
+		"[[34]",
+		"[34]]",
+		"[34,,55]",
+		"[34 55]",
+		"[42,56,7890]",
+		"32",
+		"[,42,56,7890]",
+		"[42,56,7890,]"
+	};
+	size_t nStr = sizeof(pConstStrings) / sizeof(char*);
+
+	// Array of array lengths to be tried during parsing
+	const size_t pArrayLengths[] = {
+		0,
+		0,
+		0,
+		0,
+		1,
+		2,
+		1,
+		1,
+		1,
+		1,
+		2,
+		2,
+		3,
+		1,
+		3,
+		3
+	};
+
+	// Copy the test strings to a modifiable array
+	char** pStrings = new char*[nStr];
+	for( size_t i = 0; i < nStr; ++i ) {
+		size_t bufferSize = strlen(pConstStrings[i]) + 1;
+		pStrings[i] = new char[bufferSize];
+		strcpy_s(pStrings[i], bufferSize, pConstStrings[i]);
+	}
+
+	// Run the tests
+	std::wstring str;
+	int* out;
+	size_t index;
+	size_t n;
+	std::wostringstream WOSStream;
+
+	for( size_t i = 0; i < nStr; ++i ) {
+		n = pArrayLengths[i];
+		out = 0;
+		index = 0;
+		result = textProcessing::strToNumberArray(out, pStrings[i], index, n);
+		if( FAILED(result) ) {
+			logger->logMessage(L"Test failed.");
+			finalResult = result;
+		} else {
+			WOSStream.str(L""); // Clear the string stream
+			toWString(str, pStrings[i]);
+			WOSStream << L"\"" << str << L"\" produces: ";
+			
+			// If nothing was parsed, clear the expected size of the array to serialize
+			n = (out == 0) ? 0 : n;
+
+			const int* cOut = out;
+			result = textProcessing::numberArrayToWString(
+				str, cOut, n, L'{', L'}');
+			if( FAILED(result) ) {
+				WOSStream << L"[Failed to serialize]";
+				logger->logMessage(L"\tError outputting value using numberArrayToWString().");
+				finalResult = result;
+			} else {
+				WOSStream << str;
+			}
+			WOSStream << L", parsing " << index << L" characters.";
+			logger->logMessage(WOSStream.str());
+
+			delete[] out;
+		}
+	}
+
+	if( SUCCEEDED(finalResult) ) {
+		logger->logMessage(L"All tests ran without errors.");
+	} else {
+		logger->logMessage(L"Some or all tests encountered errors.");
+	}
+
+	for( size_t i = 0; i < nStr; ++i ) {
+		delete[] pStrings[i];
+		pStrings[i] = 0;
+	}
+
+	delete[] pStrings;
+	delete logger;
+
+	return finalResult;
+}
