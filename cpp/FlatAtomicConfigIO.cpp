@@ -302,12 +302,14 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 	type* const value = new type; \
 	if( FAILED(parseFunction(*value, str, tempIndex)) ) { \
 		failedParse = true; \
-		delete value; \
-	} else if( tempIndex == index ) { \
-		garbageData = true; \
-		delete value; \
-	} else { \
-		insertResult = config.insert<Config::DataType::enumConstant, type>(scope, field, value); \
+			delete value; \
+		} else if( tempIndex == index ) { \
+			garbageData = true; \
+			delete value; \
+		} else { \
+			insertResult = config.insert<Config::DataType::enumConstant, type>( \
+							scope, field, value, &prefix); \
+			prefix += L" "; \
 		if( FAILED(insertResult) ) { \
 			delete value; \
 		} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) { \
@@ -334,7 +336,9 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 		garbageData = true; \
 		delete value; \
 	} else { \
-		insertResult = config.insert<Config::DataType::enumConstant, type>(scope, field, value); \
+		insertResult = config.insert<Config::DataType::enumConstant, type>( \
+						scope, field, value, &prefix); \
+		prefix += L" "; \
 		if( FAILED(insertResult) ) { \
 			delete value; \
 		} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) { \
@@ -516,8 +520,8 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 	} else if( duplicateKey ) {
 		m_msgStore.emplace_back(prefix +
-			L"There is already a value stored in the Config object under the following key: Scope = "+
-			scope+L", Field = "+field+L". Either this key was repeated in the file,"
+			L"There is already a value stored in the Config object under the given key scope and field."
+			L" Either this key was repeated in the file,"
 			L" or was already present in the Config object before this file was read.");
 		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 	} else if( FAILED(insertResult) ) {

@@ -23,6 +23,7 @@ Usage Notes: See Config.h
 #include "globals.h"
 #include "defs.h"
 #include <stdexcept>
+#include <sstream>
 
 using std::map;
 using DirectX::XMFLOAT4;
@@ -224,6 +225,23 @@ const void* Config::retrieve(const std::wstring& scope, const std::wstring& fiel
 	} else {
 		return 0;
 	}
+}
+
+HRESULT Config::locatorsToWString(std::wstring& out,
+	const std::wstring& scope, const std::wstring& field, const DataType type) {
+
+	std::wstring typeStr;
+	if( FAILED(dataTypeToWString(typeStr, type)) ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	}
+
+	std::wostringstream tempOut;
+	tempOut << L"(scope = " << scope;
+	tempOut << L", field = " << field;
+	tempOut << L", DataType = " << typeStr << L")";
+
+	out += tempOut.str();
+	return ERROR_SUCCESS;
 }
 
 map<Config::Key, Config::Value*>::const_iterator Config::cbegin(void) const {

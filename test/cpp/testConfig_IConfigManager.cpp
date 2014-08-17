@@ -119,9 +119,10 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 
 	logger->logMessage(L"Reading values from the Config object, by scope and field...");
 
+	wstring locators;
 	for( unsigned int i = 0; i < n; ++i ) {
 		result = config.retrieve<Config::DataType::WSTRING, std::wstring>(scope + std::to_wstring(i % nScopes),
-			field + std::to_wstring(i), currValue);
+			field + std::to_wstring(i), currValue, &locators);
 
 		if( FAILED(result) || HRESULT_CODE(result) == ERROR_DATA_NOT_FOUND ) {
 			finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
@@ -129,8 +130,9 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 				+ std::to_wstring(i));
 		} else {
 			currKeyString = scope + std::to_wstring(i % nScopes) + L"::" + field + std::to_wstring(i);
-			logger->logMessage(currKeyString + L" = " + *currValue);
+			logger->logMessage(locators + L" " + currKeyString + L" = " + *currValue);
 		}
+		locators.clear();
 	}
 
 	logger->logMessage(L"");
