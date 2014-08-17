@@ -20,6 +20,7 @@ Description
 #include "fileUtil.h"
 #include "defs.h"
 #include <cctype>
+#include <exception>
 
 /* For PathCchRemoveFileSpec() (Windows-specific)
    Requires linking Pathcch.lib
@@ -35,14 +36,14 @@ Description
 
 using std::wstring;
 
-HRESULT fileUtil::extractPath(std::wstring& path, const std::wstring& filenameAndPath) {
+HRESULT fileUtil::extractPath(std::wstring& path, const std::wstring& nameAndPath) {
 
 	HRESULT result = ERROR_SUCCESS;
 
-	// Get a copy of the combined filename and path
-	size_t bufferLength = filenameAndPath.length() + 1;
+	// Get a copy of the combined file or directory name and path
+	size_t bufferLength = nameAndPath.length() + 1;
 	wchar_t* pathBuffer = new wchar_t[bufferLength];
-	if( wcscpy_s(pathBuffer, bufferLength, filenameAndPath.c_str()) ) {
+	if( wcscpy_s(pathBuffer, bufferLength, nameAndPath.c_str()) ) {
 		result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
 
 		// Copy operation was successful
@@ -66,86 +67,148 @@ HRESULT fileUtil::extractPath(std::wstring& path, const std::wstring& filenameAn
 	return result;
 }
 
-// Constants used by inspectFilename()
+// Constants used by inspectFileOrDirName()
 #define FILEUTIL_DOT L'.'
 #define FILEUTIL_USCORE L'_'
 #define FILEUTIL_DOT_STR "'.'"
 #define FILEUTIL_USCORE_STR "'_'"
 
-HRESULT fileUtil::inspectFilename(const std::wstring& filename, std::string& msg) {
+HRESULT fileUtil::inspectFileOrDirName(const std::wstring& name, const bool& isFile, std::string& msg) {
 
 	msg.clear();
 
-	const wchar_t* const filenameCStr = PathFindFileName(filename.c_str());
-	size_t filenameCStrSize = wcslen(filenameCStr);
+	const wchar_t* const nameCStr = PathFindFileName(name.c_str());
+	size_t nameCStrSize = wcslen(nameCStr);
 
-	if( filenameCStr[0] == FILEUTIL_DOT || filenameCStr[filenameCStrSize - 1] == FILEUTIL_DOT ) {
-		msg = "Filename starts or ends with ";
-		msg += FILEUTIL_DOT_STR;
-	} else if( filenameCStr[0] == FILEUTIL_USCORE ) {
-		msg = "Filename starts with ";
-		msg += FILEUTIL_USCORE_STR;
-	} else {
+	// Common check for both file and directory names
+	if( nameCStr[0] == FILEUTIL_USCORE || nameCStr[nameCStrSize - 1] == FILEUTIL_USCORE ) {
+		 msg = "Name starts or ends with ";
+		 msg += FILEUTIL_USCORE_STR;
 
-		size_t dotPos = static_cast<size_t>(0);
-		for( size_t i = 0; i < filenameCStrSize; ++i ) {
-			if( filenameCStr[i] == FILEUTIL_DOT ) {
-				if( dotPos != static_cast<size_t>(0) ) {
-					msg = "Filename has multiple occurrences of ";
-					msg += FILEUTIL_DOT_STR;
-					break;
-				} else {
-					dotPos = i;
+		 // Process the name as a filename
+	} else if( isFile ) {
+
+		if( nameCStr[0] == FILEUTIL_DOT || nameCStr[nameCStrSize - 1] == FILEUTIL_DOT ) {
+			msg = "Filename starts or ends with ";
+			msg += FILEUTIL_DOT_STR;
+		} else {
+
+			size_t dotPos = static_cast<size_t>(0);
+			for( size_t i = 0; i < nameCStrSize; ++i ) {
+				if( nameCStr[i] == FILEUTIL_DOT ) {
+					if( dotPos != static_cast<size_t>(0) ) {
+						msg = "Filename has multiple occurrences of ";
+						msg += FILEUTIL_DOT_STR;
+						break;
+					} else {
+						dotPos = i;
+					}
+				} else if( !isalnum(nameCStr[i]) ) {
+					if( nameCStr[i] != FILEUTIL_USCORE ) {
+						msg = "Filename has a non-alphanumeric character other than ";
+						msg += FILEUTIL_DOT_STR;
+						msg += " or ";
+						msg += FILEUTIL_USCORE_STR;
+						break;
+					} else if( dotPos != static_cast<size_t>(0) ) {
+						msg = "Filename has ";
+						msg += FILEUTIL_USCORE_STR;
+						msg += " after ";
+						msg += FILEUTIL_DOT_STR;
+						break;
+					}
 				}
-			} else if( !isalnum(filenameCStr[i]) ) {
-				if( filenameCStr[i] != FILEUTIL_USCORE ) {
-					msg = "Filename has a non-alphanumeric character other than ";
+			}
+
+			// If no problems have been reported yet, perform the remaining checks.
+			if( msg.empty() ) {
+				if( dotPos == static_cast<size_t>(0) ) {
+					msg = "Filename does not contain ";
 					msg += FILEUTIL_DOT_STR;
-					msg += " or ";
-					msg += FILEUTIL_USCORE_STR;
-					break;
-				} else if( dotPos != static_cast<size_t>(0) ) {
+				} else if( nameCStr[dotPos - static_cast<size_t>(1)] == FILEUTIL_USCORE ) {
 					msg = "Filename has ";
 					msg += FILEUTIL_USCORE_STR;
-					msg += " after ";
+					msg += " immediately before ";
 					msg += FILEUTIL_DOT_STR;
-					break;
 				}
 			}
 		}
 
-		// If no problems have been reported yet, perform the remaining checks.
-		if( msg.empty() ) {
-			if( dotPos == static_cast<size_t>(0) ) {
-				msg = "Filename does not contain ";
-				msg += FILEUTIL_DOT_STR;
-			} else if( filenameCStr[dotPos - static_cast<size_t>(1)] == FILEUTIL_USCORE ) {
-				msg = "Filename has ";
+		// Process the name as a directory name
+	} else {
+		for( size_t i = 0; i < nameCStrSize; ++i ) {
+			if( !isalnum(nameCStr[i]) && nameCStr[i] != FILEUTIL_USCORE ) {
+				msg = "Directory name has a non-alphanumeric character other than ";
 				msg += FILEUTIL_USCORE_STR;
-				msg += " immediately before ";
-				msg += FILEUTIL_DOT_STR;
+				break;
 			}
 		}
 	}
+
 	return ERROR_SUCCESS;
 }
 
-HRESULT fileUtil::inspectFilenameAndPath(const std::wstring& filepath, std::string& msg) {
+/* Useful starting points for more information on file management:
+     -Retrieving and Changing File Attributes
+      http://msdn.microsoft.com/en-us/library/windows/desktop/aa365522%28v=vs.85%29.aspx
+	 -File Management
+	  http://msdn.microsoft.com/en-us/library/windows/desktop/aa364229%28v=vs.85%29.aspx
+ */
+HRESULT fileUtil::inspectFileOrDirNameAndPath(const std::wstring& filepath,
+	bool& isFile, bool& hasPath, bool& exists, std::string& msg) {
 
+	// Initialization
 	HRESULT result = ERROR_SUCCESS;
+	const bool inIsFile = isFile;
+	isFile = false;
+	hasPath = false;
+	exists = false;
 	msg.clear();
 
-	// Check if the directory where the file will be created is valid
+	// Check for existence
+	const wchar_t* const filepathCStr = filepath.c_str();
+	if( PathFileExists(filepathCStr) ) {
+		exists = true;
+		// Therefore the path is also specified
+		hasPath = true;
+		// If this is not a directory, assume it is a file
+		isFile = !(PathIsDirectory(filepathCStr) != FALSE);
+		// Prevent access to system entities
+		if( PathIsSystemFolder(filepathCStr, 0) ) {
+			const char* const msgCStr = "Attempt to inspect an existing system folder.";
+			msg = msgCStr;
+			// This is a Microsoft-specific constructor
+			throw std::exception(msgCStr);
+		}
+	}
+
+	// Check if the directory where the file or folder is or will be created is valid
 	wstring path;
 	if( FAILED(extractPath(path, filepath)) ) {
 		msg = "Failure retrieving the file's path.";
-	} else if( !path.empty() && !PathIsDirectory(path.c_str()) ) {
-		// The location of the file is invalid
-		msg = "File's path is invalid.";
+		result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	} else {
-		// Validate the filename
-		if( FAILED(inspectFilename(filepath, msg)) ) {
-			msg = "Call to fileUtil::inspectFilename() failed.";
+		const wchar_t* const pathCStr = path.c_str();
+		if( !path.empty() && (!exists || (exists && isFile)) ) {
+			hasPath = true;
+			if( PathIsSystemFolder(pathCStr, 0) ) {
+				const char* const msgCStr = "Attempt to inspect either an existing file in a system folder, "
+					"or a non-existing file or folder with a path that is a system folder.";
+				msg = msgCStr;
+				// This is a Microsoft-specific constructor
+				throw std::exception(msgCStr);
+			}
+			if( !PathIsDirectory(pathCStr) ) {
+				// The location of the file is not a directory
+				msg = "File or directory's path is not an existing location.";
+			}
+		}
+	}
+	
+	// Attempt to validate the name of a non-existing file or directory
+	if(!exists && SUCCEEDED(result) && msg.empty() ) {
+		if( FAILED(inspectFileOrDirName(filepath, inIsFile, msg)) ) {
+			msg = "Call to fileUtil::inspectFileOrDirName() failed.";
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		}
 	}

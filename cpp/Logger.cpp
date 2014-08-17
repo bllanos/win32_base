@@ -24,11 +24,6 @@ Description
 #include <ctime>
 #include <exception>
 
-/* For file existence check (Windows-specific)
-   Requires linking Shlwapi.lib
-*/
-#include <Shlwapi.h>
-
 // Using declarations
 using std::wstring;
 using std::basic_ofstream;
@@ -83,19 +78,27 @@ m_timestampEnabled(true)
 				throw std::exception("Failed to open output primary logging output file.");
 			}
 		} else {
-			// Check if the file does not already exist
-			if( !PathFileExists(m_filename.c_str()) ) {
-
-				// Try to ensure that the file can be created
-				std::string errorMsg;
-
-				if( FAILED(fileUtil::inspectFilenameAndPath(filename, errorMsg)) ) {
-					// This is a Microsoft-specific constructor
-					throw std::exception("Call to fileUtil::inspectFilenameAndPath() failed.");
-				} else if( !errorMsg.empty() ) {
-					// This is a Microsoft-specific constructor
-					throw std::exception(("fileUtil::inspectFilenameAndPath() reported: "+errorMsg).c_str());
-				}
+			/* Check if the file already exists,
+			   or try to ensure that the file can be created
+			 */
+			bool isFile = true;
+			bool hasPath = false;
+			bool exists = false;
+			std::string errorMsg;
+			if( FAILED(fileUtil::inspectFileOrDirNameAndPath(
+				filename, isFile, hasPath, exists, errorMsg)
+				) ) {
+				// This is a Microsoft-specific constructor
+				throw std::exception("Call to fileUtil::inspectFileOrDirNameAndPath() failed.");
+			} else if( exists && !isFile ) {
+				// This is a Microsoft-specific constructor
+				throw std::exception("fileUtil::inspectFileOrDirNameAndPath() indicated that the path is not a file.");
+			} else if( !hasPath ) {
+				// This is a Microsoft-specific constructor
+				throw std::exception("fileUtil::inspectFileOrDirNameAndPath() indicated that the file path is not specified.");
+			} else if( !exists && !errorMsg.empty() ) {
+				// This is a Microsoft-specific constructor
+				throw std::exception(("fileUtil::inspectFileOrDirNameAndPath() reported: "+errorMsg).c_str());
 			}
 		}
 	}

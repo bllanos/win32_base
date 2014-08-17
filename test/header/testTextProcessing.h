@@ -20,6 +20,8 @@ Description
    or failure (false), where applicable.
 */
 
+#pragma once
+
 #include <Windows.h>
 
 namespace testTextProcessing {
@@ -52,4 +54,9 @@ namespace testTextProcessing {
 	*/
 	HRESULT testStrToUInt(void);
 
+	/* Tests the strToNumberArray() function,
+	as well as its inverse, numberArrayToWString(),
+	for array values of type 'int'
+	*/
+	HRESULT testStrToIntArray();
 }

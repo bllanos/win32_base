@@ -19,17 +19,26 @@ Description
 
 #include "FlatAtomicConfigIO.h"
 #include "textProcessing.h"
+#include "higherLevelIO.h"
 #include "defs.h"
 #include <fstream>
+#include <DirectXMath.h>
 
 using std::to_wstring;
 using std::string;
 using std::wstring;
 using namespace textProcessing;
+using namespace higherLevelIO;
 
 const Config::DataType FlatAtomicConfigIO::s_supportedDataTypes[] = {
 	Config::DataType::WSTRING,
-	Config::DataType::BOOL
+	Config::DataType::BOOL,
+	Config::DataType::INT,
+	Config::DataType::DOUBLE,
+	Config::DataType::FLOAT4,
+	Config::DataType::COLOR,
+	Config::DataType::FILENAME,
+	Config::DataType::DIRECTORY
 };
 
 const size_t FlatAtomicConfigIO::s_nSupportedDataTypes = sizeof(s_supportedDataTypes) / sizeof(Config::DataType);
@@ -288,16 +297,19 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 	return result;
 }
 
-// A macro for use only within readDataLine()
-#define PARSE_DATA_VALUE(type, parseFunction) type* const value = new type; \
+// A macro for use only within readDataLine() for parsing most data types
+#define PARSE_DATA_VALUE(enumConstant, type, parseFunction) \
+	type* const value = new type; \
 	if( FAILED(parseFunction(*value, str, tempIndex)) ) { \
 		failedParse = true; \
-		delete value; \
-	} else if( tempIndex == index ) { \
-		garbageData = true; \
-		delete value; \
-	} else { \
-		insertResult = config.insert(scope, field, value); \
+			delete value; \
+		} else if( tempIndex == index ) { \
+			garbageData = true; \
+			delete value; \
+		} else { \
+			insertResult = config.insert<Config::DataType::enumConstant, type>( \
+							scope, field, value, &prefix); \
+			prefix += L" "; \
 		if( FAILED(insertResult) ) { \
 			delete value; \
 		} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) { \
@@ -306,6 +318,44 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 		} \
 	} \
 	break;
+
+// A macro for use only within readDataLine() for parsing the filename and directory data types
+/* This case gets unique handling, because file and directory names/paths
+   are subject to validation that tests more than just their text representation.
+   Therefore, as problems with a filename may not be obvious,
+   the user gets shown the messages that are made
+   available by this particular parsing function.
+ */
+#define PARSE_FILENAME_OR_DIRECTORY(enumConstant, type, parseFunction, isFile) \
+	type* const value = new type; \
+	wstring parseMsg; \
+	if( FAILED(parseFunction(*value, str, isFile, tempIndex, &parseMsg)) ) { \
+		failedParse = true; \
+		delete value; \
+	} else if( tempIndex == index ) { \
+		garbageData = true; \
+		delete value; \
+	} else { \
+		insertResult = config.insert<Config::DataType::enumConstant, type>( \
+						scope, field, value, &prefix); \
+		prefix += L" "; \
+		if( FAILED(insertResult) ) { \
+			delete value; \
+		} else if( HRESULT_CODE(insertResult) == ERROR_ALREADY_ASSIGNED ) { \
+			duplicateKey = true; \
+			delete value; \
+		} \
+	} \
+	if( !parseMsg.empty() ) { \
+		m_msgStore.emplace_back(prefix + \
+			L"the function for parsing the " LCHAR_STRINGIFY(enumConstant) L" data value reported \"" + \
+			parseMsg + L"\""); \
+	} \
+	break;
+/* Note that the presence of a message ( "!parseMsg.empty()" )
+   is not assumed to indicate an error has occurred.
+   (The other output parameters are used to test for problems.)
+ */
 
 HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const size_t& lineNumber) {
 
@@ -345,7 +395,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	// Parse the data type specification
 	Config::DataType dataType;
 	if( !hasSubstr(str, FLATATOMICCONFIGIO_SEP_1, index) ) {
-		m_msgStore.emplace_back(prefix + L"no datatype specifier found.");
+		m_msgStore.emplace_back(prefix + L"no separator found to mark the end of the datatype specifier.");
 		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 
 	} else {
@@ -415,17 +465,41 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 	switch( dataType ) {
 	case Config::DataType::WSTRING:
 	{
-		PARSE_DATA_VALUE(wstring, wStrLiteralToWString)
+		PARSE_DATA_VALUE(WSTRING, wstring, wStrLiteralToWString)
 	}
 	case Config::DataType::BOOL:
 	{
-		PARSE_DATA_VALUE(bool, strToBool)
+		PARSE_DATA_VALUE(BOOL, bool, strToBool)
+	}
+	case Config::DataType::INT:
+	{
+		PARSE_DATA_VALUE(INT, int, strToNumber)
+	}
+	case Config::DataType::DOUBLE:
+	{
+		PARSE_DATA_VALUE(DOUBLE, double, strToNumber)
+	}
+	case Config::DataType::FLOAT4:
+	{
+		PARSE_DATA_VALUE(FLOAT4, DirectX::XMFLOAT4, strToXMFLOAT4)
+	}
+	case Config::DataType::COLOR:
+	{
+		PARSE_DATA_VALUE(COLOR, DirectX::XMFLOAT4, strToColorRGBA)
+	}
+	case Config::DataType::FILENAME:
+	{
+		PARSE_FILENAME_OR_DIRECTORY(FILENAME, wstring, strToFileOrDirName, true)
+	}
+	case Config::DataType::DIRECTORY:
+	{
+		PARSE_FILENAME_OR_DIRECTORY(DIRECTORY, wstring, strToFileOrDirName, false)
 	}
 	default:
 	{
 		/* This case should never because of the earlier check to see
 		   if the datatype was supported.
-		   If this case is encountered, then either the list of supported
+		   If this case is encountered, either the list of supported
 		   data types, or this switch statement must be corrected.
 		 */
 		wstring msg = prefix +
@@ -446,8 +520,8 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 	} else if( duplicateKey ) {
 		m_msgStore.emplace_back(prefix +
-			L"There is already a value stored in the Config object under the following key: Scope = "+
-			scope+L", Field = "+field+L". Either this key was repeated in the file,"
+			L"There is already a value stored in the Config object under the given key scope and field."
+			L" Either this key was repeated in the file,"
 			L" or was already present in the Config object before this file was read.");
 		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_INCOMPLETE);
 	} else if( FAILED(insertResult) ) {
@@ -464,6 +538,11 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 
 	return ERROR_SUCCESS;
 }
+
+// A macro for use only within writeDataLine()
+#define SERIALIZE_DATA_VALUE(type, serializeFunction) \
+	serializationResult = serializeFunction(valueWStr, *(static_cast<const type*>(value))); \
+	break;
 
 HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::Key, Config::Value*>::const_iterator& data) {
 
@@ -495,13 +574,35 @@ HRESULT FlatAtomicConfigIO::writeDataLine(wstring& str, const std::map<Config::K
 	switch( dataType ) {
 	case Config::DataType::WSTRING:
 	{
-		serializationResult = wstringToWStrLiteral(valueWStr, *(static_cast<const wstring*>(value)));
-		break;
+		SERIALIZE_DATA_VALUE(wstring, wstringToWStrLiteral)
 	}
 	case Config::DataType::BOOL:
 	{
-		serializationResult = boolToWString(valueWStr, *(static_cast<const bool*>(value)));
-		break;
+		SERIALIZE_DATA_VALUE(bool, boolToWString)
+	}
+	case Config::DataType::INT:
+	{
+		SERIALIZE_DATA_VALUE(int, numberToWString)
+	}
+	case Config::DataType::DOUBLE:
+	{
+		SERIALIZE_DATA_VALUE(double, numberToWString)
+	}
+	case Config::DataType::FLOAT4:
+	{
+		SERIALIZE_DATA_VALUE(DirectX::XMFLOAT4, XMFLOAT4ToWString)
+	}
+	case Config::DataType::COLOR:
+	{
+		SERIALIZE_DATA_VALUE(DirectX::XMFLOAT4, colorRGBAToWString)
+	}
+	case Config::DataType::FILENAME:
+	{
+		SERIALIZE_DATA_VALUE(wstring, fileOrDirNameToWString)
+	}
+	case Config::DataType::DIRECTORY:
+	{
+		SERIALIZE_DATA_VALUE(wstring, fileOrDirNameToWString)
 	}
 	default:
 	{

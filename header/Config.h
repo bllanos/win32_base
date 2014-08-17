@@ -32,10 +32,12 @@ Issues
 
 #pragma once
 
+#include "defs.h"
 #include <windows.h>
 #include <map>
 #include <iterator>
 #include <string>
+#include <DirectXMath.h>
 
 class Config {
 
@@ -55,7 +57,14 @@ public:
 	the functionality currently implemented here.
 	*/
 	enum class DataType : unsigned int {
-		WSTRING, BOOL
+		WSTRING,
+		BOOL,
+		INT, 
+		DOUBLE,
+		FLOAT4,
+		COLOR,
+		FILENAME,
+		DIRECTORY
 	};
 	/* When adding new data types to this enumeration, also do the following:
 	- Update the 's_dataTypesNames' and 's_dataTypesInOrder' static members
@@ -188,6 +197,17 @@ private:
 	const void* retrieve(const std::wstring& scope, const std::wstring& field,
 		const DataType type) const;
 
+	/* Formats the three input parameters into a single string,
+	which is appended to 'out':
+
+	(scope = 'scope', field = 'field', DataType = 'datatype')
+
+	The output parameter, 'out', is assigned to only if
+	there are no internal errors.
+	*/
+	static HRESULT locatorsToWString(std::wstring& out,
+		const std::wstring& scope, const std::wstring& field, const DataType type);
+
 	// Currently not implemented - will cause linker errors if called
 private:
 	Config(const Config& other);
@@ -205,14 +225,14 @@ public:
 
 	// The public interface: insertion and retrieval of field data
 	// -----------------------------------------------------------
-	/* All retrieval functions output null as their final (output) parameter
+	/* All retrieval functions output null as their 'value' output parameter
 	if there is no value corresponding to the key parameters,
 	or if there is a value corresponding to the key parameters,
 	but it has a type other than the given parameter type.
 	In these cases they will return a success result, but with
 	the ERROR_DATA_NOT_FOUND error code.
 
-	The output parameter of a retrieval function is a reference to a pointer.
+	The 'value' parameter of a retrieval function is a reference to a pointer.
 	The pointer is a pointer to a constant object.
 
 	Retrieval functions will return failure results for internal errors.
@@ -222,17 +242,105 @@ public:
 	object already has a value stored with the given key parameters.
 
 	A failure result will be returned by insertion functions
-	if the value to be stored is a null pointer, if the field string
+	if the value to be stored is a null pointer, if the 'field' string
 	is empty, or if there is an internal error.
+
+	The 'locatorsOut' parameter is an optional output parameter.
+	If it is not null, a formatted version of the 'scope', 'field'
+	and the template DataType parameters will be appended to it.
+	This is intended for use by the client in displaying messages
+	to the user.
+	The operations take place before the actual insertion or retrieval,
+	such that the 'locatorsOut' parameter is normally
+	valid when the function returns,
+	even when the main processing within the function fails.
 	*/
 public:
 	
-	// wstring
-	HRESULT insert(const std::wstring& scope, const std::wstring& field, const std::wstring* const value);
-	HRESULT retrieve(const std::wstring& scope, const std::wstring& field, const std::wstring*& value) const;
+	template<DataType D, typename T> HRESULT insert(
+		const std::wstring& scope, const std::wstring& field, const T* const value,
+		std::wstring* locatorsOut = 0);
 
-	// bool
-	HRESULT insert(const std::wstring& scope, const std::wstring& field, const bool* const value);
-	HRESULT retrieve(const std::wstring& scope, const std::wstring& field, const bool*& value) const;
-
+	template<DataType D, typename T> HRESULT retrieve(
+		const std::wstring& scope, const std::wstring& field, const T*& value,
+		std::wstring* locatorsOut = 0) const;
 };
+
+template<Config::DataType D, typename T> HRESULT Config::insert(
+	const std::wstring& scope, const std::wstring& field, const T* const value,
+	std::wstring* locatorsOut) {
+
+	if( locatorsOut != 0 ) {
+		if( FAILED(locatorsToWString(*locatorsOut, scope, field, D)) ) {
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		}
+	}
+
+	return insert(scope, field, D, static_cast<const void* const>(value));
+}
+
+template<Config::DataType D, typename T> HRESULT Config::retrieve(
+	const std::wstring& scope, const std::wstring& field, const T*& value,
+	std::wstring* locatorsOut) const {
+
+	if( locatorsOut != 0 ) {
+		if( FAILED(locatorsToWString(*locatorsOut, scope, field, D)) ) {
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		}
+	}
+
+	value = static_cast<const T*>(retrieve(scope, field, D));
+	if( value == 0 ) {
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
+	} else {
+		return ERROR_SUCCESS;
+	}
+}
+
+/* The following are explicit template instantiations which prevent
+  ambiguity resulting from the association of the same data types
+  with multiple DataType enumeration constants.
+
+  Since the template arguments are not fully specified by the function
+  parameters, it may be necessary to specify the template arguments
+  when calling the functions.
+
+  Example: insert<enumConstant, valueType>([function call parameters])
+
+  References:
+    http://en.cppreference.com/w/cpp/language/function_template
+	http://en.cppreference.com/w/cpp/language/template_argument_deduction
+ */
+#define MAKE_INSERT_FUNCTION(D, T) \
+	template HRESULT Config::insert<Config::DataType::D,T>( \
+	const std::wstring& scope, const std::wstring& field, const T* const value, \
+	std::wstring* locatorsOut);
+
+#define MAKE_RETRIEVE_FUNCTION(D, T) \
+	template HRESULT Config::retrieve<Config::DataType::D,T>( \
+	const std::wstring& scope, const std::wstring& field, const T*& value, \
+	std::wstring* locatorsOut) const;		
+
+MAKE_INSERT_FUNCTION(WSTRING, std::wstring)
+MAKE_RETRIEVE_FUNCTION(WSTRING, std::wstring)
+
+MAKE_INSERT_FUNCTION(BOOL, bool)
+MAKE_RETRIEVE_FUNCTION(BOOL, bool)
+
+MAKE_INSERT_FUNCTION(INT, int)
+MAKE_RETRIEVE_FUNCTION(INT, int)
+
+MAKE_INSERT_FUNCTION(DOUBLE, double)
+MAKE_RETRIEVE_FUNCTION(DOUBLE, double)
+
+MAKE_INSERT_FUNCTION(FLOAT4, DirectX::XMFLOAT4)
+MAKE_RETRIEVE_FUNCTION(FLOAT4, DirectX::XMFLOAT4)
+
+MAKE_INSERT_FUNCTION(COLOR, DirectX::XMFLOAT4)
+MAKE_RETRIEVE_FUNCTION(COLOR, DirectX::XMFLOAT4)
+
+MAKE_INSERT_FUNCTION(FILENAME, std::wstring)
+MAKE_RETRIEVE_FUNCTION(FILENAME, std::wstring)
+
+MAKE_INSERT_FUNCTION(DIRECTORY, std::wstring)
+MAKE_RETRIEVE_FUNCTION(DIRECTORY, std::wstring)

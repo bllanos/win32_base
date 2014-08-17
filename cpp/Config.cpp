@@ -23,17 +23,31 @@ Usage Notes: See Config.h
 #include "globals.h"
 #include "defs.h"
 #include <stdexcept>
+#include <sstream>
 
 using std::map;
+using DirectX::XMFLOAT4;
 
 const std::wstring Config::s_dataTypesNames[] = {
 	L"WSTRING",
-	L"BOOL"
+	L"BOOL",
+	L"INT",
+	L"DOUBLE",
+	L"FLOAT4",
+	L"COLOR",
+	L"FILENAME",
+	L"DIRECTORY"
 };
 
 const Config::DataType Config::s_dataTypesInOrder[] = {
 	DataType::WSTRING,
-	DataType::BOOL
+	DataType::BOOL,
+	DataType::INT,
+	DataType::DOUBLE,
+	DataType::FLOAT4,
+	DataType::COLOR,
+	DataType::FILENAME,
+	DataType::DIRECTORY
 };
 
 const size_t Config::s_nDataTypes = sizeof(s_dataTypesInOrder) / sizeof(Config::DataType);
@@ -84,6 +98,24 @@ Config::Value::~Value(void) {
 		break;
 	case DataType::BOOL:
 		delete static_cast<const bool* const>(m_value);
+		break;
+	case DataType::INT:
+		delete static_cast<const int* const>(m_value);
+		break;
+	case DataType::DOUBLE:
+		delete static_cast<const double* const>(m_value);
+		break;
+	case DataType::FLOAT4:
+		delete static_cast<const XMFLOAT4* const>(m_value);
+		break;
+	case DataType::COLOR:
+		delete static_cast<const XMFLOAT4* const>(m_value);
+		break;
+	case DataType::FILENAME:
+		delete static_cast<const std::wstring* const>(m_value);
+		break;
+	case DataType::DIRECTORY:
+		delete static_cast<const std::wstring* const>(m_value);
 		break;
 	default:
 		// This is a Microsoft-specific constructor
@@ -195,6 +227,23 @@ const void* Config::retrieve(const std::wstring& scope, const std::wstring& fiel
 	}
 }
 
+HRESULT Config::locatorsToWString(std::wstring& out,
+	const std::wstring& scope, const std::wstring& field, const DataType type) {
+
+	std::wstring typeStr;
+	if( FAILED(dataTypeToWString(typeStr, type)) ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	}
+
+	std::wostringstream tempOut;
+	tempOut << L"(scope = " << scope;
+	tempOut << L", field = " << field;
+	tempOut << L", DataType = " << typeStr << L")";
+
+	out += tempOut.str();
+	return ERROR_SUCCESS;
+}
+
 map<Config::Key, Config::Value*>::const_iterator Config::cbegin(void) const {
 	return m_map.cbegin();
 }
@@ -202,32 +251,3 @@ map<Config::Key, Config::Value*>::const_iterator Config::cbegin(void) const {
 map<Config::Key, Config::Value*>::const_iterator Config::cend(void) const {
 	return m_map.cend();
 }
-
-/* Preprocessor macros will be used to generate insertion and retrieval functions
-   specific to each DataType constant.
-
-   I don't think that I could use function templates to achieve this,
-   because I need to map type parameters to non-type parameters
-   (the DataType enumeration constants).
- */
-
-#define MAKE_INSERT_FUNCTION(type, enumConstant) \
-	HRESULT Config::insert(const std::wstring& scope, const std::wstring& field, const type* const value) { \
-		return insert(scope, field, DataType::enumConstant, static_cast<const void* const>(value)); \
-	}
-
-#define MAKE_RETRIEVE_FUNCTION(type, enumConstant) \
-	HRESULT Config::retrieve(const std::wstring& scope, const std::wstring& field, const type*& value) const { \
-		value = static_cast<const type*>(retrieve(scope, field, DataType::enumConstant)); \
-		if( value == 0 ) { \
-			return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND); \
-		} else { \
-			return ERROR_SUCCESS; \
-		} \
-	}
-
-MAKE_INSERT_FUNCTION(std::wstring, WSTRING)
-MAKE_RETRIEVE_FUNCTION(std::wstring, WSTRING)
-
-MAKE_INSERT_FUNCTION(bool, BOOL)
-MAKE_RETRIEVE_FUNCTION(bool, BOOL)

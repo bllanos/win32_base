@@ -145,9 +145,13 @@ namespace textProcessing {
 	   using the istringstream class
 	   (http://www.cplusplus.com/reference/sstream/istringstream/)
 
-	   Note: There is currently (on July 27, 2014) no check to ensure
-	   that the output value is an exact representation of the input,
-	   or that it is accurate to within a specified tolerance.
+	   Notes:
+	     -There is currently no check to ensure
+	        that the output value is an exact representation of the input,
+	        or that it is accurate to within a specified tolerance.
+		 -Integer values cannot use scientific notation (e.g. '45e2' becomes '45')
+		 -Hexadecimal numbers are not accepted (even when prefixed with '0x').
+		    In general, non-decimal numbers will not be parsed properly.
 
 	   Otherwise behaves like wStrLiteralToWString()
 	*/
@@ -329,34 +333,54 @@ namespace textProcessing {
 		return ERROR_SUCCESS;
 	}
 
-	/* Converts the null-terminated ASCII string containing a fully-qualified
-	filename into a 'validated' filename.
+	/* Converts the null-terminated ASCII string containing a
+	file or directory name (optionally qualified with a path)
+	into a 'validated' name (and path).
+
+	If 'isFile' is true, the string will be validated as a file.
+	If 'isFile' is false, the string will be validated as a directory.
 	
 	To be accepted, the string must be prefixed and postfixed with '"'
 	(e.g. in order to protect its contents from any use of
 	remove_ASCII_controlAndWhitespace() by the client code).
-	It must contain a relative or absolute filepath that does not
+
+	The content of the string between the quotes must not
 	trigger the output of any message strings by
-	fileUtil::inspectFilenameAndPath().
+	fileUtil::inspectFileOrDirNameAndPath(). Furthermore,
+	fileUtil::inspectFileOrDirNameAndPath() must report
+	that the entity is in fact a file or directory (matching 'isFile')
+	if it already exists within the file system.
 
 	The 'msg' parameter is optional. If it is not null, it will
-	be assigned the output messsages of inspectFilenameAndPath().
+	be assigned the output messsages of inspectFileOrDirNameAndPath().
 	(If there are no output messages, it will be set to the empty string.)
 
 	Otherwise behaves like wStrLiteralToWString().
 
-	Note: wStrLiteralToWString() expects 'L"' as a prefix,
-	      not '"', which allows wide string literals to be distinguished
-		  from filenames.
-	*/
-	HRESULT strToFilename(std::wstring& out, const char* const in, size_t& index,
-		std::wstring* const msg = 0);
+	Notes:
+	  -wStrLiteralToWString() expects 'L"' as a prefix,
+	     not '"', which allows wide string literals to be distinguished
+		 from file and directory name literals.
+	  -inspectFileOrDirNameAndPath() will throw an exception
+	     if the filepath corresponds to a system directory or a file
+		 in a system directory
+		 (See comments surrounding inspectFileOrDirNameAndPath()
+		  for details).
 
-	/* Essentially the inverse of strToFilename()
-	   Note that the filename is NOT validated by
-	   fileUtil::inspectFilenameAndPath() before being output.
+		 When the exception is caught by this function, to be very cautious
+		 against manipulating system files/folders, it discards the filepath
+		 and outputs the exception message to 'msg'.
+	*/
+	HRESULT strToFileOrDirName(std::wstring& out, const char* const in,
+		const bool& isFile, size_t& index, std::wstring* const msg = 0);
+
+	/* Essentially the inverse of strToFileOrDirName()
+
+	   Note that the file or directory name is NOT validated by
+	   fileUtil::inspectFileOrDirNameAndPath() before being output.
 	   This allows, for instance, for delays between the creation
-	   of a file output object and the actual creation of the file.
+	   of a file output object (class 'ofstream')
+	   and the actual creation of the file.
 	 */
-	HRESULT filenameToWString(std::wstring& out, std::wstring& in);
+	HRESULT fileOrDirNameToWString(std::wstring& out, const std::wstring& in);
 }

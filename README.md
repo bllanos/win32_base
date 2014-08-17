@@ -66,6 +66,8 @@ are as follows:
   relating to directory existence and file paths.
 - Exceptions of type `std::exception` are created using a
   Microsoft-specific constructor that accepts a string argument.
+- The preprocessor directive `#pragma once`
+  (used to prevent multiple inclusions of header files) is Microsoft-specific.
 
 ## License and Usage
 Most of the code in this project was developed with the intention

@@ -151,18 +151,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 #include "testConfig_IConfigManager.h"
 #include "testLogger_LogUser.h"
 #include "testTextProcessing.h"
+#include "testFileUtil.h"
 
 /*
 Run the application, possibly through a top-level control object
 */
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
-	// testBasicWindow::openNWindows(1, false);
-	// testConfig_IConfigManager::testFlatAtomicConfigIO();
-	// testTextProcessing::testStrToDouble();
-	// testTextProcessing::testStrToFloat();
-	testTextProcessing::testStrToInt();
-	// testTextProcessing::testStrToUInt();
-	// testLogger_LogUser::testAppendMode();
+	// testTextProcessing::testStrToIntArray();
+	// testConfig_IConfigManager::testConfigWithStringValues(13, 2);
+	testConfig_IConfigManager::testFlatAtomicConfigIO();
+	// testFileUtil::testExtractPath();
+	// testFileUtil::testInspectFileOrDirName();
+	// testFileUtil::testInspectFileOrDirNameAndPath();
 	return ERROR_SUCCESS;
 }

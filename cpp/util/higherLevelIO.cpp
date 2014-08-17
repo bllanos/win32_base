@@ -32,18 +32,19 @@ using std::wstring;
 #define END_CH ')'
 #define END_CH_W L')'
 
-HRESULT strToXMFLOAT4(XMFLOAT4& out, const char* const in, size_t& index) {
+HRESULT higherLevelIO::strToXMFLOAT4(XMFLOAT4& out, const char* const in, size_t& index) {
 
 	// Error checking
 	if( in == 0 ) {
 		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NULL_INPUT);
 	}
 
+	HRESULT result = ERROR_SUCCESS;
 	float* tempOut = 0;
 	size_t tempIndex = index;
 	if( FAILED(textProcessing::strToNumberArray(
 		tempOut, in, tempIndex, FLOAT4_SIZE, START_CH, END_CH)) ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 
 	} else if( tempIndex != index ) {
 		// Valid data literal found
@@ -53,10 +54,14 @@ HRESULT strToXMFLOAT4(XMFLOAT4& out, const char* const in, size_t& index) {
 		out.w = tempOut[3];
 		index = tempIndex;
 	}
-	return ERROR_SUCCESS;
+
+	if( tempOut != 0 ) {
+		delete[] tempOut;
+	}
+	return result;
 }
 
-HRESULT XMFLOAT4ToWString(wstring& out, const XMFLOAT4& in) {
+HRESULT higherLevelIO::XMFLOAT4ToWString(wstring& out, const XMFLOAT4& in) {
 	wstring tempOut;
 	float inAsArray[] = { in.x, in.y, in.z, in.w };
 	const float* pInAsArray = inAsArray;
@@ -69,7 +74,7 @@ HRESULT XMFLOAT4ToWString(wstring& out, const XMFLOAT4& in) {
 	}
 }
 
-HRESULT strToColorRGBA(XMFLOAT4& out, const char* const in, size_t& index) {
+HRESULT higherLevelIO::strToColorRGBA(XMFLOAT4& out, const char* const in, size_t& index) {
 
 	// Error checking
 	if( in == 0 ) {
@@ -99,7 +104,7 @@ HRESULT strToColorRGBA(XMFLOAT4& out, const char* const in, size_t& index) {
 	return ERROR_SUCCESS;
 }
 
-HRESULT colorRGBAToWString(wstring& out, const XMFLOAT4& in) {
+HRESULT higherLevelIO::colorRGBAToWString(wstring& out, const XMFLOAT4& in) {
 
 	// Process the input into the proper format
 	XMVECTOR vectorIn = DirectX::XMLoadFloat4(&in);
