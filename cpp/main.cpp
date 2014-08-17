@@ -158,9 +158,9 @@ Run the application, possibly through a top-level control object
 */
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
-	testTextProcessing::testStrToIntArray();
+	// testTextProcessing::testStrToIntArray();
 	// testConfig_IConfigManager::testConfigWithStringValues(13, 2);
-	// testConfig_IConfigManager::testFlatAtomicConfigIO();
+	testConfig_IConfigManager::testFlatAtomicConfigIO();
 	// testFileUtil::testExtractPath();
 	// testFileUtil::testInspectFileOrDirName();
 	// testFileUtil::testInspectFileOrDirNameAndPath();

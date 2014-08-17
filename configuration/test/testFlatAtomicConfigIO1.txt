@@ -167,7 +167,7 @@ BOOL -- no:: = false
 # The following data should not be parsed
 BOOL--	::afterLongLine=false 
 
-# <<-- FlatAtomicConfigIO class object parsing report (Sun Aug 17 11:42:38 2014 ) begins --
+# <<-- FlatAtomicConfigIO class object parsing report (Sun Aug 17 17:48:18 2014 ) begins --
 # Line 13: the function for parsing the data value section of the line did not find a valid data value.
 # Line 15: the function for parsing the data value section of the line did not find a valid data value.
 # Line 23: (scope = strings, field = 12, DataType = WSTRING) the function for parsing the data value section of the line did not convert the entire rest of the line into a data value.
@@ -219,13 +219,13 @@ BOOL--	::afterLongLine=false
 # Line 103: the function for parsing the data value section of the line did not find a valid data value.
 # Line 106: the function for parsing the FILENAME data value reported "Found an existing directory, but was asked for a file."
 # Line 106: the function for parsing the data value section of the line did not find a valid data value.
-# Line 107: the function for parsing the FILENAME data value reported "Attempt to inspect a system file or folder."
+# Line 107: the function for parsing the FILENAME data value reported "Attempt to inspect an existing system folder."
 # Line 107: the function for parsing the data value section of the line did not find a valid data value.
-# Line 108: the function for parsing the FILENAME data value reported "Attempt to inspect a file or folder within a system folder."
+# Line 108: the function for parsing the FILENAME data value reported "Attempt to inspect either an existing file in a system folder, or a non-existing file or folder with a path that is a system folder."
 # Line 108: the function for parsing the data value section of the line did not find a valid data value.
-# Line 109: the function for parsing the FILENAME data value reported "Attempt to inspect a file or folder within a system folder."
+# Line 109: the function for parsing the FILENAME data value reported "Attempt to inspect either an existing file in a system folder, or a non-existing file or folder with a path that is a system folder."
 # Line 109: the function for parsing the data value section of the line did not find a valid data value.
-# Line 110: the function for parsing the FILENAME data value reported "Attempt to inspect a file or folder within a system folder."
+# Line 110: the function for parsing the FILENAME data value reported "Attempt to inspect either an existing file in a system folder, or a non-existing file or folder with a path that is a system folder."
 # Line 110: the function for parsing the data value section of the line did not find a valid data value.
 # Line 114: the function for parsing the data value section of the line did not find a valid data value.
 # Line 115: the function for parsing the data value section of the line did not find a valid data value.
@@ -245,15 +245,15 @@ BOOL--	::afterLongLine=false
 # Line 143: the function for parsing the data value section of the line did not find a valid data value.
 # Line 147: the function for parsing the DIRECTORY data value reported "Directory name has a non-alphanumeric character other than '_'"
 # Line 147: the function for parsing the data value section of the line did not find a valid data value.
-# Line 151: the function for parsing the DIRECTORY data value reported "Attempt to inspect a system file or folder."
+# Line 151: the function for parsing the DIRECTORY data value reported "Attempt to inspect an existing system folder."
 # Line 151: the function for parsing the data value section of the line did not find a valid data value.
-# Line 152: the function for parsing the DIRECTORY data value reported "Attempt to inspect a file or folder within a system folder."
+# Line 152: the function for parsing the DIRECTORY data value reported "Attempt to inspect either an existing file in a system folder, or a non-existing file or folder with a path that is a system folder."
 # Line 152: the function for parsing the data value section of the line did not find a valid data value.
-# Line 153: the function for parsing the DIRECTORY data value reported "Attempt to inspect a file or folder within a system folder."
+# Line 153: the function for parsing the DIRECTORY data value reported "Attempt to inspect either an existing file in a system folder, or a non-existing file or folder with a path that is a system folder."
 # Line 153: the function for parsing the data value section of the line did not find a valid data value.
-# Line 154: the function for parsing the DIRECTORY data value reported "Attempt to inspect a file or folder within a system folder."
+# Line 154: the function for parsing the DIRECTORY data value reported "Attempt to inspect either an existing file in a system folder, or a non-existing file or folder with a path that is a system folder."
 # Line 154: the function for parsing the data value section of the line did not find a valid data value.
-# Line 157: (scope = space, field = one, DataType = BOOL) There is already a value stored in the Config object under the given key scope and field.. Either this key was repeated in the file, or was already present in the Config object before this file was read.
+# Line 157: (scope = space, field = one, DataType = BOOL) There is already a value stored in the Config object under the given key scope and field. Either this key was repeated in the file, or was already present in the Config object before this file was read.
 # Line 160: no separator found to mark the end of the datatype specifier.
 # Line 161: no datatype found that corresponds to the datatype specifier.
 # Line 162: no separator found to mark the end of the key scope (needed even if the scope is empty).
