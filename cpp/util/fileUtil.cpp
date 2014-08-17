@@ -175,7 +175,7 @@ HRESULT fileUtil::inspectFileOrDirNameAndPath(const std::wstring& filepath,
 		isFile = !(PathIsDirectory(filepathCStr) != FALSE);
 		// Prevent access to system entities
 		if( PathIsSystemFolder(filepathCStr, 0) ) {
-			const char* const msgCStr = "Attempt to inspect a system file or folder.";
+			const char* const msgCStr = "Attempt to inspect an existing system folder.";
 			msg = msgCStr;
 			// This is a Microsoft-specific constructor
 			throw std::exception(msgCStr);
@@ -192,7 +192,8 @@ HRESULT fileUtil::inspectFileOrDirNameAndPath(const std::wstring& filepath,
 		if( !path.empty() && (!exists || (exists && isFile)) ) {
 			hasPath = true;
 			if( PathIsSystemFolder(pathCStr, 0) ) {
-				const char* const msgCStr = "Attempt to inspect a file or folder within a system folder.";
+				const char* const msgCStr = "Attempt to inspect either an existing file in a system folder, "
+					"or a non-existing file or folder with a path that is a system folder.";
 				msg = msgCStr;
 				// This is a Microsoft-specific constructor
 				throw std::exception(msgCStr);

@@ -363,7 +363,10 @@ namespace textProcessing {
 		 from file and directory name literals.
 	  -inspectFileOrDirNameAndPath() will throw an exception
 	     if the filepath corresponds to a system directory or a file
-		 in a system directory.
+		 in a system directory
+		 (See comments surrounding inspectFileOrDirNameAndPath()
+		  for details).
+
 		 When the exception is caught by this function, to be very cautious
 		 against manipulating system files/folders, it discards the filepath
 		 and outputs the exception message to 'msg'.

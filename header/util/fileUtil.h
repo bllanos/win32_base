@@ -117,9 +117,14 @@ namespace fileUtil {
 	   error.
 
 	   Note: Throws an exception of type std::exception
-	     if 'filepath' points to a system folder, or a file in a system folder.
+	     if 'filepath' points to an existing system folder,
+		 an existing file in a system folder,
+		 or a file or folder which does not exist, but where its
+		 path is a system folder.
+
 	     In this case, it also writes the message placed in the exception to the
 	     'msg' output parameter.
+
 		 The check for a 'system' file or folder is currently
 		 done using the Windows function PathIsSystemFolder() (in Shlwapi.lib).
 	 */
