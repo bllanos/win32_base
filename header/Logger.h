@@ -140,7 +140,7 @@ public:
 	/* Turns the prefixing of messages with the current time on or off.
 	  Returns whether timestamping was previously on (true) or off (false).
 	*/
-	bool toggleTimestamp(bool newState);
+	bool toggleTimestamp(const bool newState);
 
 	// Retrieves the current local time
 	static HRESULT getDateAndTime(std::wstring& timeStr);

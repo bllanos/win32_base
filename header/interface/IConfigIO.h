@@ -68,6 +68,14 @@ public:
 	virtual HRESULT write(const std::wstring& filename,
 		const Config& config, const bool overwrite) = 0;
 
+	/* Toggles whether (true) or not (false)
+	to output formatting guidelines or other
+	supplementary information as part of the write() operation
+
+	Returns the previous state of this setting.
+	*/
+	virtual bool toggleContextOutput(const bool outputContext) = 0;
+
 	// Currently not implemented - will cause linker errors if called
 private:
 	IConfigIO(const IConfigIO& other);

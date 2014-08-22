@@ -38,7 +38,7 @@ created from Config objects by instances of this class.
 */
 #define FLATATOMICCONFIGIO_DATA_FORMATSPEC \
 	L"# ----------------------------------------------------------------------------\n"\
-	L"# The FlatAtomicConfigIO class, used to generate this file \n"\
+	L"# The FlatAtomicConfigIO class, used to generate this output \n"\
 	L"# defines the following file format:\n"\
 	L"#\n"\
 	L"# ASCII encoding is expected.\n"\
@@ -104,12 +104,18 @@ created from Config objects by instances of this class.
 #define FLATATOMICCONFIGIO_LINE_SEP '\n'
 #define FLATATOMICCONFIGIO_LINE_SEP_WSTR L"\n"
 
+#define FLATATOMICCONFIGIO_START_OUTPUT L"START"
+#define FLATATOMICCONFIGIO_END_OUTPUT L"END"
+
 class FlatAtomicConfigIO : public IConfigIO, public LogUser {
 
 private:
 	// Stores the types of data that this class can process
 	static const Config::DataType s_supportedDataTypes[];
 	static const size_t s_nSupportedDataTypes;
+
+private:
+	bool m_outputContext;
 
 public:
 	// Returns true if this class can process this data type
@@ -141,6 +147,13 @@ public:
 	*/
 	virtual HRESULT write(const std::wstring& filename,
 		const Config& config, const bool overwrite) override;
+
+	/* Toggles the output of configuration data formatting guidelines
+	   as part of the write() operation.
+
+	   (See IConfigIO.h for details)
+	 */
+	virtual bool toggleContextOutput(const bool outputContext) override;
 
 protected:
 	/* Processes a data type, key, value line

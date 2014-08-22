@@ -174,7 +174,7 @@ HRESULT Logger::logMessage(std::list<wstring>::const_iterator start,
 }
 
 
-bool Logger::toggleTimestamp(bool newState) {
+bool Logger::toggleTimestamp(const bool newState) {
 	bool result = m_timestampEnabled;
 	m_timestampEnabled = newState;
 	return result;

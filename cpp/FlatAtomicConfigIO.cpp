@@ -53,10 +53,16 @@ bool FlatAtomicConfigIO::isSupportedDataType(Config::DataType type) {
 }
 
 FlatAtomicConfigIO::FlatAtomicConfigIO(void) :
-LogUser(true, L"FlatAtomicConfigIO >")
+LogUser(true, L"FlatAtomicConfigIO >"), m_outputContext(true)
 {}
 
 FlatAtomicConfigIO::~FlatAtomicConfigIO(void) {}
+
+bool FlatAtomicConfigIO::toggleContextOutput(const bool outputContext) {
+	bool previousState = m_outputContext;
+	m_outputContext = outputContext;
+	return previousState;
+}
 
 HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 
@@ -138,10 +144,10 @@ HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 		if( !fail ) {
 			wstring time;
 			if( FAILED(Logger::getDateAndTime(time)) ) {
-				time.clear();
+				time = L"Failed to get time ";
 			}
-			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object parsing report ("+time+L") begins --");
-			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object parsing report ends -->>");
+			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO instance parsing report ( "+time+L") begins --");
+			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO instance parsing report ends -->>");
 
 			/* Get an "empty" Logger for easy output to the file,
 			   such that this object has complete control over the
@@ -200,6 +206,19 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FILE_NOT_FOUND);
 	}
 
+	// Begin output
+	wstring time;
+	if( FAILED(Logger::getDateAndTime(time)) ) {
+		time = L"Failed to get time ";
+	}
+	file << FLATATOMICCONFIGIO_COMMENT_SEP_WSTR << L' ' << FLATATOMICCONFIGIO_START_OUTPUT
+		<< L" FlatAtomicConfigIO instance Config output ( " + time + L")";
+	file << FLATATOMICCONFIGIO_LINE_SEP_WSTR;
+	if( !file.good() ) {
+		logMessage(L"File stream good() function returned false when starting to write.");
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	}
+
 	// Initialization of loop variables
 	HRESULT result = ERROR_SUCCESS;
 	HRESULT lineResult = ERROR_SUCCESS;
@@ -238,12 +257,26 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 	}
 
 	// Write the configuration format to the file for reference
-	if( !notGood ) {
+	if( !notGood && m_outputContext ) {
 		file << FLATATOMICCONFIGIO_LINE_SEP_WSTR;
 		file << FLATATOMICCONFIGIO_DATA_FORMATSPEC;
 		if( !file.good() ) {
 			notGood = true;
 			logMessage(L"File stream good() function returned false when writing the configuration data formatting guidelines.");
+			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		}
+	}
+
+	// End the output
+	if( !notGood ) {
+		if( m_outputContext ) {
+			file << FLATATOMICCONFIGIO_LINE_SEP_WSTR;
+		}
+		file << FLATATOMICCONFIGIO_COMMENT_SEP_WSTR << L' ' << FLATATOMICCONFIGIO_END_OUTPUT
+			<< L" FlatAtomicConfigIO instance Config output ( " + time + L")";
+		if( !file.good() ) {
+			notGood = true;
+			logMessage(L"File stream good() function returned false when ending the configuration output.");
 			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		}
 	}
@@ -257,12 +290,11 @@ HRESULT FlatAtomicConfigIO::write(const wstring& filename, const Config& config,
 		logMessage(L"Config object writing complete - Problems encountered.");
 
 		if( !notGood ) {
-			wstring time;
 			if( FAILED(Logger::getDateAndTime(time)) ) {
-				time.clear();
+				time = L"Failed to get time ";
 			}
-			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO class object Config writing report (" + time + L") begins --");
-			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO class object Config writing report ends -->>");
+			m_msgStore.emplace_front(L"<<-- FlatAtomicConfigIO instance Config writing report ( " + time + L") begins --");
+			m_msgStore.emplace_back(L"-- FlatAtomicConfigIO instance Config writing report ends -->>");
 
 			/* Get an "empty" Logger for easy output to the file,
 			such that this object has complete control over the
