@@ -47,6 +47,9 @@ for all configurations, when using Visual Studio.
 In addition to the default dependencies added by Visual Studio 2013,
 I have added the following libraries as dependencies
 - `Shlwapi.lib` (for filepath-related functions)
+| Name  | Source  | Usage |
+|:------|:--------|:------|
+| `Shlwapi.lib` | Windows platform | File and directory existence and attribute checks, and filepath manipulation |
 
 ## Dependency on Microsoft Windows
 This project makes use of the Standard Template Library
@@ -62,12 +65,11 @@ are as follows:
     (http://msdn.microsoft.com/en-us/library/windows/desktop/ms691242%28v=vs.85%29.aspx)
 	for more information.
 - All GUI-related code is Windows-specific.
-- The program uses the `Shlwapi.lib` library for performing checks
-  relating to directory existence and file paths.
 - Exceptions of type `std::exception` are created using a
   Microsoft-specific constructor that accepts a string argument.
 - The preprocessor directive `#pragma once`
   (used to prevent multiple inclusions of header files) is Microsoft-specific.
+- See above for the usage of libraries provided by Microsoft Windows.
 
 ## License and Usage
 Most of the code in this project was developed with the intention
