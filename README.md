@@ -46,7 +46,7 @@ for all configurations, when using Visual Studio.
 ## Additional Linker Dependencies
 In addition to the default dependencies added by Visual Studio 2013,
 I have added the following libraries as dependencies
-- `Shlwapi.lib` (for filepath-related functions)
+
 | Name  | Source  | Usage |
 |:------|:--------|:------|
 | `Shlwapi.lib` | Windows platform | File and directory existence and attribute checks, and filepath manipulation |
