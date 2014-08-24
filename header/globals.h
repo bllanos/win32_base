@@ -26,11 +26,13 @@ Description
 #include <Windows.h>
 #include <string>
 #include "Logger.h"
+#include "Config.h"
 
 // Global variables
 // ----------------
 
 extern Logger* g_defaultLogger;
+extern Config* g_defaultConfig;
 
 // Global functions
 // ----------------

@@ -44,21 +44,44 @@ from the use of the 'new' operator.
 #define LCHAR_STRINGIFY( x ) L#x
 
 // Default configuration values
-// ----------------------------
+// and their keys in a configuration object (where applicable)
+// ---------------------------------------------------------------------
 // (To be overridden with values loaded from a configuration file)
 
-#define DEFAULT_LOG_PATH			LCHAR_STRINGIFY(.\\logger_output\\)
+// Directory to contain the global logging file
+#define DEFAULT_LOG_PATH					LCHAR_STRINGIFY(.\\logger_output\\)
+#define DEFAULT_LOG_PATH_SCOPE				LCHAR_STRINGIFY(main)
+#define DEFAULT_LOG_PATH_FIELD				LCHAR_STRINGIFY(outputLogPath)
 
-// For the results of unit tests
-#define DEFAULT_LOG_PATH_TEST		LCHAR_STRINGIFY(.\\logger_output\\test\\)
+// For the output of unit tests
+#define DEFAULT_LOG_PATH_TEST				LCHAR_STRINGIFY(.\\logger_output\\test\\)
 
-#define DEFAULT_LOG_FILENAME		LCHAR_STRINGIFY(log.txt)
+// Name of the global logging file
+#define DEFAULT_LOG_FILENAME				LCHAR_STRINGIFY(log.txt)
+#define DEFAULT_LOG_FILENAME_SCOPE			LCHAR_STRINGIFY(main)
+#define DEFAULT_LOG_FILENAME_FIELD			LCHAR_STRINGIFY(outputLogFile)
 
-#define DEFAULT_CONFIG_PATH			LCHAR_STRINGIFY(.\\configuration\\)
+// Name and directory of the global configuration file
+#define DEFAULT_CONFIG_PATH					LCHAR_STRINGIFY(.\\configuration\\)
+#define DEFAULT_CONFIG_FILENAME				LCHAR_STRINGIFY(config.txt)
 
-// For use with unit tests
-#define DEFAULT_CONFIG_PATH_TEST	LCHAR_STRINGIFY(.\\configuration\\test\\)
-#define DEFAULT_CONFIG_PATH_TEST_WRITE	LCHAR_STRINGIFY(.\\configuration\\test\\output\\)
+// Directory to contain output configuration data
+#define DEFAULT_CONFIG_PATH_WRITE			LCHAR_STRINGIFY(.\\configuration\\output)
+#define DEFAULT_CONFIG_PATH_WRITE_SCOPE		LCHAR_STRINGIFY(main)
+#define DEFAULT_CONFIG_PATH_WRITE_FIELD		LCHAR_STRINGIFY(outputConfigPath)
+
+// Name of the file which will contain the serialized global Config object
+#define DEFAULT_CONFIG_FILENAME_WRITE			LCHAR_STRINGIFY(configOut.txt)
+#define DEFAULT_CONFIG_FILENAME_WRITE_SCOPE		LCHAR_STRINGIFY(main)
+#define DEFAULT_CONFIG_FILENAME_WRITE_FIELD		LCHAR_STRINGIFY(outputConfigFile)
+
+// Directory containing configuration data for unit tests
+#define DEFAULT_CONFIG_PATH_TEST			LCHAR_STRINGIFY(.\\configuration\\test\\)
+#define DEFAULT_CONFIG_PATH_TEST_WRITE		LCHAR_STRINGIFY(.\\configuration\\test\\output\\)
+
+// Whether or not to output the global Config object (default is hardcoded to 'true' in main.cpp)
+#define OUTPUT_DEFAULT_CONFIG_SCOPE			LCHAR_STRINGIFY(main)
+#define OUTPUT_DEFAULT_CONFIG_FIELD			LCHAR_STRINGIFY(outputConfigFlag)
 
 // Custom error code definitions
 // -----------------------------

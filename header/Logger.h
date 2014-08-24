@@ -104,13 +104,14 @@ public:
 public:
 	/*
 	Outputs the specified message to the debugging console window
-	(if the console window exists and the second parameter is true)
-	and to the primary log file (if the third parameter is true and
-	the fourth parameter is an empty string).
+	(if this Logger is associated with a console window
+	 and 'toConsole' is true)
+	and to the primary log file (if this Logger is associated
+	 with a primary log file, 'toFile' is true and 'filename' is an empty string).
 	
-	If the fourth parameter
-	has a non-empty value other than the name of the primary log file,
-	and the third parameter is true, the message will be appended to
+	If 'filename' has a non-empty value
+	other than the name of the primary log file,
+	and 'toFile' is true, the message will be appended to
 	the specified file instead of the primary log file. (The specified
 	file will not be overwritten.)
 
