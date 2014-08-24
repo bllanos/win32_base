@@ -47,7 +47,7 @@ for all configurations, when using Visual Studio.
 In addition to the default dependencies added by Visual Studio 2013,
 I have added the following libraries as dependencies
 
-| Name  | Source  | Usage |
+| Filename  | Source  | Usage |
 |:------|:--------|:------|
 | `Shlwapi.lib` | Windows platform | File and directory existence and attribute checks, and filepath manipulation |
 

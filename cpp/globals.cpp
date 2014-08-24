@@ -35,13 +35,37 @@ HRESULT toWString(std::wstring& wStr, const std::string& str) {
 		mbstowcs_s(&convertedChars, wCStr, wSize, cStr, _TRUNCATE);
 
 		if( convertedChars != wSize ) {
-			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 		}
 
 		wStr = wCStr;
 		delete[] wCStr;
 	} else {
-		wStr = L"";
+		wStr.clear();
+	}
+	return ERROR_SUCCESS;
+}
+
+HRESULT toString(std::string& str, const std::wstring& wStr) {
+	size_t size = sizeof(wchar_t)/sizeof(char)*(wStr.length() + 1); // Buffer length, not string length!
+
+	if( size > 1 ) {
+		/* See http://msdn.microsoft.com/en-us/library/ms235631.aspx
+		   for more information on converting between string types.
+		 */
+		const wchar_t* cWStr = wStr.c_str();
+		char* cStr = new char[size];
+		size_t convertedChars = 0;
+		wcstombs_s(&convertedChars, cStr, size, cWStr, _TRUNCATE);
+
+		if( convertedChars != (size * sizeof(char) / sizeof(wchar_t)) ) {
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+		}
+
+		str = cStr;
+		delete[] cStr;
+	} else {
+		str.clear();
 	}
 	return ERROR_SUCCESS;
 }

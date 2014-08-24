@@ -35,8 +35,18 @@ extern Logger* g_defaultLogger;
 // Global functions
 // ----------------
 
-// Convert a string object to an equivalent wstring object
+/* Converts a string object to an equivalent wstring object.
+   This function expects ASCII characters (specifically,
+   that all characters in the string object are represented
+   by one-byte-length code points). The function will return
+   a failure code if this is not the case.
+ */
 HRESULT toWString(std::wstring& wStr, const std::string& str);
+
+/* The inverse of toWString(), which also expects
+   ASCII characters only.
+ */
+HRESULT toString(std::string& str, const std::wstring& wStr);
 
 /* Convert an HRESULT value to a more readable form,
    with each of its components identified
