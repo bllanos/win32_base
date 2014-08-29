@@ -31,7 +31,20 @@ Description
 // Global variables
 // ----------------
 
+/* The default stream for outputting text
+   to log files.
+   The program will exit early if this variable
+   cannot be initialized to a functional state.
+ */
 extern Logger* g_defaultLogger;
+
+/* To be used as a source of high-level
+   configuration data.
+   The program will ensure that this variable
+   is initialized with a functional object,
+   but cannot ensure that any/all desired key-value pairs
+   are present in the object.
+ */
 extern Config* g_defaultConfig;
 
 // Global functions

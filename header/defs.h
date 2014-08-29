@@ -79,7 +79,8 @@ from the use of the 'new' operator.
 #define DEFAULT_CONFIG_PATH_TEST			LCHAR_STRINGIFY(.\\configuration\\test\\)
 #define DEFAULT_CONFIG_PATH_TEST_WRITE		LCHAR_STRINGIFY(.\\configuration\\test\\output\\)
 
-// Whether or not to output the global Config object (default is hardcoded to 'true' in main.cpp)
+// Whether or not to output the global Config object
+#define OUTPUT_DEFAULT_CONFIG				false
 #define OUTPUT_DEFAULT_CONFIG_SCOPE			LCHAR_STRINGIFY(main)
 #define OUTPUT_DEFAULT_CONFIG_FIELD			LCHAR_STRINGIFY(outputConfigFlag)
 
