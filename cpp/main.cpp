@@ -32,8 +32,8 @@ Description
 #include <list>
 
 // Macros to assist with logging output
-#define WWINMAIN_MSG_PREFIX L"wWinMain() -"
-#define WWINMAIN_LOG_MSG(x) WWINMAIN_MSG_PREFIX L" " LCHAR_STRINGIFY(x) L" "
+#define WWINMAIN_MSG_PREFIX L"wWinMain() - "
+#define WWINMAIN_LOG_MSG(x) WWINMAIN_MSG_PREFIX LCHAR_STRINGIFY(x) L" "
 #define WWINMAIN_MSGBOX_TITLE L"win32_base Error"
 #define WWINMAIN_CONFIGIO_CLASS FlatAtomicConfigIO
 #define WWINMAIN_CONFIGIO_CLASS_STR L"FlatAtomicConfigIO"
@@ -171,7 +171,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			WWINMAIN_CONFIGIO_CLASS configIO;
 
 			if( exists && isFile && msg.empty() ) {
-				tempMsgStore.emplace_back(L"Parsing configuration file: " + filename + L", using a "WWINMAIN_CONFIGIO_CLASS_STR" instance...");
+				tempMsgStore.emplace_back(L"Parsing configuration file: " + filename + L", using a " WWINMAIN_CONFIGIO_CLASS_STR L" instance...");
 				error = configIO.read(filename, *g_defaultConfig);
 				PRINT_HRESULT_NO_ASSIGN
 				if( FAILED(error) ) {
@@ -253,7 +253,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 				tempMsgStore.emplace_back(L"Attempt to retrieve the default log filename from the global Config instance failed: " + errorStr);
 				filename += DEFAULT_LOG_FILENAME;
 			} else {
-				filename = *value;
+				filename += *value;
 				value = 0;
 			}
 
@@ -373,7 +373,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 				// ----------------------------------------------------------
 				// Output the global Config object to a file
 				// ----------------------------------------------------------
-				g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Serializing the global Config instance to configuration file:) + filename + L" using a "WWINMAIN_CONFIGIO_CLASS_STR" instance...");
+				g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Serializing the global Config instance to configuration file:) + filename + L" using a " WWINMAIN_CONFIGIO_CLASS_STR L" instance...");
 				error = configIO.write(filename, *g_defaultConfig, true);
 				PRINT_HRESULT_NO_ASSIGN
 				if( FAILED(error) ) {
@@ -412,7 +412,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		delete g_defaultConfig;
 		g_defaultConfig = 0;
 
-		g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Deleting the global Logger instance, and exiting.));
+		g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Deleting the global Logger instance and exiting.));
 		delete g_defaultLogger;
 		g_defaultLogger = 0;
 

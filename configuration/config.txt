@@ -1,0 +1,1 @@
+BOOL -- main::outputConfigFlag = true

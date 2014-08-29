@@ -66,7 +66,7 @@ from the use of the 'new' operator.
 #define DEFAULT_CONFIG_FILENAME				LCHAR_STRINGIFY(config.txt)
 
 // Directory to contain output configuration data
-#define DEFAULT_CONFIG_PATH_WRITE			LCHAR_STRINGIFY(.\\configuration\\output)
+#define DEFAULT_CONFIG_PATH_WRITE			LCHAR_STRINGIFY(.\\configuration\\output\\)
 #define DEFAULT_CONFIG_PATH_WRITE_SCOPE		LCHAR_STRINGIFY(main)
 #define DEFAULT_CONFIG_PATH_WRITE_FIELD		LCHAR_STRINGIFY(outputConfigPath)
 
