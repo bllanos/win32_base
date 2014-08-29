@@ -49,12 +49,12 @@ from the use of the 'new' operator.
 // (To be overridden with values loaded from a configuration file)
 
 // Directory to contain the global logging file
-#define DEFAULT_LOG_PATH					LCHAR_STRINGIFY(.\\logger_output\\)
+#define DEFAULT_LOG_PATH					LCHAR_STRINGIFY(.\\logger_output)
 #define DEFAULT_LOG_PATH_SCOPE				LCHAR_STRINGIFY(main)
 #define DEFAULT_LOG_PATH_FIELD				LCHAR_STRINGIFY(outputLogPath)
 
 // For the output of unit tests
-#define DEFAULT_LOG_PATH_TEST				LCHAR_STRINGIFY(.\\logger_output\\test\\)
+#define DEFAULT_LOG_PATH_TEST				LCHAR_STRINGIFY(.\\logger_output\\test)
 
 // Name of the global logging file
 #define DEFAULT_LOG_FILENAME				LCHAR_STRINGIFY(log.txt)
@@ -62,11 +62,11 @@ from the use of the 'new' operator.
 #define DEFAULT_LOG_FILENAME_FIELD			LCHAR_STRINGIFY(outputLogFile)
 
 // Name and directory of the global configuration file
-#define DEFAULT_CONFIG_PATH					LCHAR_STRINGIFY(.\\configuration\\)
+#define DEFAULT_CONFIG_PATH					LCHAR_STRINGIFY(.\\configuration)
 #define DEFAULT_CONFIG_FILENAME				LCHAR_STRINGIFY(config.txt)
 
 // Directory to contain output configuration data
-#define DEFAULT_CONFIG_PATH_WRITE			LCHAR_STRINGIFY(.\\configuration\\output\\)
+#define DEFAULT_CONFIG_PATH_WRITE			LCHAR_STRINGIFY(.\\configuration\\output)
 #define DEFAULT_CONFIG_PATH_WRITE_SCOPE		LCHAR_STRINGIFY(main)
 #define DEFAULT_CONFIG_PATH_WRITE_FIELD		LCHAR_STRINGIFY(outputConfigPath)
 
@@ -76,8 +76,8 @@ from the use of the 'new' operator.
 #define DEFAULT_CONFIG_FILENAME_WRITE_FIELD		LCHAR_STRINGIFY(outputConfigFile)
 
 // Directory containing configuration data for unit tests
-#define DEFAULT_CONFIG_PATH_TEST			LCHAR_STRINGIFY(.\\configuration\\test\\)
-#define DEFAULT_CONFIG_PATH_TEST_WRITE		LCHAR_STRINGIFY(.\\configuration\\test\\output\\)
+#define DEFAULT_CONFIG_PATH_TEST			LCHAR_STRINGIFY(.\\configuration\\test)
+#define DEFAULT_CONFIG_PATH_TEST_WRITE		LCHAR_STRINGIFY(.\\configuration\\test\\output)
 
 // Whether or not to output the global Config object
 #define OUTPUT_DEFAULT_CONFIG				false

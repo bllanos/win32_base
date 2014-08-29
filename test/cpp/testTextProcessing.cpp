@@ -22,6 +22,7 @@ Description
 #include <sstream>
 #include "testTextProcessing.h"
 #include "textProcessing.h"
+#include "fileUtil.h"
 #include "defs.h"
 #include "Logger.h"
 #include "globals.h"
@@ -33,8 +34,8 @@ HRESULT testTextProcessing::testControlStrip(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testControlStrip.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testControlStrip.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -86,7 +87,7 @@ HRESULT testTextProcessing::testControlStrip(void) {
 
 	for( size_t i = 0; i < nStr; ++i ) {
 		textProcessing::remove_ASCII_controlAndWhitespace(pStrings[i], ignore,
-			nIgnore, '"', specialIgnore, nSpecialIgnore
+			nIgnore, QUOTES, specialIgnore, nSpecialIgnore
 			);
 		if( FAILED(result) ) {
 			logger->logMessage(L"Test failed.");
@@ -119,8 +120,8 @@ HRESULT testTextProcessing::testStrToDouble(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testStrToDouble.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testStrToDouble.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -208,8 +209,8 @@ HRESULT testTextProcessing::testStrToFloat(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testStrToFloat.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testStrToFloat.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -295,8 +296,8 @@ HRESULT testTextProcessing::testStrToInt(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testStrToInt.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testStrToInt.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -382,8 +383,8 @@ HRESULT testTextProcessing::testStrToUInt(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testStrToUInt.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testStrToUInt.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -472,8 +473,8 @@ HRESULT testTextProcessing::testStrToIntArray(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testStrToIntArray.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testStrToIntArray.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);

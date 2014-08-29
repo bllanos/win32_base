@@ -22,6 +22,8 @@ Description
 #include <windows.h> // For the HRESULT type
 #include <string>
 
+#define W_PATH_SEP L'\\'
+
 namespace fileUtil {
 
 	/* Extract the (relative or absolute) path
@@ -130,4 +132,19 @@ namespace fileUtil {
 	 */
 	HRESULT inspectFileOrDirNameAndPath(const std::wstring& filepath,
 		bool& isFile, bool& hasPath, bool& exists, std::string& msg);
+
+	/* Joins the 'seg1' and 'seg2' strings together with a path separator
+	   in-between to form a longer filepath.
+	   The result is assigned to the 'out' output parameter.
+
+	   The function will ensure that there is only one path separator
+	   at the join point, even if 'seg1' ends with a path separator
+	   or 'seg2' begins with a path separator, or both.
+	   (The function will not look at the use of path separators
+	    at any other locations in the two strings.)
+
+		Currently, it is safe to use the same underlying variable as two or all
+		of the function parameters.
+	 */
+	HRESULT combineAsPath(std::wstring& out, const std::wstring& seg1, const std::wstring& seg2);
 }

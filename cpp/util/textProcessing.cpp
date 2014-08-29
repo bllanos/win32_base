@@ -27,9 +27,6 @@ Description
 
 using std::wstring;
 
-#define ESCAPE_CHAR '\\'
-#define W_ESCAPE_CHAR L'\\'
-
 HRESULT textProcessing::remove_ASCII_controlAndWhitespace(char* const str, const char* const ignore, const size_t nIgnore,
 	const char delim, const char* const specialIgnore, const size_t nSpecialIgnore) {
 
@@ -218,13 +215,13 @@ bool textProcessing::hasSubstr(const char* const str, const char* const sub, siz
 }
 
 static const wchar_t s_escapeSequenceEnds[] = {
-	L'"',
+	W_QUOTES,
 	L't',
 	L'n'
 };
 
 static const wchar_t s_escapeSequenceResults[] = {
-	L'"',
+	W_QUOTES,
 	L'\t',
 	L'\n'
 };
@@ -241,13 +238,13 @@ HRESULT textProcessing::wStrLiteralToWString(wstring& out, const char* const in,
 	/* Check the start of the string
 	   Note: This condition statement screens out the empty string
 	 */
-	if( in[index] == 'L' && in[index + 1] == '"' ) {
+	if( in[index] == 'L' && in[index + 1] == QUOTES ) {
 
 		// Find the end of the string literal
 		bool foundEnd = false;
 		size_t beginIndex = index + 2;
 		size_t endIndex = 0;
-		if( FAILED(findFirstNonEscaped(in, beginIndex, '"', foundEnd, endIndex)) ) {
+		if( FAILED(findFirstNonEscaped(in, beginIndex, QUOTES, foundEnd, endIndex)) ) {
 			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 
 		} else if( foundEnd ) {
@@ -381,7 +378,7 @@ HRESULT textProcessing::wstringToWStrLiteral(wstring& out, const wstring& in) {
 	out += wCStr_out;
 	delete[] wCStr_out;
 
-	out += L'"';
+	out += W_QUOTES;
 	return ERROR_SUCCESS;
 }
 
@@ -435,10 +432,10 @@ HRESULT textProcessing::strToFileOrDirName(std::wstring& out,
 	/* Check the start of the string
 	   Note: This condition statement screens out the empty string
 	*/
-	if( in[index] == '"' ) {
+	if( in[index] == QUOTES ) {
 		
 		// Find a matching quotation mark
-		const char* endPtr = strchr(in + index + 1, '"');
+		const char* endPtr = strchr(in + index + 1, QUOTES);
 
 		// The string has matched double quotes
 		if( endPtr != 0 ) {
@@ -449,62 +446,73 @@ HRESULT textProcessing::strToFileOrDirName(std::wstring& out,
 			// The string is not empty
 			if( wSize > 1 ) {
 
-				// Convert to a wide-character string
-				wchar_t* wCStr = new wchar_t[wSize];
-				size_t convertedChars = 0;
-				mbstowcs_s(&convertedChars, wCStr, wSize, in + index + 1, _TRUNCATE);
-				if( convertedChars != wSize ) {
-					result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+				// If '\' precedes QUOTES, the string may have been ruined by whitespace removal
+				if( in[endIndex - 1] == ESCAPE_CHAR ) {
+					if( msg != 0 ) {
+						*msg = L"The character preceding '";
+						*msg += W_QUOTES;
+						*msg += L"' must not be '";
+						*msg += W_ESCAPE_CHAR;
+						*msg += L"'.";
+					}
 				} else {
 
-					// Validate the filename and path
-					bool tempIsFile = isFile;
-					bool hasPath = false;
-					bool exists = false;
-					std::string tempMsg;
-					std::wstring wTempMsg;
-					std::wstring tempFilename = wCStr;
+					// Convert to a wide-character string
+					wchar_t* wCStr = new wchar_t[wSize];
+					size_t convertedChars = 0;
+					mbstowcs_s(&convertedChars, wCStr, wSize, in + index + 1, _TRUNCATE);
+					if( convertedChars != wSize ) {
+						result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_LIBRARY_CALL);
+					} else {
 
-					try {
-						if( FAILED(fileUtil::inspectFileOrDirNameAndPath(
-							tempFilename, tempIsFile, hasPath, exists, tempMsg)) ) {
-							result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-						} else if( tempMsg.empty() &&
-							(!exists || (exists && (tempIsFile == isFile))) ) {
-							// Validation complete and passed
-							out = wCStr;
-							index = endIndex + 1;
-							if( msg != 0 ) {
-								msg->clear();
+						// Validate the filename and path
+						bool tempIsFile = isFile;
+						bool hasPath = false;
+						bool exists = false;
+						std::string tempMsg;
+						std::wstring wTempMsg;
+						std::wstring tempFilename = wCStr;
+
+						try {
+							if( FAILED(fileUtil::inspectFileOrDirNameAndPath(
+								tempFilename, tempIsFile, hasPath, exists, tempMsg)) ) {
+								result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+							} else if( tempMsg.empty() &&
+								(!exists || (exists && (tempIsFile == isFile))) ) {
+								// Validation complete and passed
+								out = wCStr;
+								index = endIndex + 1;
+								if( msg != 0 ) {
+									msg->clear();
+								}
+							} else if( msg != 0 ) {
+								// Pass inspection messages back to the client
+								if( !tempMsg.empty() ) {
+									if( FAILED(toWString(wTempMsg, tempMsg)) ) {
+										*msg = L"Error converting message from fileUtil::inspectFileOrDirNameAndPath() to a wide character string.";
+										result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+									} else {
+										*msg = wTempMsg;
+									}
+								} else if( exists && (tempIsFile != isFile) ) {
+									// inspectFileOrDirNameAndPath() will not generate messages for this situation
+									if( isFile ) {
+										*msg = L"Found an existing directory, but was asked for a file.";
+									} else {
+										*msg = L"Found an existing file, but was asked for a directory.";
+									}
+								}
 							}
-						} else if( msg != 0 ) {
-							// Pass inspection messages back to the client
-							if( !tempMsg.empty() ) {
-								if( FAILED(toWString(wTempMsg, tempMsg)) ) {
-									*msg = L"Error converting message from fileUtil::inspectFileOrDirNameAndPath() to a wide character string.";
-									result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-								} else {
-									*msg = wTempMsg;
-								}
-							} else if( exists && (tempIsFile != isFile) ) {
-								// inspectFileOrDirNameAndPath() will not generate messages for this situation
-								if( isFile ) {
-									*msg = L"Found an existing directory, but was asked for a file.";
-								} else {
-									*msg = L"Found an existing file, but was asked for a directory.";
-								}
+						} catch( std::exception e ) {
+							if( FAILED(toWString(wTempMsg, e.what())) ) {
+								*msg = L"Error converting exception message from fileUtil::inspectFileOrDirNameAndPath() to a wide character string.";
+							} else {
+								*msg = wTempMsg;
 							}
 						}
 					}
-					catch( std::exception e ) {
-						if( FAILED(toWString(wTempMsg, e.what())) ) {
-							*msg = L"Error converting exception message from fileUtil::inspectFileOrDirNameAndPath() to a wide character string.";
-						} else {
-							*msg = wTempMsg;
-						}
-					}
+					delete[] wCStr;
 				}
-				delete[] wCStr;
 			}
 		}
 	}
@@ -513,8 +521,8 @@ HRESULT textProcessing::strToFileOrDirName(std::wstring& out,
 }
 
 HRESULT textProcessing::fileOrDirNameToWString(std::wstring& out, const std::wstring& in) {
-	out = L'"';
+	out = W_QUOTES;
 	out += in;
-	out += L'"';
+	out += W_QUOTES;
 	return ERROR_SUCCESS;
 }

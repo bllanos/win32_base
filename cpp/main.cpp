@@ -103,33 +103,38 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			if( cmdLine.empty() ) {
 				tempMsgStore.emplace_back(L"No command line arguments received. (The global configuration file's combined name and path can be passed as a single command-line argument.)");
 
-				filename = DEFAULT_CONFIG_PATH;
-				filename += DEFAULT_CONFIG_FILENAME;
-				tempMsgStore.emplace_back(L"Validating the hardcoded default configuration file path (" + filename + L")...");
-
-				// Check if the default configuration file is present
-				error = fileUtil::inspectFileOrDirNameAndPath(filename, isFile, hasPath, exists, msg);
+				error = fileUtil::combineAsPath(filename, DEFAULT_CONFIG_PATH, DEFAULT_CONFIG_FILENAME);
 				if( FAILED(error) ) {
 					finalResult = error;
-					PRINT_HRESULT_NO_ASSIGN
-					tempMsgStore.emplace_back(L"...Inspection of default configuration file path failed with error: " + errorStr);
+					tempMsgStore.emplace_back(L"Assembly of hardcoded default configuration file path using fileUtil::combineAsPath() failed.");
+
 				} else {
-					if( exists && !isFile ) {
-						tempMsgStore.emplace_back(L"...Inspection of default configuration file path indicated that the object exists, but is not a file.");
-					} else if( !hasPath ) {
-						tempMsgStore.emplace_back(L"...Inspection of default configuration file path indicated that no path was provided as part of the input.");
-					} else if( !exists ) {
-						tempMsgStore.emplace_back(L"...Default configuration file path does not correspond to an existing file system object.");
-					} else if( !msg.empty() ) {
-						if( FAILED(toWString(wMsg, msg)) ) {
-							finalResult = error;
-							tempMsgStore.emplace_back(L"...Inspection of default configuration file path output a message, which could not be converted to a wide-character string.");
-						} else {
-							tempMsgStore.emplace_back(L"...Inspection of default configuration file path reported: " + wMsg);
-						}
+					tempMsgStore.emplace_back(L"Validating the hardcoded default configuration file path (" + filename + L")...");
+
+					// Check if the default configuration file is present
+					error = fileUtil::inspectFileOrDirNameAndPath(filename, isFile, hasPath, exists, msg);
+					if( FAILED(error) ) {
+						finalResult = error;
+						PRINT_HRESULT_NO_ASSIGN
+						tempMsgStore.emplace_back(L"...Inspection of default configuration file path failed with error: " + errorStr);
 					} else {
-						// Validated
-						tempMsgStore.emplace_back(L"...Default configuration file path corresponds to an existing file. (Validated)");
+						if( exists && !isFile ) {
+							tempMsgStore.emplace_back(L"...Inspection of default configuration file path indicated that the object exists, but is not a file.");
+						} else if( !hasPath ) {
+							tempMsgStore.emplace_back(L"...Inspection of default configuration file path indicated that no path was provided as part of the input.");
+						} else if( !exists ) {
+							tempMsgStore.emplace_back(L"...Default configuration file path does not correspond to an existing file system object.");
+						} else if( !msg.empty() ) {
+							if( FAILED(toWString(wMsg, msg)) ) {
+								finalResult = error;
+								tempMsgStore.emplace_back(L"...Inspection of default configuration file path output a message, which could not be converted to a wide-character string.");
+							} else {
+								tempMsgStore.emplace_back(L"...Inspection of default configuration file path reported: " + wMsg);
+							}
+						} else {
+							// Validated
+							tempMsgStore.emplace_back(L"...Default configuration file path corresponds to an existing file. (Validated)");
+						}
 					}
 				}
 
@@ -251,10 +256,21 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 				if( SUCCEEDED(finalResult) ) finalResult = error;
 				PRINT_HRESULT_ASSIGN
 				tempMsgStore.emplace_back(L"Attempt to retrieve the default log filename from the global Config instance failed: " + errorStr);
-				filename += DEFAULT_LOG_FILENAME;
+
+				error = fileUtil::combineAsPath(filename, filename, DEFAULT_LOG_FILENAME);
+				if( FAILED(error) ) {
+					finalResult = error;
+					// This is a Microsoft-specific constructor
+					throw std::exception("Assembly of log file path with hardcoded filename using fileUtil::combineAsPath() failed.");
+				}
 			} else {
-				filename += *value;
+				error = fileUtil::combineAsPath(filename, filename, *value);
 				value = 0;
+				if( FAILED(error) ) {
+					finalResult = error;
+					// This is a Microsoft-specific constructor
+					throw std::exception("Assembly of log file path with custom filename using fileUtil::combineAsPath() failed.");
+				}
 			}
 
 			// -------------------------------------------------------------------------
@@ -343,7 +359,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 				if( FAILED(error) ) {
 					finalResult = error;
 					PRINT_HRESULT_NO_ASSIGN
-					g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Attempt to retrieve the configuration output folder from the global Config instance failed:) + errorStr);
+						g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Attempt to retrieve the configuration output folder from the global Config instance failed:) + errorStr);
 					filename = DEFAULT_CONFIG_PATH_WRITE;
 				} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
 					g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Note that the configuration output folder can be configured under the key:) + locators);
@@ -356,33 +372,41 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
 				// Configuration output filename
 				error = g_defaultConfig->retrieve<Config::DataType::FILENAME, std::wstring>(DEFAULT_CONFIG_FILENAME_WRITE_SCOPE, DEFAULT_CONFIG_FILENAME_WRITE_FIELD, value, &locators);
+				std::wstring filenameEnd;
 				if( FAILED(error) ) {
 					finalResult = error;
 					PRINT_HRESULT_NO_ASSIGN
-					g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Attempt to retrieve the output filename for the global Config instance from the global Config instance failed:) + errorStr);
-					filename += DEFAULT_CONFIG_FILENAME_WRITE;
+						g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Attempt to retrieve the output filename for the global Config instance from the global Config instance failed:) + errorStr);
+					filenameEnd = DEFAULT_CONFIG_FILENAME_WRITE;
 				} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
 					g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Note that the output filename for the global Config instance can be configured under the key:) + locators);
-					filename += DEFAULT_CONFIG_FILENAME_WRITE;
+					filenameEnd = DEFAULT_CONFIG_FILENAME_WRITE;
 				} else {
-					filename += *value;
+					filenameEnd = *value;
 					value = 0;
 				}
 				locators.clear();
 
-				// ----------------------------------------------------------
-				// Output the global Config object to a file
-				// ----------------------------------------------------------
-				g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Serializing the global Config instance to configuration file:) + filename + L" using a " WWINMAIN_CONFIGIO_CLASS_STR L" instance...");
-				error = configIO.write(filename, *g_defaultConfig, true);
-				PRINT_HRESULT_NO_ASSIGN
+				error = fileUtil::combineAsPath(filename, filename, filenameEnd);
 				if( FAILED(error) ) {
 					finalResult = error;
-					tempMsgStore.emplace_back(WWINMAIN_LOG_MSG(...Global Config instance output failed with error:) + errorStr);
-				} else if( HRESULT_CODE(error) == ERROR_DATA_INCOMPLETE ) {
-					tempMsgStore.emplace_back(WWINMAIN_LOG_MSG(...Global Config instance output indicated that the output data is incomplete:) + errorStr);
+					g_defaultLogger->logMessage(L"Assembly of output configuration file path using fileUtil::combineAsPath() failed.");
 				} else {
-					tempMsgStore.emplace_back(WWINMAIN_LOG_MSG(...Global Config instance output succeeded with code:) + errorStr);
+
+					// ----------------------------------------------------------
+					// Output the global Config object to a file
+					// ----------------------------------------------------------
+					g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(Serializing the global Config instance to configuration file:) + filename + L" using a " WWINMAIN_CONFIGIO_CLASS_STR L" instance...");
+					error = configIO.write(filename, *g_defaultConfig, true);
+					PRINT_HRESULT_NO_ASSIGN
+					if( FAILED(error) ) {
+						finalResult = error;
+						g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(...Global Config instance output failed with error:) + errorStr);
+					} else if( HRESULT_CODE(error) == ERROR_DATA_INCOMPLETE ) {
+						g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(...Global Config instance output indicated that the output data is incomplete:) + errorStr);
+					} else {
+							g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(...Global Config instance output succeeded with code : ) + errorStr);
+					}
 				}
 			}
 

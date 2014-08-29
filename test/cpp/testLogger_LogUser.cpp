@@ -25,6 +25,7 @@ Description
 #include "defs.h"
 #include "Logger.h"
 #include "LogUser.h"
+#include "fileUtil.h"
 
 using std::wstring;
 
@@ -32,9 +33,9 @@ HRESULT testLogger_LogUser::testBulkLogging(bool timestampEnabled) {
 
 	// Create a file for logging the test results
 	Logger* logger = 0;
+	std::wstring logFilename;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testBulkLogging.txt";
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testBulkLogging.txt");
 		logger = new Logger(true, logFilename, true, true);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -69,16 +70,18 @@ HRESULT testLogger_LogUser::testBulkLogging(bool timestampEnabled) {
 	}
 
 	// Try logging to another file
+	fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testBulkLogging2.txt");
 	result = logger->logMessage(list.cbegin(), list.cend(), L"Three-element list, to another file:",
-		true, true, DEFAULT_LOG_PATH_TEST + wstring(L"testBulkLogging2.txt"));
+		true, true, logFilename);
 	if( FAILED(result) ) {
 		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		logger->logMessage(L"Failed to log three-element list to an alternate file.");
 	}
 
 	// Try logging to an invalid file
+	fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L":.txt");
 	result = logger->logMessage(list.cbegin(), list.cend(), L"Three-element list, to another file:",
-		true, true, DEFAULT_LOG_PATH_TEST + wstring(L":.txt"));
+		true, true, logFilename);
 	if( SUCCEEDED(result) ) {
 		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		logger->logMessage(L"Failed to fail to log three-element list to an invalid alternate file.");
@@ -98,8 +101,8 @@ HRESULT testLogger_LogUser::testBulkLogging(bool timestampEnabled) {
 HRESULT testLogger_LogUser::testLocking(void) {
 
 	// Create a file for logging the test results
-	std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-	logFilename += L"testLocking.txt";
+	std::wstring logFilename;
+	fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testLocking.txt");
 	Logger* logger1 = 0;
 	try {
 		logger1 = new Logger(true, logFilename, true, true);
@@ -130,9 +133,9 @@ HRESULT testLogger_LogUser::testAppendMode(void) {
 
 	// Test a valid filename
 	Logger* logger = 0;
+	std::wstring logFilename;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testAppendMode.txt";
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testAppendMode.txt");
 		logger = new Logger(true, logFilename, false, true);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -169,8 +172,9 @@ HRESULT testLogger_LogUser::testAppendMode(void) {
 	}
 
 	// Try logging to an alternate file
+	fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testBulkLogging2.txt");
 	result = logger->logMessage(list.cbegin(), list.cend(), L"Three-element list, to another file:",
-		true, true, DEFAULT_LOG_PATH_TEST + wstring(L"testBulkLogging2.txt"));
+		true, true, logFilename);
 	if( FAILED(result) ) {
 		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		logger->logMessage(L"Failed to log three-element list to an alternate file.");
@@ -193,9 +197,9 @@ HRESULT testLogger_LogUser::testAppendMode(void) {
 
 	// Try creating a logger with an invalid filepath
 	try {
-		std::wstring invalidPathLogFilename = DEFAULT_LOG_PATH_TEST;
-		invalidPathLogFilename += L"\\doesNotExist\\"; // Make sure this folder does not exist!
-		invalidPathLogFilename += L"testAppendModeInvalidPath.txt";
+		std::wstring invalidPathLogFilename;
+		fileUtil::combineAsPath(invalidPathLogFilename, DEFAULT_LOG_PATH_TEST, L"doesNotExist"); // Make sure this folder does not exist!
+		fileUtil::combineAsPath(invalidPathLogFilename, invalidPathLogFilename, L"testAppendModeInvalidPath.txt");
 		Logger* logger3 = new Logger(true, invalidPathLogFilename, false, true);
 		finalResult = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_DATA);
 		logger->logMessage(L"Failure: Constructed a Logger with an invalid filename.");

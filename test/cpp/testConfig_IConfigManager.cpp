@@ -26,6 +26,7 @@ Description
 #include "defs.h"
 #include "Config.h"
 #include "Logger.h"
+#include "fileUtil.h"
 #include "FlatAtomicConfigIO.h"
 
 using std::wstring;
@@ -40,8 +41,8 @@ HRESULT testConfig_IConfigManager::testConfigWithStringValues(
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testConfigWithStringValues.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testConfigWithStringValues.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -236,8 +237,8 @@ HRESULT testConfig_IConfigManager::testConfigWithStringAndBoolValues(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testConfigWithStringAndBoolValues.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testConfigWithStringAndBoolValues.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -336,8 +337,8 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	Logger* logger = 0;
 	std::wstring logFilename;
 	try {
-		logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testFlatAtomicConfigIO.txt";
+		logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testFlatAtomicConfigIO.txt");
 		logger = new Logger(true, logFilename, false, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -360,8 +361,8 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	}
 
 	// Read in the first file
-	std::wstring configFilename1 = DEFAULT_CONFIG_PATH_TEST;
-	configFilename1 += L"testFlatAtomicConfigIO1.txt";
+	std::wstring configFilename1;
+	fileUtil::combineAsPath(configFilename1, DEFAULT_CONFIG_PATH_TEST, L"testFlatAtomicConfigIO1.txt");
 	result = configIO.read(configFilename1, config1);
 	if( FAILED(result) ) {
 		logger->logMessage(L"Failed to read the first configuration file: " + configFilename1);
@@ -371,8 +372,8 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	}
 
 	// Write to the second file
-	std::wstring configFilename2 = DEFAULT_CONFIG_PATH_TEST_WRITE;
-	configFilename2 += L"testFlatAtomicConfigIO2.txt";
+	std::wstring configFilename2;
+	fileUtil::combineAsPath(configFilename2, DEFAULT_CONFIG_PATH_TEST_WRITE, L"testFlatAtomicConfigIO2.txt");
 	result = configIO.write(configFilename2, config1, true);
 	if( FAILED(result) ) {
 		logger->logMessage(L"Failed to write to the second configuration file: " + configFilename2);
@@ -391,8 +392,8 @@ HRESULT testConfig_IConfigManager::testFlatAtomicConfigIO(void) {
 	}
 
 	// Write to the third file
-	std::wstring configFilename3 = DEFAULT_CONFIG_PATH_TEST_WRITE;
-	configFilename3 += L"testFlatAtomicConfigIO3.txt";
+	std::wstring configFilename3;
+	fileUtil::combineAsPath(configFilename3, DEFAULT_CONFIG_PATH_TEST_WRITE, L"testFlatAtomicConfigIO3.txt");
 	result = configIO.write(configFilename3, config2, true);
 	if( FAILED(result) ) {
 		logger->logMessage(L"Failed to write to the third configuration file: " + configFilename3);

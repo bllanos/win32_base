@@ -26,6 +26,12 @@ Description
 #include <limits>
 #include "defs.h"
 
+#define ESCAPE_CHAR '\\'
+#define W_ESCAPE_CHAR L'\\'
+
+#define QUOTES '"'
+#define W_QUOTES L'"'
+
 namespace textProcessing {
 
 	/* Removes characters from the character array (which must be null-terminated)
@@ -68,7 +74,7 @@ namespace textProcessing {
 	the input string before returning a failure code.
 	*/
 	HRESULT remove_ASCII_controlAndWhitespace(char* const str, const char* const ignore = 0, const size_t nIgnore = 0,
-		const char delim = '"', const char* const specialIgnore = 0, const size_t nSpecialIgnore = 0);
+		const char delim = QUOTES, const char* const specialIgnore = 0, const size_t nSpecialIgnore = 0);
 
 	/* Finds the next occurrence of the 'target' character
 	in the string that is not preceded by an odd number of '\'
@@ -340,9 +346,11 @@ namespace textProcessing {
 	If 'isFile' is true, the string will be validated as a file.
 	If 'isFile' is false, the string will be validated as a directory.
 	
-	To be accepted, the string must be prefixed and postfixed with '"'
-	(e.g. in order to protect its contents from any use of
-	remove_ASCII_controlAndWhitespace() by the client code).
+	To be accepted, the string must be prefixed and postfixed with '"'.
+	Furthermore, the character preceding the last '"' must not be '\'.
+	(These requirements are needed
+	 in order to protect the contents of the string from any use of
+	 remove_ASCII_controlAndWhitespace() by the client code.)
 
 	The content of the string between the quotes must not
 	trigger the output of any message strings by

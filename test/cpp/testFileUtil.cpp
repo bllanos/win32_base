@@ -33,8 +33,8 @@ HRESULT testFileUtil::testExtractPath(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testExtractPath.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testExtractPath.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -97,8 +97,8 @@ HRESULT testFileUtil::testInspectFileOrDirName(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testInspectFileOrDirName.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testInspectFileOrDirName.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
@@ -193,8 +193,8 @@ HRESULT testFileUtil::testInspectFileOrDirNameAndPath(void) {
 	// Create a file for logging the test results
 	Logger* logger = 0;
 	try {
-		std::wstring logFilename = DEFAULT_LOG_PATH_TEST;
-		logFilename += L"testInspectFileOrDirNameAndPath.txt";
+		std::wstring logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testInspectFileOrDirNameAndPath.txt");
 		logger = new Logger(true, logFilename, true, false);
 	} catch( ... ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);

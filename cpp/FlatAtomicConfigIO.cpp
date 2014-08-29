@@ -403,7 +403,7 @@ HRESULT FlatAtomicConfigIO::readDataLine(Config& config, char* const str, const 
 
 	// Strip whitespace and control characters
 	char ignoreInStrLiteral[] = { ' ' }; // Characters to be preserved between matching double quotes
-	if( FAILED(remove_ASCII_controlAndWhitespace(str, 0, 0, '"', ignoreInStrLiteral, sizeof(ignoreInStrLiteral) / sizeof(char))) ) {
+	if( FAILED(remove_ASCII_controlAndWhitespace(str, 0, 0, QUOTES, ignoreInStrLiteral, sizeof(ignoreInStrLiteral) / sizeof(char))) ) {
 		m_msgStore.emplace_back(prefix + L"remove_ASCII_controlAndWhitespace() failed.");
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	}
