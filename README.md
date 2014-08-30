@@ -19,11 +19,11 @@ to files
 ## Operating Instructions
 Once the program is built and run for the first time, if its
 configuration file has not instructed it otherwise, it will
-create a text file, `.\logger_output\log.txt` before exiting.
+create a text file, `.\logger_output\log.txt`, before exiting.
 
 This output file provides guidelines on
 how to configure the program, as it records the parameters
-that the program can accept. (_*Note:* If you modify the program, please
+that the program can accept. (_Note: If you modify the program, please
 consider outputting the absence from the input configuration files
 of your new/different configuration parameters to the log files.
 Also, be careful not to rely
