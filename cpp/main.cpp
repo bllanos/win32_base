@@ -276,6 +276,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			// -------------------------------------------------------------------------
 			// Set up the globally-visible Logger
 			// -------------------------------------------------------------------------
+			tempMsgStore.emplace_back(L"Initializing the globally-visible Logger to output to the following file: " + filename);
 			try {
 				g_defaultLogger = new Logger(true, filename, true, false);
 			} catch( std::exception e ) {

@@ -16,6 +16,24 @@ to files
 - Handling Windows messages, including for keyboard and mouse input
 - Logging debugging messages to files and/or a console window
 
+## Operating Instructions
+Once the program is built and run for the first time, if its
+configuration file has not instructed it otherwise, it will
+create a text file, `.\logger_output\log.txt` before exiting.
+
+This output file provides guidelines on
+how to configure the program, as it records the parameters
+that the program can accept. (_*Note:* If you modify the program, please
+consider outputting the absence from the input configuration files
+of your new/different configuration parameters to the log files.
+Also, be careful not to rely
+on the presence of any configuration data._)
+
+The program will attempt to interpret its command-line string as the location
+of a configuration file. If no command-line arguments are passed,
+it will try to use
+`.\configuration\config.txt` as a configuration file.
+
 ## References
 The following works were consulted for ideas during development
 - Horton, Ivor. _Beginning Visual C++ 2008._
