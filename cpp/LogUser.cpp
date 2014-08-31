@@ -18,6 +18,7 @@ Description
 */
 
 #include "defs.h"
+#include "globals.h"
 #include "LogUser.h"
 
 LogUser::LogUser(bool enableLogging, std::wstring msgPrefix) :

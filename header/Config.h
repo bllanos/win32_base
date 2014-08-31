@@ -20,10 +20,14 @@ Description
 
 Usage Notes
   -The Config object assumes that it owns all of the data that it stores,
-   meaning that its destructor will delete all of the mapped values.
+     meaning that its destructor will delete all of the mapped values,
+     even if the mapped values have been retrieved for use by other objects.
+  -In contrast, data that is not inserted into a Config object, due to
+     an insertion failure or to the Config object already storing data
+	 under the same key, is still under the client's ownership.
   -This class is currently not intended to be inherited from. It may need
-   to be modified to be suitable for inheritance (e.g. so that it has
-   virtual destructors).
+     to be modified to be suitable for inheritance (e.g. so that it has
+     virtual destructors).
 
 Issues
   -Objects of this class are not safe for access by multiple threads
@@ -254,6 +258,13 @@ public:
 	such that the 'locatorsOut' parameter is normally
 	valid when the function returns,
 	even when the main processing within the function fails.
+
+	Ownership of the 'value' pointer:
+	-The pointer will be freed by the Config object (by the Config destructor)
+	   if it is stored in the Config object.
+	-The pointer must be freed by the client if it is not stored
+	   in the Config object (i.e. if the insertion function returned
+	   a failure result, or the code ERROR_ALREADY_ASSIGNED).
 	*/
 public:
 	

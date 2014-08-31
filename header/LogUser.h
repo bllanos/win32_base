@@ -28,7 +28,6 @@ Note that the globally-visible Logger object is initialized and destroyed in mai
 #include <Windows.h>
 #include <string>
 #include <list>
-#include "globals.h"
 #include "Logger.h"
 
 class LogUser
