@@ -241,7 +241,7 @@ public:
 
 	Retrieval functions will return failure results for internal errors.
 
-	Insertion functions will return a success result, but the
+	Insertion functions will return a success result, but with the
 	ERROR_ALREADY_ASSIGNED error code if the Config
 	object already has a value stored with the given key parameters.
 
@@ -261,7 +261,7 @@ public:
 
 	Ownership of the 'value' pointer:
 	-The pointer will be freed by the Config object (by the Config destructor)
-	   if it is stored in the Config object.
+	   if it is inserted into the Config object or retrieved from the Config object.
 	-The pointer must be freed by the client if it is not stored
 	   in the Config object (i.e. if the insertion function returned
 	   a failure result, or the code ERROR_ALREADY_ASSIGNED).

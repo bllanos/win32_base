@@ -660,10 +660,51 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 
 template<Config::DataType D, typename T> bool ConfigUser::insert(
 	const std::wstring& scope, const std::wstring& field, const T* const value,
-	const bool deleteValue) {}
+	const bool deleteValue)
+{
+	bool result = false;
+	std::wstring locators;
+
+	HRESULT error = config->insert<D, T>(scope, field, value, &locators);
+	if( FAILED(error) ) {
+		std::wstring errorStr;
+		if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+			errorStr = std::to_wstring(error);
+		}
+		CONFIGUSER_LOGMESSAGE(L"insert() using the key " + locators + L" failed with error: " + errorStr)
+	} else if( HRESULT_CODE(error) == ERROR_ALREADY_ASSIGNED ) {
+		CONFIGUSER_LOGMESSAGE(L"insert() using the key " + locators + L" did not proceed as the key is already associated with data.")
+	} else {
+		result = true;
+	}
+
+	if( deleteValue && !result && value != 0 ) {
+		delete value;
+		value = 0;
+	}
+	return result;
+}
 
 template<Config::DataType D, typename T> bool ConfigUser::retrieve(
-	const std::wstring& scope, const std::wstring& field, const T*& value) {}
+	const std::wstring& scope, const std::wstring& field, const T*& value)
+{
+	bool result = false;
+	std::wstring locators;
+
+	HRESULT error = config->retrieve<D, T>(scope, field, value, &locators);
+	if( FAILED(error) ) {
+		std::wstring errorStr;
+		if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+			errorStr = std::to_wstring(error);
+		}
+		CONFIGUSER_LOGMESSAGE(L"retrieve() using the key " + locators + L" failed with error: " + errorStr)
+	} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
+		CONFIGUSER_LOGMESSAGE(L"retrieve() using the key " + locators + L" returned no data.")
+	} else {
+		result = true;
+	}
+	return result;
+}
 
 template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(const bool useOwnConfig,
 	const Config* locationSource,
