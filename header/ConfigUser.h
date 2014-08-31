@@ -95,6 +95,13 @@ private:
 	// -----------------------------------------------------------------
 	/* Note that the constructors for objects with PRIVATE configuration
 	   data usage may produce a small amount of logging output.
+
+	   The first two parameters of all constructors, 'enableLogging'
+	   and 'msgPrefix', are forwarded to the LogUser constructor.
+	   'enableLogging' is not used by this class itself. It acts like
+	   LogUser::enableLogging() or LogUser::disableLogging(),
+	   as opposed to ConfigUser::enableConfigUseLogging()
+	   or ConfigUser::disableConfigUseLogging().
 	 */
 protected:
 	/* Creates an object with GLOBAL configuration data usage,
@@ -104,7 +111,8 @@ protected:
 	   PRIVATE or SHARED configuration data usage,
 	   respectively, but no initial Config instance.
 	 */
-	ConfigUser(Usage usage);
+	ConfigUser(const bool enableLogging, const std::wstring& msgPrefix,
+		Usage usage);
 
 	/* Creates an object with SHARED configuration data usage.
 	   The object will use the 'sharedConfig' Config instance.
@@ -112,7 +120,8 @@ protected:
 	   access to a Config instance until a non-null
 	   Config instance is passed to setSharedConfig().
 	 */
-	ConfigUser(Config* sharedConfig);
+	ConfigUser(const bool enableLogging, const std::wstring& msgPrefix,
+		Config* sharedConfig);
 
 	/* Creates an object with PRIVATE configuration data usage.
 	   
@@ -144,7 +153,9 @@ protected:
 	   reading the configuration file. Therefore, 'ConfigIOClass' must be
 	   derived from the IConfigIO interface class.
 	 */
-	template<typename ConfigIOClass> ConfigUser(const Config* locationSource,
+	template<typename ConfigIOClass> ConfigUser(
+		const bool enableLogging, const std::wstring& msgPrefix,
+		const Config* locationSource,
 		const std::wstring filenameScope,
 		const std::wstring filenameField,
 		const std::wstring directoryScope = L"",
@@ -168,6 +179,7 @@ protected:
 	   derived from the IConfigIO interface class.
 	 */
 	template<typename ConfigIOClass> ConfigUser(
+		const bool enableLogging, const std::wstring& msgPrefix,
 		const std::wstring filename,
 		const std::wstring path = L""
 		);
