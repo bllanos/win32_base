@@ -49,7 +49,6 @@ Notes
 #include "globals.h"
 #include "LogUser.h"
 #include "Config.h"
-#include "fileUtil.h"
 #include "IConfigIO.h"
 
 class ConfigUser : public LogUser {
@@ -405,7 +404,46 @@ private:
 	// The basis for all other configuration data writing functions
 	template<typename ConfigIOClass> HRESULT writePrivateConfig(
 		const std::wstring& filenameAndPath,
-		const bool overwrite
+		const bool overwrite,
+		const bool outputContext
+		);
+
+	/* Helper functions for the configuration data reading and writing functions,
+	   which prepare the 'filenameAndPath' argument for the
+	   base versions of these functions.
+
+	   Their return values should be returned by the caller immediately
+	   if 'quit' is output as true.
+	   If 'quit' is output as false, the caller can continue
+	   with the read/write operation.
+
+	   'logMsgPrefix' is a prefix to be used when logging messages,
+	   and should include any whitespace needed to separate it
+	   from the remainder of any logging messages.
+	 */
+private:
+	HRESULT helper_IOPrivateConfig(const bool useOwnConfig,
+		const Config* locationSource,
+		const std::wstring& filenameScope,
+		const std::wstring& filenameField,
+		const std::wstring& directoryScope,
+		const std::wstring& directoryField,
+		bool& quit,
+		std::wstring& filenameAndPath,
+		const std::wstring& logMsgPrefix
+		);
+
+	/* As currently implemented, 'filename' must not be null
+	   and 'filenameAndPath' must be null when they are passed in.
+	   The caller must delete 'filenameAndPath' if 'quit' is false,
+	   and if 'filenameAndPath' is not the same pointer as 'filename'.
+	 */
+	HRESULT helper_IOPrivateConfig(
+		std::wstring*& filename,
+		const std::wstring& path,
+		bool& quit,
+		std::wstring*& filenameAndPath,
+		const std::wstring& logMsgPrefix
 		);
 
 	// Currently not implemented - will cause linker errors if called
@@ -482,78 +520,26 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(const bool
 	const bool overwrite
 	)
 {
-	// Error checking
-	if( m_usage != Usage::PRIVATE ) {
+	// Error checking in addition to what the helper function will perform
+	if( (m_config == 0) && !overwrite ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
-	} else if( useOwnConfig && (locationSource != 0) ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
-	} else if( (m_config == 0) && (useOwnConfig || !overwrite) ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
-	} else if( filenameField.empty() ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
-	} else if( !directoryScope.empty() && directoryField.empty() ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 	}
 
-	// Set the Config instance to query for the filepath
-	Config* config = (useOwnConfig) ? m_config : ((locationSource == 0) ? g_defaultConfig : locationSource);
-	if( config == 0 ) {
-		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): Config pointer that would be used to obtain a filepath is null.")
-		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
-	}
-
+	bool quit;
 	std::wstring filenameAndPath;
-	const std::wstring* value;
-	std::wstring locators;
+	const std::wstring logMsgPrefix = L"setPrivateConfig([key arguments]): ";
+	HRESULT result = helper_IOPrivateConfig(useOwnConfig,
+		locationSource,
+		filenameScope,
+		filenameField,
+		directoryScope,
+		directoryField,
+		quit,
+		filenameAndPath,
+		logMsgPrefix);
 
-	// Retrieve the filename, or filename and path
-	HRESULT error = config->retrieve<Config::DataType::FILENAME, std::wstring>(filenameScope, filenameField, value, &locators);
-	if( FAILED(error) ) {
-		std::wstring errorStr;
-		if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
-			errorStr = std::to_wstring(error);
-		}
-		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): retrieval of a filename using the key " + locators + L" failed with error: " + errorStr)
-	} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
-		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): retrieval of a filename using the key " + locators + L" returned no data.")
-	} else {
-		filenameAndPath = *value;
-		value = 0;
-	}
-
-	if( FAILED(error) ) {
-		return ERROR_SUCCESS;
-	} else if(HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
-		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
-	} else {
-		locators.clear();
-	}
-
-	// Retrieve the directory
-	if( !directoryField.empty() ) {
-		error = config->retrieve<Config::DataType::DIRECTORY, std::wstring>(directoryScope, directoryField, value, &locators);
-		if( FAILED(error) ) {
-			std::wstring errorStr;
-			if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
-				errorStr = std::to_wstring(error);
-			}
-			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): retrieval of a path using the key " + locators + L" failed with error: " + errorStr)
-		} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
-			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): retrieval of a path using the key " + locators + L" returned no data.")
-		} else {
-			error = fileUtil::combineAsPath(filenameAndPath, *value, filenameAndPath);
-			value = 0;
-			if( FAILED(error) ) {
-				CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): combination of the filename and path using fileUtil::combineAsPath() failed.")
-				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-			}
-		}
-
-		if( FAILED(error) ) {
-			return ERROR_SUCCESS;
-		} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
-			return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
-		}
+	if( quit ) {
+		return result;
 	}
 
 	// Perform the change of Config instance
@@ -566,32 +552,29 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 	const bool overwrite
 	)
 {
-	// Error checking
-	if( m_usage != Usage::PRIVATE ) {
+	// Error checking in addition to what the helper function will perform
+	if( (m_config == 0) && !overwrite ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
-	} else if( (m_config == 0) && !overwrite ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
-	} else if( filename.empty() ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 	}
 
-	// Prepare combined filename and path
-	std::wstring* filenameAndPath = 0;
-	if( !path.empty() ) {
-		filenameAndPath = new std::wstring;
-		if( FAILED(fileUtil::combineAsPath(*filenameAndPath, path, filename)) ) {
-			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([filepath arguments]): combination of the filename and path using fileUtil::combineAsPath() failed.")
-			delete filenameAndPath;
-			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-		}
-	} else {
-		filenameAndPath = &filename;
+	bool quit;
+	std::wstring* filenameAndPath;
+	const std::wstring logMsgPrefix = L"setPrivateConfig([filepath arguments]): ";
+	HRESULT result = helper_IOPrivateConfig(
+		&filename,
+		path,
+		quit,
+		filenameAndPath,
+		logMsgPrefix);
+
+	if( quit ) {
+		return result;
 	}
 
 	// Perform the change of Config instance
-	HRESULT result = setPrivateConfig<ConfigIOClass>(*filenameAndPath, overwrite);
+	result = setPrivateConfig<ConfigIOClass>(*filenameAndPath, overwrite);
 
-	if( filenameAndPath != &filename ) {
+	if( (filenameAndPath != &filename) && (filenameAndPath != 0) ) {
 		delete filenameAndPath;
 	}
 	return result;
@@ -714,7 +697,9 @@ template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(const bo
 	const std::wstring directoryField,
 	const bool overwrite,
 	const bool outputContext
-	) {}
+	)
+{
+}
 
 template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
 	const std::wstring filename,
