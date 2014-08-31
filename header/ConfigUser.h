@@ -1,6 +1,6 @@
 /*
 ConfigUser.h
-----------
+------------
 
 Created for: Spring 2014 Direct3D 11 Learning
 By: Bernard Llanos
@@ -46,7 +46,6 @@ Notes
 
 #include <Windows.h>
 #include <string>
-#include "globals.h"
 #include "LogUser.h"
 #include "Config.h"
 
@@ -393,3 +392,68 @@ private:
 	ConfigUser(const ConfigUser& other);
 	ConfigUser& operator=(const ConfigUser& other);
 };
+
+
+template<typename ConfigIOClass> ConfigUser::ConfigUser(
+	const bool enableLogging, const std::wstring& msgPrefix,
+	const Config* locationSource,
+	const std::wstring filenameScope,
+	const std::wstring filenameField,
+	const std::wstring directoryScope,
+	const std::wstring directoryField
+	) {}
+
+template<typename ConfigIOClass> ConfigUser::ConfigUser(
+	const bool enableLogging, const std::wstring& msgPrefix,
+	const std::wstring filename,
+	const std::wstring path
+	) {}
+
+template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(const bool useOwnConfig,
+	const Config* locationSource,
+	const std::wstring filenameScope,
+	const std::wstring filenameField,
+	const std::wstring directoryScope,
+	const std::wstring directoryField,
+	const bool overwrite
+	) {}
+
+template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
+	const std::wstring filename,
+	const std::wstring path,
+	const bool overwrite
+	) {}
+
+template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
+	const std::wstring& filenameAndPath,
+	const bool overwrite
+	) {}
+
+template<DataType D, typename T> bool ConfigUser::insert(
+	const std::wstring& scope, const std::wstring& field, const T* const value,
+	const bool deleteValue) {}
+
+template<DataType D, typename T> bool ConfigUser::retrieve(
+	const std::wstring& scope, const std::wstring& field, const T*& value) {}
+
+template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(const bool useOwnConfig,
+	const Config* locationSource,
+	const std::wstring filenameScope,
+	const std::wstring filenameField,
+	const std::wstring directoryScope,
+	const std::wstring directoryField,
+	const bool overwrite,
+	const bool outputContext
+	) {}
+
+template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
+	const std::wstring filename,
+	const std::wstring path,
+	const bool overwrite,
+	const bool outputContext
+	) {}
+
+template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
+	const std::wstring& filenameAndPath,
+	const bool overwrite
+	) {}
