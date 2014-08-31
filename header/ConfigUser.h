@@ -46,8 +46,11 @@ Notes
 
 #include <Windows.h>
 #include <string>
+#include "globals.h"
 #include "LogUser.h"
 #include "Config.h"
+#include "fileUtil.h"
+#include "IConfigIO.h"
 
 class ConfigUser : public LogUser {
 
@@ -143,7 +146,7 @@ protected:
 		 This key must correspond to a value of type Config::DataType::DIRECTORY.
 
 	   If 'locationSource' is null, the object will look
-	   for the reading parameters in the global Config instance.
+	   for the filepath parameters in the global Config instance.
 
 	   If all parameters are empty strings or null, this is equivalent
 	   to calling ConfigUser(Usage usage) where 'usage' is PRIVATE.
@@ -312,7 +315,25 @@ protected:
 		);
 
 private:
-	// The basis for all other configuration data reading functions
+	/* The basis for all other configuration data reading functions
+	   This function relies on its callers to perform some error checking
+	   (which is acceptable since it is 'private').
+
+	   Returns a failure code and does nothing if 'filenameAndPath' is empty.
+
+	   If an IConfigIO data reading operation fails, this object's Config instance
+	   will not be overwritten (when the 'overwrite' parameter is true), and
+	   this function will log the error, but return a success result.
+	   If 'overwrite' is false and the data reading operation fails,
+	   this object's Config instance may have been modified, if it existed,
+	   but will not have been assigned to a Config instance if it did not exist.
+
+	   Note that, if the reading operation succeeds, but returns the code
+	   ERROR_DATA_INCOMPLETE, this object's Config instance will likely
+	   have been augmented (if 'overwrite' is false), or will have been replaced
+	   with a Config instance that is missing some data (if 'overwrite' is true).
+	   In this case, this function will also return ERROR_DATA_INCOMPLETE.
+	 */
 	template<typename ConfigIOClass> HRESULT setPrivateConfig(
 		const std::wstring& filenameAndPath,
 		const bool overwrite
@@ -394,6 +415,9 @@ private:
 };
 
 
+#define CONFIGUSER_LOGMESSAGE(msg) \
+	if( m_configUseLoggingEnabled ) logMessage( msg, false, true );
+
 template<typename ConfigIOClass> ConfigUser::ConfigUser(
 	const bool enableLogging, const std::wstring& msgPrefix,
 	const Config* locationSource,
@@ -404,7 +428,26 @@ template<typename ConfigIOClass> ConfigUser::ConfigUser(
 	) :
 	LogUser(enableLogging, msgPrefix),
 	m_config(0), m_configUseLoggingEnabled(true), m_usage(Usage::PRIVATE)
-{}
+{
+	if( !filenameField.empty() ) {
+		HRESULT error = setPrivateConfig<ConfigIOClass>(
+			false,
+			locationSource,
+			filenameScope,
+			filenameField,
+			directoryScope,
+			directoryField,
+			true);
+
+		if( FAILED(error) ) {
+			std::wstring errorStr;
+			if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+					errorStr = std::to_wstring(error);
+			}
+			CONFIGUSER_LOGMESSAGE(L"Usage::PRIVATE constructor call to setPrivateConfig([key arguments]) failed with error: " + errorStr)
+		}
+	}
+}
 
 template<typename ConfigIOClass> ConfigUser::ConfigUser(
 	const bool enableLogging, const std::wstring& msgPrefix,
@@ -413,7 +456,22 @@ template<typename ConfigIOClass> ConfigUser::ConfigUser(
 	) :
 	LogUser(enableLogging, msgPrefix),
 	m_config(0), m_configUseLoggingEnabled(true), m_usage(Usage::PRIVATE)
-{}
+{
+	if( !filename.empty() ) {
+		HRESULT error = setPrivateConfig<ConfigIOClass>(
+			filename,
+			path,
+			true);
+
+		if( FAILED(error) ) {
+			std::wstring errorStr;
+			if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+				errorStr = std::to_wstring(error);
+			}
+			CONFIGUSER_LOGMESSAGE(L"Usage::PRIVATE constructor call to setPrivateConfig([filepath arguments]) failed with error: " + errorStr)
+		}
+	}
+}
 
 template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(const bool useOwnConfig,
 	const Config* locationSource,
@@ -422,18 +480,183 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(const bool
 	const std::wstring directoryScope,
 	const std::wstring directoryField,
 	const bool overwrite
-	) {}
+	)
+{
+	// Error checking
+	if( m_usage != Usage::PRIVATE ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
+	} else if( useOwnConfig && (locationSource != 0) ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+	} else if( (m_config == 0) && (useOwnConfig || !overwrite) ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
+	} else if( filenameField.empty() ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+	} else if( !directoryScope.empty() && directoryField.empty() ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+	}
+
+	// Set the Config instance to query for the filepath
+	Config* config = (useOwnConfig) ? m_config : ((locationSource == 0) ? g_defaultConfig : locationSource);
+	if( config == 0 ) {
+		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): Config pointer that would be used to obtain a filepath is null.")
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
+	}
+
+	std::wstring filenameAndPath;
+	const std::wstring* value;
+	std::wstring locators;
+
+	// Retrieve the filename, or filename and path
+	HRESULT error = config->retrieve<Config::DataType::FILENAME, std::wstring>(filenameScope, filenameField, value, &locators);
+	if( FAILED(error) ) {
+		std::wstring errorStr;
+		if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+			errorStr = std::to_wstring(error);
+		}
+		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): retrieval of a filename using the key " + locators + L" failed with error: " + errorStr)
+	} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
+		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): retrieval of a filename using the key " + locators + L" returned no data.")
+	} else {
+		filenameAndPath = *value;
+		value = 0;
+	}
+
+	if( FAILED(error) ) {
+		return ERROR_SUCCESS;
+	} else if(HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
+		return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
+	} else {
+		locators.clear();
+	}
+
+	// Retrieve the directory
+	if( !directoryField.empty() ) {
+		error = config->retrieve<Config::DataType::DIRECTORY, std::wstring>(directoryScope, directoryField, value, &locators);
+		if( FAILED(error) ) {
+			std::wstring errorStr;
+			if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+				errorStr = std::to_wstring(error);
+			}
+			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): retrieval of a path using the key " + locators + L" failed with error: " + errorStr)
+		} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
+			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): retrieval of a path using the key " + locators + L" returned no data.")
+		} else {
+			error = fileUtil::combineAsPath(filenameAndPath, *value, filenameAndPath);
+			value = 0;
+			if( FAILED(error) ) {
+				CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([key arguments]): combination of the filename and path using fileUtil::combineAsPath() failed.")
+				return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+			}
+		}
+
+		if( FAILED(error) ) {
+			return ERROR_SUCCESS;
+		} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
+			return MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_BL_ENGINE, ERROR_DATA_NOT_FOUND);
+		}
+	}
+
+	// Perform the change of Config instance
+	return setPrivateConfig<ConfigIOClass>(filenameAndPath, overwrite);
+}
 
 template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 	const std::wstring filename,
 	const std::wstring path,
 	const bool overwrite
-	) {}
+	)
+{
+	// Error checking
+	if( m_usage != Usage::PRIVATE ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
+	} else if( (m_config == 0) && !overwrite ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
+	} else if( filename.empty() ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+	}
+
+	// Prepare combined filename and path
+	std::wstring* filenameAndPath = 0;
+	if( !path.empty() ) {
+		filenameAndPath = new std::wstring;
+		if( FAILED(fileUtil::combineAsPath(*filenameAndPath, path, filename)) ) {
+			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig([filepath arguments]): combination of the filename and path using fileUtil::combineAsPath() failed.")
+			delete filenameAndPath;
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		}
+	} else {
+		filenameAndPath = &filename;
+	}
+
+	// Perform the change of Config instance
+	HRESULT result = setPrivateConfig<ConfigIOClass>(*filenameAndPath, overwrite);
+
+	if( filenameAndPath != &filename ) {
+		delete filenameAndPath;
+	}
+	return result;
+}
 
 template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 	const std::wstring& filenameAndPath,
 	const bool overwrite
-	) {}
+	)
+{
+	// Error checking
+	if( filenameAndPath.empty() ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+	} else {
+		if( overwrite ) {
+			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = true.")
+		} else {
+			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = false.")
+		}
+	}
+
+	IConfigIO* configIO = new ConfigIOClass;
+	Config* config = (overwrite || (m_config == 0)) ? new Config : m_config;
+
+	HRESULT error = configIO->read(filenameAndPath, config);
+	if( FAILED(error) ) {
+		std::wstring errorStr;
+		if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+			errorStr = std::to_wstring(error);
+		}
+		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: Configuration data failed to load with error: " + errorStr)
+
+		if( config != m_config ) {
+			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: Config instance has not been changed.")
+			delete config;
+		} else {
+			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: Config instance may have been augmented.")
+		}
+		error = ERROR_SUCCESS; // The error has been logged, so it can be forgotten.
+
+	} else {
+		if( HRESULT_CODE(error) == ERROR_DATA_INCOMPLETE ) {
+			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: Configuration data reading operation indicated that the data is incomplete.")
+		}
+		
+		if( config != m_config ) {
+			if( m_config != 0 ) {
+				CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: This object's Config instance was overwritten.")
+				delete m_config;
+			} else {
+				CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: Config instance was (re-)initialized.")
+			}
+			m_config = config;
+		} else {
+			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: Config instance was augmented (assuming the loaded data was non-empty and at least some keys were new).")
+		}
+	}
+
+	// Cleanup
+	if( configIO != 0 ) {
+		delete configIO;
+	}
+
+	return error;
+}
 
 template<Config::DataType D, typename T> bool ConfigUser::insert(
 	const std::wstring& scope, const std::wstring& field, const T* const value,

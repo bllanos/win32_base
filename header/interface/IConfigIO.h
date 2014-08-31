@@ -41,7 +41,7 @@ public:
 	than having its existing data replaced. Keys already mapped in the Config
 	object will not have their values overwritten, and the first mapping
 	encountered in the file for a key not already mapped in the Config object
-	will become the final mapping for that key.)
+	will become the final mapping for that key.
 
 	Parsing warnings, errors, etc., may be appended to the configuration
 	file in the form of comments. (Comments will not be interpreted later as data
