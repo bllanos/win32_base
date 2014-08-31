@@ -22,7 +22,7 @@ Usage Notes
   -The Config object assumes that it owns all of the data that it stores,
      meaning that its destructor will delete all of the mapped values,
      even if the mapped values have been retrieved for use by other objects.
-  -In contrast, data that is not inserted into a Config object, due to
+  -In contrast, data that is not inserted into a Config object, such as due to
      an insertion failure or to the Config object already storing data
 	 under the same key, is still under the client's ownership.
   -This class is currently not intended to be inherited from. It may need

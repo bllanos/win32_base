@@ -16,7 +16,8 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
 Description
   -A file containing globally-visible variable and function declarations
      -Groups of related functions that are not members of classes should
-	  be placed in their own namespaces. Refer to the examples in the 'header\util' folder.
+	    be placed in their own namespaces.
+		Refer to the examples in the 'header\util' folder.
   -Global variable names will be prefixed with 'g_' for ease of identification
   -Definitions and initializations of global variables are contained in main.cpp
 */
@@ -30,20 +31,30 @@ Description
 
 // Global variables
 // ----------------
+/* Currently, all non-test code, except for main.cpp,
+   that uses the following global pointers checks that the
+   global pointers are not null before attempting to dereference them.
+ */
 
-/* The default stream for outputting text
-   to log files.
-   The program will exit early if this variable
-   cannot be initialized to a functional state.
+/* The default stream for outputting text to log files.
+
+   The program will exit early if this variable cannot be initialized
+   to a functional state (as implemented in main.cpp).
+
+   Please use this variable indirectly through the LogUser class
+   where possible.
  */
 extern Logger* g_defaultLogger;
 
-/* To be used as a source of high-level
-   configuration data.
-   The program will ensure that this variable
-   is initialized with a functional object,
-   but cannot ensure that any/all desired key-value pairs
-   are present in the object.
+/* To be used as a source of high-level configuration data.
+
+   The program will ensure that this variable is initialized
+   with a functional object (as implemented in main.cpp).
+   However, there is no assurance that any/all desired key-value pairs
+   will be present in the object.
+
+   Please use this variable indirectly through the ConfigUser class
+   where possible.
  */
 extern Config* g_defaultConfig;
 

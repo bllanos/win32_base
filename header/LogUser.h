@@ -19,8 +19,14 @@ Description
   -Allows for the logging endpoint to be changed
   -Allows for logging output messages to have a common prefix added
 
-Note that the globally-visible Logger object is initialized and destroyed in main.cpp,
-  rather than being managed by this class.
+Notes
+  -The globally-visible Logger object is initialized and destroyed in main.cpp,
+     rather than being managed by this class.
+  -A LogUser instance will use the globally-visible Logger unless
+     the setLogger() function is called.
+	 setLogger() will create a privately-owned Logger instance for this object.
+	 (Note that the use of the globally-visible Logger is likely problematic in
+	  multithreaded code!)
 */
 
 #pragma once

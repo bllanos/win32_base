@@ -26,11 +26,12 @@ Description
 	 As currently implemented, the constructor
 	 determines whether this object uses the global Config instance,
 	 a shared Config instance, or its own Config instance.
-	 This initial visibility/usage setting cannot be changed later.
+	 There is no mechanism for changing this visibility/usage setting later.
 
   -Uses its inherited LogUser functionality to record how configuration
      data is used and any errors that occur during interactions
-	 with configuration data. (This behaviour can be turned on or off.)
+	 with configuration data. (This behaviour can be turned on or off,
+	 and is initially enabled by default.)
 
 Notes
   -The globally-visible Config object is initialized and destroyed in main.cpp,
@@ -92,12 +93,16 @@ private:
 
 	// Constructors
 	// -----------------------------------------------------------------
+	/* Note that the constructors for objects with PRIVATE configuration
+	   data usage may produce a small amount of logging output.
+	 */
 protected:
 	/* Creates an object with GLOBAL configuration data usage,
 	   if 'usage' is GLOBAL.
 
-	   If 'usage' is PRIVATE, creates an object with PRIVATE
-	   configuration data usage, but no initial Config instance.
+	   If 'usage' is PRIVATE or SHARED, creates an object with
+	   PRIVATE or SHARED configuration data usage,
+	   respectively, but no initial Config instance.
 	 */
 	ConfigUser(Usage usage);
 
@@ -135,11 +140,11 @@ protected:
 	   If all parameters are empty strings or null, this is equivalent
 	   to calling ConfigUser(Usage usage) where 'usage' is PRIVATE.
 
-	   The type parameter, 'T', is the type of loader to use for
-	   reading the configuration file. Therefore, 'T' must be
+	   The type parameter, 'ConfigIOClass', is the type of loader to use for
+	   reading the configuration file. Therefore, 'ConfigIOClass' must be
 	   derived from the IConfigIO interface class.
 	 */
-	template<typename T> ConfigUser(const Config* locationSource,
+	template<typename ConfigIOClass> ConfigUser(const Config* locationSource,
 		const std::wstring filenameScope,
 		const std::wstring filenameField,
 		const std::wstring directoryScope = L"",
@@ -158,11 +163,11 @@ protected:
 	   If all parameters are empty strings, this is equivalent
 	   to calling ConfigUser(Usage usage) where 'usage' is PRIVATE.
 
-	   The type parameter, 'T', is the type of loader to use for
-	   reading the configuration file. Therefore, 'T' must be
+	   The type parameter, 'ConfigIOClass', is the type of loader to use for
+	   reading the configuration file. Therefore, 'ConfigIOClass' must be
 	   derived from the IConfigIO interface class.
 	 */
-	template<typename T> ConfigUser(
+	template<typename ConfigIOClass> ConfigUser(
 		const std::wstring filename,
 		const std::wstring path = L""
 		);
@@ -179,10 +184,15 @@ public:
 	/* This function will do nothing and return
 	   a failure code if this object has a usage
 	   type other than SHARED, or if the
-	   'sharedConfig' pointer is the global Config instance.
+	   'sharedConfig' parameter is the global Config instance.
 
 	   If 'sharedConfig' is null, the object will
-	   not have access to a Config instance.
+	   not have access to a Config instance
+	   (until this function is passed a non-null parameter).
+
+	   Unlike the change of a PRIVATE Config instance (refer to the setter
+	   functions below), this function will not generate logging output
+	   if the operation succeeds.
 	 */
 	HRESULT setSharedConfig(Config* sharedConfig);
 
@@ -218,6 +228,9 @@ public:
 	 */
 	bool hasConfig() const;
 
+	/* Returns the usage type of this object. */
+	Usage getUsage() const;
+
 
 	/* Protected setter functions, for use only with the PRIVATE
 	   usage type.
@@ -232,10 +245,13 @@ public:
 	   These functions will log messages to describe errors output by the IConfigIO objects
 	   used to read the data. The return values of these functions will, where appropriate,
 	   be copies of the results returned by the IConfigIO objects.
+
+	   When any of these functions succeed, they will log messages to make note of the change
+	   to this object's Config instance.
 	 */
 protected:
 	// Deletes this object's Config instance
-	HRESULT clearPrivateConfig();
+	HRESULT deletePrivateConfig();
 
 	/* If 'useOwnConfig' is true, and 'locationSource' is null,
 	   the name and path of the configuration file will be
@@ -256,7 +272,7 @@ protected:
 	   ERROR_DATA_NOT_FOUND or ERROR_DATA_INCOMPLETE, respectively, and will
 	   log a message describing the issue.
 	 */
-	template<typename T> HRESULT setPrivateConfig(const bool useOwnConfig,
+	template<typename ConfigIOClass> HRESULT setPrivateConfig(const bool useOwnConfig,
 		const Config* locationSource,
 		const std::wstring filenameScope,
 		const std::wstring filenameField,
@@ -278,7 +294,7 @@ protected:
 	   ERROR_DATA_NOT_FOUND or ERROR_DATA_INCOMPLETE, respectively, and will
 	   log a message describing the issue.
 	 */
-	template<typename T> HRESULT setPrivateConfig(
+	template<typename ConfigIOClass> HRESULT setPrivateConfig(
 		const std::wstring filename,
 		const std::wstring path = L"",
 		const bool overwrite = true
@@ -286,7 +302,7 @@ protected:
 
 private:
 	// The basis for all other configuration data reading functions
-	template<typename T> HRESULT setPrivateConfig(
+	template<typename ConfigIOClass> HRESULT setPrivateConfig(
 		const std::wstring& filenameAndPath,
 		const bool overwrite
 		);
@@ -303,8 +319,13 @@ private:
 	   No messages will be logged when the functions return 'true'.
 	 */
 protected:
+	/* If 'deleteValue' is true, the function will delete the 'value' pointer
+	   if the insertion does not occur. (This unburdens the client of some
+	   memory management.)
+	 */
 	template<DataType D, typename T> bool insert(
-		const std::wstring& scope, const std::wstring& field, const T* const value);
+		const std::wstring& scope, const std::wstring& field, const T* const value,
+		const bool deleteValue);
 
 	template<DataType D, typename T> bool retrieve(
 		const std::wstring& scope, const std::wstring& field, const T*& value);
@@ -331,7 +352,7 @@ protected:
 	   be copies of the results returned by the IConfigIO objects.
 	 */
 public:
-	template<typename T> HRESULT writePrivateConfig(const bool useOwnConfig,
+	template<typename ConfigIOClass> HRESULT writePrivateConfig(const bool useOwnConfig,
 		const Config* locationSource,
 		const std::wstring filenameScope,
 		const std::wstring filenameField,
@@ -341,7 +362,7 @@ public:
 		const bool outputContext = true
 		);
 
-	template<typename T> HRESULT writePrivateConfig(
+	template<typename ConfigIOClass> HRESULT writePrivateConfig(
 		const std::wstring filename,
 		const std::wstring path = L"",
 		const bool overwrite = true,
@@ -350,7 +371,7 @@ public:
 
 private:
 	// The basis for all other configuration data writing functions
-	template<typename T> HRESULT writePrivateConfig(
+	template<typename ConfigIOClass> HRESULT writePrivateConfig(
 		const std::wstring& filenameAndPath,
 		const bool overwrite
 		);
