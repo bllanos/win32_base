@@ -22,10 +22,16 @@ Description
 #include "defs.h"
 
 ConfigUser::ConfigUser(const bool enableLogging, const std::wstring& msgPrefix,
-	Usage usage) {}
+	Usage usage) :
+	LogUser(enableLogging, msgPrefix),
+	m_config(0), m_configUseLoggingEnabled(true), m_usage(usage)
+{}
 
 ConfigUser::ConfigUser(const bool enableLogging, const std::wstring& msgPrefix,
-	Config* sharedConfig) {}
+	Config* sharedConfig) :
+	LogUser(enableLogging, msgPrefix),
+	m_config(sharedConfig), m_configUseLoggingEnabled(true), m_usage(Usage::SHARED)
+{}
 
 ConfigUser::~ConfigUser(void) {}
 

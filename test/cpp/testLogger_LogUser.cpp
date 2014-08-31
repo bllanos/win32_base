@@ -23,6 +23,7 @@ Description
 #include <list>
 #include "testLogger_LogUser.h"
 #include "defs.h"
+#include "globals.h"
 #include "Logger.h"
 #include "LogUser.h"
 #include "fileUtil.h"

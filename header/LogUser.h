@@ -25,8 +25,9 @@ Notes
   -A LogUser instance will use the globally-visible Logger unless
      the setLogger() function is called.
 	 setLogger() will create a privately-owned Logger instance for this object.
-	 (Note that the use of the globally-visible Logger is likely problematic in
-	  multithreaded code!)
+  -Note that the use of the globally-visible Logger is likely problematic in
+	 multithreaded code. There are similar concerns with the use of a console
+	 window for logging output, as described in the Logger class header file.
 */
 
 #pragma once

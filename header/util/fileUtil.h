@@ -79,8 +79,13 @@ namespace fileUtil {
 	 */
 	HRESULT inspectFileOrDirName(const std::wstring& name, const bool& isFile, std::string& msg);
 
-	/* Test if a file or directory exists or, if it does not exist,
+	/* Can be used to test if a file or directory exists or, if it does not exist,
 	   if it can probably be created.
+
+	   My convention is to use this function almost exclusively at the boundaries of the program,
+	   rather than calling it from every function that handles file names or paths.
+	   In other words, I delegate error checking to the program boundaries, such as when
+	   file names/paths are read in from text files.
 	
 	   Parameters
 	     -(in) 'filepath': The name of a file or directory,

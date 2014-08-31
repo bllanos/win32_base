@@ -24,6 +24,7 @@ Description
 #include <map>
 #include "testConfig_IConfigManager.h"
 #include "defs.h"
+#include "globals.h"
 #include "Config.h"
 #include "Logger.h"
 #include "fileUtil.h"

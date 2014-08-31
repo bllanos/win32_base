@@ -334,11 +334,11 @@ protected:
 	   if the insertion does not occur. (This unburdens the client of some
 	   memory management.)
 	 */
-	template<DataType D, typename T> bool insert(
+	template<Config::DataType D, typename T> bool insert(
 		const std::wstring& scope, const std::wstring& field, const T* const value,
 		const bool deleteValue);
 
-	template<DataType D, typename T> bool retrieve(
+	template<Config::DataType D, typename T> bool retrieve(
 		const std::wstring& scope, const std::wstring& field, const T*& value);
 
 
@@ -401,13 +401,19 @@ template<typename ConfigIOClass> ConfigUser::ConfigUser(
 	const std::wstring filenameField,
 	const std::wstring directoryScope,
 	const std::wstring directoryField
-	) {}
+	) :
+	LogUser(enableLogging, msgPrefix),
+	m_config(0), m_configUseLoggingEnabled(true), m_usage(Usage::PRIVATE)
+{}
 
 template<typename ConfigIOClass> ConfigUser::ConfigUser(
 	const bool enableLogging, const std::wstring& msgPrefix,
 	const std::wstring filename,
 	const std::wstring path
-	) {}
+	) :
+	LogUser(enableLogging, msgPrefix),
+	m_config(0), m_configUseLoggingEnabled(true), m_usage(Usage::PRIVATE)
+{}
 
 template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(const bool useOwnConfig,
 	const Config* locationSource,
@@ -429,11 +435,11 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 	const bool overwrite
 	) {}
 
-template<DataType D, typename T> bool ConfigUser::insert(
+template<Config::DataType D, typename T> bool ConfigUser::insert(
 	const std::wstring& scope, const std::wstring& field, const T* const value,
 	const bool deleteValue) {}
 
-template<DataType D, typename T> bool ConfigUser::retrieve(
+template<Config::DataType D, typename T> bool ConfigUser::retrieve(
 	const std::wstring& scope, const std::wstring& field, const T*& value) {}
 
 template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(const bool useOwnConfig,

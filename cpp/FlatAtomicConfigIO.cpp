@@ -21,6 +21,7 @@ Description
 #include "textProcessing.h"
 #include "higherLevelIO.h"
 #include "defs.h"
+#include "globals.h"
 #include <fstream>
 #include <DirectXMath.h>
 

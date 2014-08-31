@@ -31,6 +31,10 @@ Issues
    by other objects. I have not implemented or used any locking mechanisms to prevent this.
    (For example, the LockFile function,
    http://msdn.microsoft.com/en-ca/library/windows/desktop/aa365202%28v=vs.85%29.aspx)
+
+  -The use of a static data member, 's_nConsoleWriters',
+   to keep track of the use of a console window means that multiple threads
+   should not create Loggers which output to a console.
 */
 
 #pragma once
