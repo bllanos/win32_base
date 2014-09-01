@@ -43,9 +43,26 @@ Issues
 
 // Preprocessor Definitions
 #define WIN32_LEAN_AND_MEAN
-#define BASICWINDOW_DEFAULT_WIDTH 600
-#define BASICWINDOW_DEFAULT_HEIGHT 400
+
+/* The following definitions are:
+   -Key parameters used to retrieve configuration data
+   -Default values used in the absence of configuration data
+      or constructor/function arguments
+ */
+#define BASICWINDOW_SCOPE LCHAR_STRINGIFY(BasicWindow)
+
 #define BASICWINDOW_DEFAULT_NAME LCHAR_STRINGIFY(No Name)
+#define BASICWINDOW_DEFAULT_NAME_FIELD LCHAR_STRINGIFY(windowName)
+
+#define BASICWINDOW_DEFAULT_EXITABLE true
+#define BASICWINDOW_DEFAULT_EXITABLE_FIELD LCHAR_STRINGIFY(exitOnClose)
+
+#define BASICWINDOW_DEFAULT_WIDTH 600
+#define BASICWINDOW_DEFAULT_WIDTH_FIELD LCHAR_STRINGIFY(width)
+
+#define BASICWINDOW_DEFAULT_HEIGHT 400
+#define BASICWINDOW_DEFAULT_HEIGHT_FIELD LCHAR_STRINGIFY(height)
+
 
 class BasicWindow : public ConfigUser
 {
@@ -53,7 +70,7 @@ class BasicWindow : public ConfigUser
 private:
 	std::wstring	m_applicationName;
 	HINSTANCE		m_hinstance;
-	HWND			m_hwnd;  //handle to the client window for the application
+	HWND			m_hwnd;  // handle to the client window for the application
 	bool			m_exitAble; // True if closing this window will cause the application to quit
 	unsigned int	m_width; // Pixel width of the window
 	unsigned int	m_height; // Pixel height of the window
@@ -69,7 +86,7 @@ private:
 	   Only the 'name', 'exitAble', 'width', and 'height'
 	   parameters are specific to the BasicWindow class.
 	   All constructors that do not accept these parameters
-	   will try to load the appropriate values from configuration data.
+	   will try to load appropriate values from configuration data.
 	 */
 public:
 
@@ -77,27 +94,25 @@ public:
 	   the global Config instance, if 'initFromGlobalConfig' is true
 	   and 'usage' is Usage::GLOBAL.
 
-	   If 'initFromGlobalConfig' is false, or 'usage' is not Usage::GLOBAL,
-	   this object will use the 'name', 'exitAble', 'width', and 'height'
-	   parameters for initialization.
+	   If 'initFromGlobalConfig' is false, this object will use the
+	   'name', 'exitAble', 'width', and 'height' parameters for initialization.
 
 	   The constructor will throw an exception of type std::exception if
 	   'initFromGlobalConfig' is true and 'usage' is not Usage::GLOBAL,
 	   to flag the inconsistent input.
 	 */
-	BasicWindow(const bool enableLogging, const std::wstring& msgPrefix,
+	BasicWindow(
 		Usage usage,
 		const bool initFromGlobalConfig = true,
 		std::wstring name = BASICWINDOW_DEFAULT_NAME,
 		bool exitAble = true,
 		int width = BASICWINDOW_DEFAULT_WIDTH,
-		int height = BASICWINDOW_DEFAULT_HEIGHT);
+		int height = BASICWINDOW_DEFAULT_HEIGHT
+		);
 
-	BasicWindow(const bool enableLogging, const std::wstring& msgPrefix,
-		Config* sharedConfig);
+	BasicWindow(Config* sharedConfig);
 
 	template<typename ConfigIOClass> BasicWindow(
-		const bool enableLogging, const std::wstring& msgPrefix,
 		const Config* locationSource,
 		const std::wstring filenameScope,
 		const std::wstring filenameField,
@@ -106,7 +121,6 @@ public:
 		);
 
 	template<typename ConfigIOClass> BasicWindow(
-		const bool enableLogging, const std::wstring& msgPrefix,
 		const std::wstring filename,
 		const std::wstring path = L""
 		);
@@ -118,7 +132,11 @@ protected:
 	HRESULT initialize(void);
 
 	/* The effective constructor
-	   This function is responsible for all BasicWindow-specific initialization.
+	   This function is responsible the initialization of BasicWindow-specific
+	   data that is set based on constructor parameters or configuration data.
+
+	   Constructors are responsible for initialization data that is always
+	   constant at the time of construction.
 
 	   The window width and height will be reduced if the screen size
 	   turns out to be smaller.
@@ -128,7 +146,7 @@ protected:
 	   shutdownAll() to be called shortly thereafter,
 	   and Windows will probably expect the thread to terminate.
 	  */
-	HRESULT initialize(std::wstring& name, bool exitAble, int width, int height);
+	HRESULT initialize(std::wstring& name, bool& exitAble, int& width, int& height);
 
 public:
 	virtual ~BasicWindow(void);
@@ -194,3 +212,38 @@ private:
 	BasicWindow& operator=(const BasicWindow& other);
 };
 
+template<typename ConfigIOClass> BasicWindow::BasicWindow(
+	const Config* locationSource,
+	const std::wstring filenameScope,
+	const std::wstring filenameField,
+	const std::wstring directoryScope,
+	const std::wstring directoryField
+	) :
+	ConfigUser<ConfigIOClass>(
+	true, BASICWINDOW_START_MSG_PREFIX,
+	locationSource,
+	filenameScope,
+	filenameField,
+	directoryScope,
+	directoryField
+	),
+	m_applicationName(), m_hinstance(0), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
+	m_width(0), m_height(0), m_id(0), m_opened(false)
+{
+	initialize();
+}
+
+template<typename ConfigIOClass> BasicWindow::BasicWindow(
+	const std::wstring filename,
+	const std::wstring path
+	) :
+	ConfigUser<ConfigIOClass>(
+	true, BASICWINDOW_START_MSG_PREFIX,
+	filename,
+	path
+	),
+	m_applicationName(), m_hinstance(0), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
+	m_width(0), m_height(0), m_id(0), m_opened(false)
+{
+	initialize();
+}

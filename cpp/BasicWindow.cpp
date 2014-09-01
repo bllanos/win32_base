@@ -23,6 +23,9 @@ Description
 
 #include "BasicWindow.h"
 #include "defs.h"
+#include <exception>
+
+#define BASICWINDOW_START_MSG_PREFIX L"BasicWindow "
 
 // Using declarations
 using std::wstring;
@@ -32,17 +35,96 @@ using std::vector;
 vector<BasicWindow*>* BasicWindow::s_winProcList = 0;
 std::vector<BasicWindow>::size_type BasicWindow::s_currentId = 0;
 
-BasicWindow::BasicWindow(std::wstring name, bool exitAble, int width, int height) :
-ConfigUser(),
-m_applicationName(name), m_hinstance(0), m_hwnd(0), m_exitAble(exitAble),
-m_width(width), m_height(height), m_id(0), m_opened(false)
+BasicWindow::BasicWindow(
+	Usage usage,
+	const bool initFromGlobalConfig,
+	std::wstring name,
+	bool exitAble,
+	int width,
+	int height
+	) :
+	ConfigUser(true, BASICWINDOW_START_MSG_PREFIX, usage),
+	m_applicationName(name), m_hinstance(0), m_hwnd(0), m_exitAble(exitAble),
+	m_width(width), m_height(height), m_id(0), m_opened(false)
 {
-	if (name.length() == 0) {
+	if( initFromGlobalConfig && (usage != Usage::GLOBAL) ) {
+		// This is a Microsoft-specific constructor
+		throw std::exception("BasicWindow constructor called with a usage other than Usage::GLOBAL, but was told to initialize from the global Config instance.");
+	}
+
+	if( initFromGlobalConfig ) {
+		initialize();
+	} else {
+		initialize(name, exitAble, width, height);
+	}
+}
+
+BasicWindow::BasicWindow(Config* sharedConfig) :
+ConfigUser(true, BASICWINDOW_START_MSG_PREFIX, sharedConfig),
+m_applicationName(), m_hinstance(0), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
+m_width(0), m_height(0), m_id(0), m_opened(false)
+{
+	initialize();
+}
+
+HRESULT BasicWindow::initialize(void) {
+
+	// Data retrieval helper variables
+	const std::wstring* stringValue = 0;
+	const bool* boolValue = 0;
+	const int* intValue = 0;
+
+	// Initialization data
+	std::wstring applicationName;
+	bool exitAble;
+	int width;
+	int height;
+
+	// Query for initialization data
+	if( retrieve<Config::DataType::WSTRING, std::wstring>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_NAME_FIELD, stringValue) ) {
+		applicationName = *stringValue;
+	} else {
+		applicationName = BASICWINDOW_DEFAULT_NAME;
+	}
+
+	if( retrieve<Config::DataType::BOOL, bool>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_EXITABLE_FIELD, boolValue) ) {
+		exitAble = *boolValue;
+	} else {
+		exitAble = BASICWINDOW_DEFAULT_EXITABLE;
+	}
+
+	if( retrieve<Config::DataType::INT, int>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_WIDTH_FIELD, intValue) ) {
+		width = *intValue;
+	} else {
+		width = BASICWINDOW_DEFAULT_WIDTH;
+	}
+
+	if( retrieve<Config::DataType::INT, int>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_HEIGHT_FIELD, intValue) ) {
+		height = *intValue;
+	} else {
+		height = BASICWINDOW_DEFAULT_HEIGHT;
+	}
+
+	// Initialization
+	if( FAILED(initialize(applicationName, exitAble, width, height)) ) {
+		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+	} else {
+		return ERROR_SUCCESS;
+	}
+}
+
+HRESULT BasicWindow::initialize(std::wstring& name, bool& exitAble, int& width, int& height) {
+	m_applicationName = name;
+	m_exitAble = exitAble;
+	m_width = width;
+	m_height = height;
+
+	if( name.empty() ) {
 		m_applicationName = BASICWINDOW_DEFAULT_NAME;
 	}
 
 	// Set the logging message prefix
-	setMsgPrefix(L"BasicWindow '" + m_applicationName + L"'");
+	setMsgPrefix(BASICWINDOW_START_MSG_PREFIX L"'" + m_applicationName + L"'");
 
 	// Determine the resolution of the client's screen and adapt if necessary
 	unsigned int screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -53,6 +135,8 @@ m_width(width), m_height(height), m_id(0), m_opened(false)
 	if (m_height > screenHeight) {
 		m_height = screenHeight;
 	}
+
+	return ERROR_SUCCESS;
 }
 
 BasicWindow::~BasicWindow(void) {}
