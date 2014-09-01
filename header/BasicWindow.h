@@ -39,7 +39,7 @@ Issues
 #include <string>
 #include <vector>
 #include "defs.h"
-#include "LogUser.h"
+#include "ConfigUser.h"
 
 // Preprocessor Definitions
 #define WIN32_LEAN_AND_MEAN
@@ -47,7 +47,7 @@ Issues
 #define BASICWINDOW_DEFAULT_HEIGHT 400
 #define BASICWINDOW_DEFAULT_NAME LCHAR_STRINGIFY(No Name)
 
-class BasicWindow : public LogUser
+class BasicWindow : public ConfigUser
 {
 	// Data members
 private:
@@ -60,20 +60,77 @@ private:
 	std::vector<BasicWindow>::size_type	m_id; // Unique id of this window, managed by this class
 	bool			m_opened; // True if this window has been opened at least once
 
-	// Constructors, destructors
-public:
-	/*
-	The window width and height will be reduced if the screen size
-	turns out to be smaller.
+	// Public Constructors
+	// -------------------
+	/* The following constructors allow the client
+	   to use the full flexibility of the ConfigUser class,
+	   which BasicWindow is derived from.
 
-	The "exitAble" parameter, when true, causes window procedure to post a quit message
-	when the window is closed. A quit message will shortly cause shutdownAll() to be called,
-	and Windows will probably expect the thread to terminate.
-	*/
-	BasicWindow(std::wstring name = BASICWINDOW_DEFAULT_NAME, bool exitAble = true,
+	   Only the 'name', 'exitAble', 'width', and 'height'
+	   parameters are specific to the BasicWindow class.
+	   All constructors that do not accept these parameters
+	   will try to load the appropriate values from configuration data.
+	 */
+public:
+
+	/* Create a BasicWindow instance with parameters from
+	   the global Config instance, if 'initFromGlobalConfig' is true
+	   and 'usage' is Usage::GLOBAL.
+
+	   If 'initFromGlobalConfig' is false, or 'usage' is not Usage::GLOBAL,
+	   this object will use the 'name', 'exitAble', 'width', and 'height'
+	   parameters for initialization.
+
+	   The constructor will throw an exception of type std::exception if
+	   'initFromGlobalConfig' is true and 'usage' is not Usage::GLOBAL,
+	   to flag the inconsistent input.
+	 */
+	BasicWindow(const bool enableLogging, const std::wstring& msgPrefix,
+		Usage usage,
+		const bool initFromGlobalConfig = true,
+		std::wstring name = BASICWINDOW_DEFAULT_NAME,
+		bool exitAble = true,
 		int width = BASICWINDOW_DEFAULT_WIDTH,
 		int height = BASICWINDOW_DEFAULT_HEIGHT);
 
+	BasicWindow(const bool enableLogging, const std::wstring& msgPrefix,
+		Config* sharedConfig);
+
+	template<typename ConfigIOClass> BasicWindow(
+		const bool enableLogging, const std::wstring& msgPrefix,
+		const Config* locationSource,
+		const std::wstring filenameScope,
+		const std::wstring filenameField,
+		const std::wstring directoryScope = L"",
+		const std::wstring directoryField = L""
+		);
+
+	template<typename ConfigIOClass> BasicWindow(
+		const bool enableLogging, const std::wstring& msgPrefix,
+		const std::wstring filename,
+		const std::wstring path = L""
+		);
+
+protected:
+	/* Retrieves configuration data and then calls the other
+	   initialization function declared below.
+	 */
+	HRESULT initialize(void);
+
+	/* The effective constructor
+	   This function is responsible for all BasicWindow-specific initialization.
+
+	   The window width and height will be reduced if the screen size
+	   turns out to be smaller.
+
+	   The "exitAble" parameter, when true, causes window procedure to post
+	   a quit message when the window is closed. A quit message will cause
+	   shutdownAll() to be called shortly thereafter,
+	   and Windows will probably expect the thread to terminate.
+	  */
+	HRESULT initialize(std::wstring& name, bool exitAble, int width, int height);
+
+public:
 	virtual ~BasicWindow(void);
 
 	// Setup and shutdown
@@ -122,10 +179,9 @@ public:
 	std::vector<BasicWindow>::size_type	getID(void) const;
 
 private:
-	/*
-	This window procedure will direct messages to all open windows,
-	using the list of window procedures declared below.
-	*/
+	/* This window procedure will direct messages to all open windows,
+	   using the list of window procedures declared below.
+	 */
 	static LRESULT CALLBACK appProc(HWND, UINT, WPARAM, LPARAM);
 
 	// Static data members

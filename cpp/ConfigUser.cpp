@@ -17,6 +17,7 @@ Description
   -Implementation of the ConfigUser class.
 */
 
+#include <exception>
 #include "ConfigUser.h"
 #include "globals.h"
 #include "defs.h"

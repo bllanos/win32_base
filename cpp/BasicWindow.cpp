@@ -33,7 +33,7 @@ vector<BasicWindow*>* BasicWindow::s_winProcList = 0;
 std::vector<BasicWindow>::size_type BasicWindow::s_currentId = 0;
 
 BasicWindow::BasicWindow(std::wstring name, bool exitAble, int width, int height) :
-LogUser(),
+ConfigUser(),
 m_applicationName(name), m_hinstance(0), m_hwnd(0), m_exitAble(exitAble),
 m_width(width), m_height(height), m_id(0), m_opened(false)
 {
