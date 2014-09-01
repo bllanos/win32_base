@@ -406,7 +406,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 					} else if( HRESULT_CODE(error) == ERROR_DATA_INCOMPLETE ) {
 						g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(...Global Config instance output indicated that the output data is incomplete:) + errorStr);
 					} else {
-							g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(...Global Config instance output succeeded with code : ) + errorStr);
+						g_defaultLogger->logMessage(WWINMAIN_LOG_MSG(...Global Config instance output succeeded with code:) + errorStr);
 					}
 				}
 			}

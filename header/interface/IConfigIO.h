@@ -15,9 +15,11 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
 
 Description
   -An interface class defining an object which can load a configuration file into
-   a key-value data mapping and write a key-value data mapping to a
-   configuration file.
-  -Derived classes are to be created to handle various data formats
+     a key-value data mapping and write a key-value data mapping to a
+     configuration file.
+  -Derived classes are to be created to handle various data formats,
+     and should allow for queries of which types
+	 of data that they are able to read/write.
 */
 
 #pragma once

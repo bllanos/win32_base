@@ -319,6 +319,7 @@ private:
 	   (which is acceptable since it is 'private').
 
 	   Returns a failure code and does nothing if 'filenameAndPath' is empty.
+	   Otherwise, callers should return the return value of this function.
 
 	   If an IConfigIO data reading operation fails, this object's Config instance
 	   will not be overwritten (when the 'overwrite' parameter is true), and
@@ -401,7 +402,18 @@ public:
 		);
 
 private:
-	// The basis for all other configuration data writing functions
+	/* The basis for all other configuration data writing functions
+	   This function relies on its callers to perform some error checking
+	   (which is acceptable since it is 'private').
+
+	   Returns a failure code and does nothing if 'filenameAndPath' is empty.
+	   Otherwise, callers should return the return value of this function,
+	   which will be equal to the return value of the underlying
+	   IConfigIO data writing operation.
+	   
+	   This function will make note of the error codes returned by the IConfigIO
+	   data writing operation in its logging output.
+	 */
 	template<typename ConfigIOClass> HRESULT writePrivateConfig(
 		const std::wstring& filenameAndPath,
 		const bool overwrite,
@@ -521,7 +533,7 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(const bool
 	)
 {
 	// Error checking in addition to what the helper function will perform
-	if( (m_config == 0) && !overwrite ) {
+	if( (m_config == 0) && (!overwrite || useOwnConfig) ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
 	}
 
@@ -588,18 +600,18 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 	// Error checking
 	if( filenameAndPath.empty() ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+	}
+
+	if( overwrite ) {
+		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = true.")
 	} else {
-		if( overwrite ) {
-			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = true.")
-		} else {
-			CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = false.")
-		}
+		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = false.")
 	}
 
 	IConfigIO* configIO = new ConfigIOClass;
 	Config* config = (overwrite || (m_config == 0)) ? new Config : m_config;
 
-	HRESULT error = configIO->read(filenameAndPath, config);
+	HRESULT error = configIO->read(filenameAndPath, *config);
 	if( FAILED(error) ) {
 		std::wstring errorStr;
 		if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
@@ -699,6 +711,30 @@ template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(const bo
 	const bool outputContext
 	)
 {
+	// No data to output
+	if( m_config == 0 ) {
+		return ERROR_SUCCESS;
+	}
+
+	bool quit;
+	std::wstring filenameAndPath;
+	const std::wstring logMsgPrefix = L"writePrivateConfig([key arguments]): ";
+	HRESULT result = helper_IOPrivateConfig(useOwnConfig,
+		locationSource,
+		filenameScope,
+		filenameField,
+		directoryScope,
+		directoryField,
+		quit,
+		filenameAndPath,
+		logMsgPrefix);
+
+	if( quit ) {
+		return result;
+	}
+
+	// Perform the output operation
+	return writePrivateConfig<ConfigIOClass>(filenameAndPath, overwrite, outputContext);
 }
 
 template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
@@ -706,9 +742,74 @@ template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
 	const std::wstring path,
 	const bool overwrite,
 	const bool outputContext
-	) {}
+	)
+{
+	// No data to output
+	if( m_config == 0 ) {
+		return ERROR_SUCCESS;
+	}
+
+	bool quit;
+	std::wstring* filenameAndPath;
+	const std::wstring logMsgPrefix = L"writePrivateConfig([filepath arguments]): ";
+	HRESULT result = helper_IOPrivateConfig(
+		&filename,
+		path,
+		quit,
+		filenameAndPath,
+		logMsgPrefix);
+
+	if( quit ) {
+		return result;
+	}
+
+	// Perform the output operation
+	result = writePrivateConfig<ConfigIOClass>(filenameAndPath, overwrite, outputContext);
+
+	if( (filenameAndPath != &filename) && (filenameAndPath != 0) ) {
+		delete filenameAndPath;
+	}
+	return result;
+}
 
 template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
 	const std::wstring& filenameAndPath,
-	const bool overwrite
-	) {}
+	const bool overwrite,
+	const bool outputContext
+	)
+{
+	// Error checking
+	if( filenameAndPath.empty() ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+	}
+
+	if( overwrite ) {
+		CONFIGUSER_LOGMESSAGE(L"writePrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = true.")
+	} else {
+		CONFIGUSER_LOGMESSAGE(L"writePrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = false.")
+	}
+
+	IConfigIO* configIO = new ConfigIOClass;
+	configIO->toggleContextOutput(outputContext);
+	HRESULT error = configIO->write(filenameAndPath, *m_config, overwrite);
+
+	std::wstring errorStr;
+	if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+		errorStr = std::to_wstring(error);
+	}
+
+	if( FAILED(error) ) {
+		CONFIGUSER_LOGMESSAGE(L"writePrivateConfig() base function: Configuration data output failed with error: " + errorStr)
+	} else if( HRESULT_CODE(error) == ERROR_DATA_INCOMPLETE ) {
+		CONFIGUSER_LOGMESSAGE(L"writePrivateConfig() base function: Configuration data output operation indicated that the output is incomplete.")
+	} else if( error == ERROR_SUCCESS ) {
+		CONFIGUSER_LOGMESSAGE(L"writePrivateConfig() base function: Configuration data output operation succeeded: " + errorStr)
+	}
+
+	// Cleanup
+	if( configIO != 0 ) {
+		delete configIO;
+	}
+
+	return error;
+}

@@ -69,8 +69,6 @@ HRESULT ConfigUser::helper_IOPrivateConfig(const bool useOwnConfig,
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
 	} else if( useOwnConfig && (locationSource != 0) ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
-	} else if( (m_config == 0) && useOwnConfig ) {
-		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
 	} else if( filenameField.empty() ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 	} else if( !directoryScope.empty() && directoryField.empty() ) {
