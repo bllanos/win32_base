@@ -33,7 +33,7 @@ ConfigUser::ConfigUser(const bool enableLogging, const std::wstring& msgPrefix,
 	LogUser(enableLogging, msgPrefix),
 	m_config(sharedConfig), m_configUseLoggingEnabled(true), m_usage(Usage::SHARED)
 {
-	if( sharedConfig == g_defaultConfig ) {
+	if( (sharedConfig != 0) && (sharedConfig == g_defaultConfig) ) {
 		// This is a Microsoft-specific constructor
 		throw std::exception("ConfigUser constructor was passed the global Config instance as a shared Config object.");
 	}
@@ -87,6 +87,7 @@ HRESULT ConfigUser::deletePrivateConfig(void) {
 	if( m_config != 0 ) {
 		delete m_config;
 		m_config = 0;
+		CONFIGUSER_LOGMESSAGE(L"deletePrivateConfig(): Config instance was deleted.")
 	}
 	return ERROR_SUCCESS;
 }

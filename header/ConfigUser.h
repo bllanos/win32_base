@@ -31,7 +31,7 @@ Description
   -Uses its inherited LogUser functionality to record how configuration
      data is used and any errors that occur during interactions
 	 with configuration data. (This behaviour can be turned on or off,
-	 and is initially enabled by default.)
+	 and is enabled by default during construction.)
 
 Notes
   -The globally-visible Config object is initialized and destroyed in main.cpp,
@@ -60,12 +60,12 @@ public:
 
 	   GLOBAL = The object will use the global Config object.
 
-	   SHARED = The object can be passed a Config object to use,
-	              and will not rebuild or delete it.
-				  Note: The object will not use the global Config object.
+	   SHARED = The object can be passed a Config object to use (including
+	              a null pointer), and will not rebuild or delete it.
+				  Note: The object will refuse to use the global Config object.
 	   
 	   PRIVATE = The object can create a Config object over which
-	               it has full control, but which is not
+	               it has full control, and which cannot be made
 				   visible to other objects.
 
 	   Each usage type imposes restrictions on the
@@ -74,14 +74,12 @@ public:
 	   in the documentation comments of this class's function
 	   members.
 	 */
-	enum class Usage : unsigned int {
-		GLOBAL, SHARED, PRIVATE
-	};
+	enum class Usage : unsigned int { GLOBAL, SHARED, PRIVATE };
 
 	// Data members
 	// -----------------------------------------------------------------
 private:
-	/* The Config instance used by this class. This will be
+	/* The Config instance used by this class. This will always be
 	   null in cases where the global Config instance is being used.
 	 */
 	Config* m_config;
@@ -123,7 +121,8 @@ protected:
 
 	   Throws an exception of type std::exception if
 	   'sharedConfig' is equal to the global Config instance,
-	   'g_defaultConfig'.
+	   'g_defaultConfig' (provided that both pointers
+	   are not null).
 	 */
 	ConfigUser(const bool enableLogging, const std::wstring& msgPrefix,
 		Config* sharedConfig);
@@ -151,8 +150,11 @@ protected:
 	   If 'locationSource' is null, the object will look
 	   for the filepath parameters in the global Config instance.
 
-	   If all parameters are empty strings or null, this is equivalent
-	   to calling ConfigUser(Usage usage) where 'usage' is PRIVATE.
+	   If all parameters are empty strings or null, this is equivalent to calling
+	   ConfigUser(
+	       const bool enableLogging, const std::wstring& msgPrefix, Usage usage
+		 ),
+	   where 'usage' is PRIVATE.
 
 	   The type parameter, 'ConfigIOClass', is the type of loader to use for
 	   reading the configuration file. Therefore, 'ConfigIOClass' must be
@@ -176,8 +178,11 @@ protected:
 	   'path' can be empty, in which case 'filename' must
 	   contain a combined filename and path.
 
-	   If all parameters are empty strings, this is equivalent
-	   to calling ConfigUser(Usage usage) where 'usage' is PRIVATE.
+	   If all parameters are empty strings, this is equivalent to calling
+	   ConfigUser(
+	       const bool enableLogging, const std::wstring& msgPrefix, Usage usage
+		 ),
+	   where 'usage' is PRIVATE.
 
 	   The type parameter, 'ConfigIOClass', is the type of loader to use for
 	   reading the configuration file. Therefore, 'ConfigIOClass' must be
@@ -190,26 +195,28 @@ protected:
 		);
 
 public:
+	// Calls deletePrivateConfig()
 	virtual ~ConfigUser(void);
 
 	/* Public getters and setters
 	   -----------------------------------------------------------------
-	   The following functions should be used only with some knowledge
-	   of what the specific class of this object uses configuration data for.
+	   The following setter functions should be used only with some knowledge
+	   of how the specific class of this object uses configuration data.
 	 */
 public:
 	/* This function will do nothing and return
 	   a failure code if this object has a usage
 	   type other than SHARED, or if the
-	   'sharedConfig' parameter is the global Config instance.
+	   'sharedConfig' parameter is the global Config instance
+	   (provided that both pointers are not null).
 
 	   If 'sharedConfig' is null, the object will
 	   not have access to a Config instance
-	   (until this function is passed a non-null parameter).
+	   (until this function is called and passed a non-null parameter).
 
 	   Unlike the change of a PRIVATE Config instance (refer to the setter
-	   functions below), this function will not generate logging output
-	   (regardless of whether the operation succeeds or fails).
+	   functions in the next section below), this function will not generate
+	   logging output (regardless of whether the operation succeeds or fails).
 	 */
 	HRESULT setSharedConfig(Config* sharedConfig);
 
@@ -228,7 +235,7 @@ public:
 	   will also suppress configuration usage logging output.
 	   However, the LogUser member functions enableLogging()
 	   and disableLogging() do not change the ConfigUser class's
-	   logging output switch.
+	   private logging output switch.
 
 	   ConfigUser instances are constructed with configuration data
 	   usage logging enabled by default.
@@ -241,7 +248,7 @@ public:
 	   return false only if the global Config instance is null.
 
 	   Note that this function will return true if the Config instance
-	   used by this object is empty.
+	   used by this object is non-null, but empty.
 	 */
 	bool hasConfigToUse(void) const;
 
@@ -280,6 +287,8 @@ protected:
 	   will be replaced with an instance containing the loaded data.
 	   If 'overwrite is false, the loaded data will instead
 	   be inserted into the existing Config instance.
+	   (Recall that insertion will not replace existing data mapped
+	    under the same keys, however.)
 
 	   If all key scope and field parameters are empty, this
 	   function will return a failure result and do nothing.
@@ -325,12 +334,13 @@ private:
 	   Returns a failure code and does nothing if 'filenameAndPath' is empty.
 	   Otherwise, callers should return the return value of this function.
 
-	   If an IConfigIO data reading operation fails, this object's Config instance
-	   will not be overwritten (when the 'overwrite' parameter is true), and
-	   this function will log the error, but return a success result.
-	   If 'overwrite' is false and the data reading operation fails,
-	   this object's Config instance may have been modified, if it existed,
-	   but will not have been assigned to a Config instance if it did not exist.
+	   If an IConfigIO data reading operation fails:
+	     -This function will log the error, but return a success result.
+	     -If 'overwrite' is false, this object's Config instance
+		    may have been modified, if it existed, but will not have been
+			assigned to a Config instance if it did not exist.
+	     -If 'overwrite' is true, this object's Config instance
+	        will not be overwritten.
 
 	   Note that, if the reading operation succeeds, but returns the code
 	   ERROR_DATA_INCOMPLETE, this object's Config instance will likely
@@ -351,8 +361,8 @@ private:
 	   and 'false' if there was an error, or if no data was retrieved/inserted.
 
 	   Internally, the functions will log the exact situation in more detail
-	   (e.g. to distinguish errors from 'not found' or 'already present' results).
-	   No messages will be logged when the functions return 'true'.
+	   (e.g. to distinguish severe errors from 'not found' or 'already present' results).
+	   No messages will have been logged when the functions return 'true'.
 	 */
 protected:
 	/* If 'deleteValue' is true, the function will delete the 'value' pointer
@@ -373,12 +383,15 @@ protected:
 	   The 'overwrite' parameter indicates whether to append to (false)
 	   or replace (true) the file to which data will be output.
 
-	   The 'outputContext' parameter indicates whether to have the IConfigIO object
-	   used to write the configuration data also output contextual information
-	   (e.g. configuration data formatting guidelines).
+	   The 'outputContext' parameter indicates whether to have the IConfigIO
+	   object used to write the configuration data also output contextual
+	   information (e.g. configuration data formatting guidelines).
+	   Basically, 'outputContext' is used as the argument to
+	   IConfigIO::toggleContextOutput().
 
-	   Otherwise, the function parameters have the same meanings and effect
-	   as with the PRIVATE usage configuration setter functions.
+	   Otherwise, the function parameters have the same meanings and effects
+	   as with the overloaded PRIVATE usage configuration data setter functions,
+	   setPrivateConfig(*).
 
 	   These functions will do nothing and return a failure result
 	   if this object has a usage type other than PRIVATE.
@@ -413,7 +426,7 @@ private:
 	   Returns a failure code and does nothing if 'filenameAndPath' is empty.
 	   Otherwise, callers should return the return value of this function,
 	   which will be equal to the return value of the underlying
-	   IConfigIO data writing operation.
+	   IConfigIO derived class data writing operation.
 	   
 	   This function will make note of the error codes returned by the IConfigIO
 	   data writing operation in its logging output.
@@ -506,7 +519,7 @@ template<typename ConfigIOClass> ConfigUser::ConfigUser(
 			if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
 					errorStr = std::to_wstring(error);
 			}
-			CONFIGUSER_LOGMESSAGE(L"Usage::PRIVATE constructor call to setPrivateConfig([key arguments]) failed with error: " + errorStr)
+			CONFIGUSER_LOGMESSAGE(L"ConfigUser Usage::PRIVATE constructor call to setPrivateConfig([key arguments]) failed with error: " + errorStr)
 		}
 	}
 }
@@ -530,7 +543,7 @@ template<typename ConfigIOClass> ConfigUser::ConfigUser(
 			if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
 				errorStr = std::to_wstring(error);
 			}
-			CONFIGUSER_LOGMESSAGE(L"Usage::PRIVATE constructor call to setPrivateConfig([filepath arguments]) failed with error: " + errorStr)
+			CONFIGUSER_LOGMESSAGE(L"ConfigUser Usage::PRIVATE constructor call to setPrivateConfig([filepath arguments]) failed with error: " + errorStr)
 		}
 	}
 }
