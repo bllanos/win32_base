@@ -32,23 +32,64 @@ ConfigUser::ConfigUser(const bool enableLogging, const std::wstring& msgPrefix,
 	Config* sharedConfig) :
 	LogUser(enableLogging, msgPrefix),
 	m_config(sharedConfig), m_configUseLoggingEnabled(true), m_usage(Usage::SHARED)
-{}
+{
+	if( sharedConfig == g_defaultConfig ) {
+		// This is a Microsoft-specific constructor
+		throw std::exception("ConfigUser constructor was passed the global Config instance as a shared Config object.");
+	}
+}
 
-ConfigUser::~ConfigUser(void) {}
+ConfigUser::~ConfigUser(void) {
+	deletePrivateConfig();
+}
 
-HRESULT ConfigUser::setSharedConfig(Config* sharedConfig) {}
+HRESULT ConfigUser::setSharedConfig(Config* sharedConfig) {
+	if( (sharedConfig != 0) && (sharedConfig == g_defaultConfig) ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+	} else if( m_usage != Usage::SHARED ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
+	} else {
+		m_config = sharedConfig;
+		return ERROR_SUCCESS;
+	}
+}
 
-HRESULT ConfigUser::getSharedConfig(Config* sharedConfig) const {}
+HRESULT ConfigUser::getSharedConfig(Config*& sharedConfig) const {
+	if( m_usage != Usage::SHARED ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
+	} else if( sharedConfig != 0 ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
+	}
+	sharedConfig = m_config;
+	return ERROR_SUCCESS;
+}
 
-void ConfigUser::enableConfigUseLogging() {}
+void ConfigUser::enableConfigUseLogging() {
+	m_configUseLoggingEnabled = true;
+}
 
-void ConfigUser::disableConfigUseLogging() {}
+void ConfigUser::disableConfigUseLogging() {
+	m_configUseLoggingEnabled = false;
+}
 
-bool ConfigUser::hasConfig() const {}
+bool ConfigUser::hasConfigToUse(void) const {
+	return (getConfigToUse() != 0);
+}
 
-ConfigUser::Usage ConfigUser::getUsage() const {}
+ConfigUser::Usage ConfigUser::getUsage(void) const {
+	return m_usage;
+}
 
-HRESULT ConfigUser::deletePrivateConfig() {}
+HRESULT ConfigUser::deletePrivateConfig(void) {
+	if( m_usage != Usage::PRIVATE ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
+	}
+	if( m_config != 0 ) {
+		delete m_config;
+		m_config = 0;
+	}
+	return ERROR_SUCCESS;
+}
 
 HRESULT ConfigUser::helper_IOPrivateConfig(const bool useOwnConfig,
 	const Config* locationSource,
@@ -175,4 +216,12 @@ HRESULT ConfigUser::helper_IOPrivateConfig(
 
 	quit = false;
 	return ERROR_SUCCESS;
+}
+
+Config* ConfigUser::getConfigToUse(void) const {
+	if( m_usage == Usage::GLOBAL ) {
+		return g_defaultConfig;
+	} else {
+		return m_config;
+	}
 }

@@ -81,13 +81,13 @@ public:
 	// Data members
 	// -----------------------------------------------------------------
 private:
-	// Switch for turning logging specific to this class on or off
-	bool m_configUseLoggingEnabled;
-
 	/* The Config instance used by this class. This will be
 	   null in cases where the global Config instance is being used.
 	 */
 	Config* m_config;
+
+	// Switch for turning logging specific to this class on or off
+	bool m_configUseLoggingEnabled;
 
 	// The way in which this object is using Config instance(s)
 	Usage m_usage;
@@ -120,6 +120,10 @@ protected:
 	   If 'sharedConfig' is null, the object will not have
 	   access to a Config instance until a non-null
 	   Config instance is passed to setSharedConfig().
+
+	   Throws an exception of type std::exception if
+	   'sharedConfig' is equal to the global Config instance,
+	   'g_defaultConfig'.
 	 */
 	ConfigUser(const bool enableLogging, const std::wstring& msgPrefix,
 		Config* sharedConfig);
@@ -205,16 +209,16 @@ public:
 
 	   Unlike the change of a PRIVATE Config instance (refer to the setter
 	   functions below), this function will not generate logging output
-	   if the operation succeeds.
+	   (regardless of whether the operation succeeds or fails).
 	 */
 	HRESULT setSharedConfig(Config* sharedConfig);
 
 	/* Returns the Config instance used by this object.
-	   Does nothing and returns a failure code if this object
-	   does not have the SHARED usage type, or if the
-	   'sharedConfig' parameter is not passed in as a null pointer.
+	   Does nothing and returns a failure code
+	   if this object does not have the SHARED usage type,
+	   or if the 'sharedConfig' parameter is not passed in as a null pointer.
 	 */
-	HRESULT getSharedConfig(Config* sharedConfig) const;
+	HRESULT getSharedConfig(Config*& sharedConfig) const;
 
 	/* These functions toggle whether or not this object
 	   will output log messages relating to its use of
@@ -239,10 +243,10 @@ public:
 	   Note that this function will return true if the Config instance
 	   used by this object is empty.
 	 */
-	bool hasConfig() const;
+	bool hasConfigToUse(void) const;
 
 	/* Returns the usage type of this object. */
-	Usage getUsage() const;
+	Usage getUsage(void) const;
 
 
 	/* Protected setter functions, for use only with the PRIVATE
@@ -264,7 +268,7 @@ public:
 	 */
 protected:
 	// Deletes this object's Config instance
-	HRESULT deletePrivateConfig();
+	HRESULT deletePrivateConfig(void);
 
 	/* If 'useOwnConfig' is true, and 'locationSource' is null,
 	   the name and path of the configuration file will be
@@ -457,6 +461,14 @@ private:
 		std::wstring*& filenameAndPath,
 		const std::wstring& logMsgPrefix
 		);
+
+private:
+	/* Helper function to retrieve the appropriate Config
+	   instance for the insert() and retrieve() functions.
+
+	   Also called by hasConfigToUse()
+	 */
+	Config* getConfigToUse(void) const;
 
 	// Currently not implemented - will cause linker errors if called
 private:
@@ -658,19 +670,26 @@ template<Config::DataType D, typename T> bool ConfigUser::insert(
 	const bool deleteValue)
 {
 	bool result = false;
-	std::wstring locators;
 
-	HRESULT error = config->insert<D, T>(scope, field, value, &locators);
-	if( FAILED(error) ) {
-		std::wstring errorStr;
-		if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
-			errorStr = std::to_wstring(error);
-		}
-		CONFIGUSER_LOGMESSAGE(L"insert() using the key " + locators + L" failed with error: " + errorStr)
-	} else if( HRESULT_CODE(error) == ERROR_ALREADY_ASSIGNED ) {
-		CONFIGUSER_LOGMESSAGE(L"insert() using the key " + locators + L" did not proceed as the key is already associated with data.")
+	// Set the appropriate Config instance
+	Config* config = getConfigToUse();
+	if( config == 0 ) {
+		CONFIGUSER_LOGMESSAGE(L"insert(): This object has no Config instance to use.")
 	} else {
-		result = true;
+
+		std::wstring locators;
+		HRESULT error = config->insert<D, T>(scope, field, value, &locators);
+		if( FAILED(error) ) {
+			std::wstring errorStr;
+			if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+				errorStr = std::to_wstring(error);
+			}
+			CONFIGUSER_LOGMESSAGE(L"insert() using the key " + locators + L" failed with error: " + errorStr)
+		} else if( HRESULT_CODE(error) == ERROR_ALREADY_ASSIGNED ) {
+			CONFIGUSER_LOGMESSAGE(L"insert() using the key " + locators + L" did not proceed as the key is already associated with data.")
+		} else {
+			result = true;
+		}
 	}
 
 	if( deleteValue && !result && value != 0 ) {
@@ -684,19 +703,26 @@ template<Config::DataType D, typename T> bool ConfigUser::retrieve(
 	const std::wstring& scope, const std::wstring& field, const T*& value)
 {
 	bool result = false;
-	std::wstring locators;
 
-	HRESULT error = config->retrieve<D, T>(scope, field, value, &locators);
-	if( FAILED(error) ) {
-		std::wstring errorStr;
-		if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
-			errorStr = std::to_wstring(error);
-		}
-		CONFIGUSER_LOGMESSAGE(L"retrieve() using the key " + locators + L" failed with error: " + errorStr)
-	} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
-		CONFIGUSER_LOGMESSAGE(L"retrieve() using the key " + locators + L" returned no data.")
+	// Set the appropriate Config instance
+	Config* config = getConfigToUse();
+	if( config == 0 ) {
+		CONFIGUSER_LOGMESSAGE(L"retrieve(): This object has no Config instance to use.")
 	} else {
-		result = true;
+
+		std::wstring locators;
+		HRESULT error = config->retrieve<D, T>(scope, field, value, &locators);
+		if( FAILED(error) ) {
+			std::wstring errorStr;
+			if( FAILED(prettyPrintHRESULT(errorStr, error)) ) {
+				errorStr = std::to_wstring(error);
+			}
+			CONFIGUSER_LOGMESSAGE(L"retrieve() using the key " + locators + L" failed with error: " + errorStr)
+		} else if( HRESULT_CODE(error) == ERROR_DATA_NOT_FOUND ) {
+			CONFIGUSER_LOGMESSAGE(L"retrieve() using the key " + locators + L" returned no data.")
+		} else {
+			result = true;
+		}
 	}
 	return result;
 }
