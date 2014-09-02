@@ -14,8 +14,9 @@ Development environment: Visual Studio 2013 running on Windows 7, 64-bit
    should be set to Unicode for all configurations, when using Visual Studio.
 
 Description
-  -A base class that provides simplified use
-     of the Config class for its descendants
+  -A base class that provides simplified use of the Config class
+     for its descendants. This includes checking if the Config
+	 instance that the object is using is null before accessing it.
 
   -Allows for reading, writing, and switching configuration data
 
@@ -50,6 +51,21 @@ Notes
 #include "LogUser.h"
 #include "Config.h"
 #include "IConfigIO.h"
+
+/* Suggested configuration data keys to be used by derived classes
+   to retrieve ConfigUser-related parameter values.
+
+   Note that a similar list of preprocessor constants exists
+   in LogUser.h for the LogUser class.
+*/
+#define CONFIGUSER_ENABLE_LOGGING_FLAG_FIELD	LCHAR_STRINGIFY(enableConfigUseLogging)
+#define CONFIGUSER_INPUT_FILE_NAME_FIELD		LCHAR_STRINGIFY(inputConfigFileName)
+#define CONFIGUSER_INPUT_FILE_PATH_FIELD		LCHAR_STRINGIFY(inputConfigFilePath)
+#define CONFIGUSER_INPUT_OVERWRITE_FLAG_FIELD	LCHAR_STRINGIFY(overwriteConfigFromFile)
+#define CONFIGUSER_OUTPUT_FILE_NAME_FIELD		LCHAR_STRINGIFY(outputConfigFileName)
+#define CONFIGUSER_OUTPUT_FILE_PATH_FIELD		LCHAR_STRINGIFY(outputConfigFilePath)
+#define CONFIGUSER_OUTPUT_OVERWRITE_FLAG_FIELD	LCHAR_STRINGIFY(overwriteFileFromConfig)
+#define CONFIGUSER_OUTPUT_CONTEXT_FLAG_FIELD	LCHAR_STRINGIFY(outputConfigFileContext)
 
 class ConfigUser : public LogUser {
 
@@ -201,7 +217,8 @@ public:
 	/* Public getters and setters
 	   -----------------------------------------------------------------
 	   The following setter functions should be used only with some knowledge
-	   of how the specific class of this object uses configuration data.
+	   of how the specific class of this object uses configuration data,
+	   unless they are overridden in the derived class.
 	 */
 public:
 	/* This function will do nothing and return
@@ -218,14 +235,14 @@ public:
 	   functions in the next section below), this function will not generate
 	   logging output (regardless of whether the operation succeeds or fails).
 	 */
-	HRESULT setSharedConfig(Config* sharedConfig);
+	virtual HRESULT setSharedConfig(Config* sharedConfig);
 
 	/* Returns the Config instance used by this object.
 	   Does nothing and returns a failure code
 	   if this object does not have the SHARED usage type,
 	   or if the 'sharedConfig' parameter is not passed in as a null pointer.
 	 */
-	HRESULT getSharedConfig(Config*& sharedConfig) const;
+	virtual HRESULT getSharedConfig(Config*& sharedConfig) const;
 
 	/* These functions toggle whether or not this object
 	   will output log messages relating to its use of
@@ -240,8 +257,8 @@ public:
 	   ConfigUser instances are constructed with configuration data
 	   usage logging enabled by default.
 	 */
-	void enableConfigUseLogging();
-	void disableConfigUseLogging();
+	virtual void enableConfigUseLogging();
+	virtual void disableConfigUseLogging();
 
 	/* Outputs whether or not this object has access to a Config instance.
 	   If this object has the GLOBAL usage type, this function will
@@ -249,8 +266,13 @@ public:
 
 	   Note that this function will return true if the Config instance
 	   used by this object is non-null, but empty.
+
+	   The presence of this function does not mean that it needs to
+	   be used by derived classes! All ConfigUser function members
+	   can be called safely regardless of whether or not this
+	   function would return true at the time they are invoked.
 	 */
-	bool hasConfigToUse(void) const;
+	virtual bool hasConfigToUse(void) const;
 
 	/* Returns the usage type of this object. */
 	Usage getUsage(void) const;

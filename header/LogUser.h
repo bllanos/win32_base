@@ -37,6 +37,17 @@ Notes
 #include <list>
 #include "Logger.h"
 
+/* Suggested configuration data keys to be used by derived classes
+   to retrieve LogUser-related parameter values
+ */
+#define LOGUSER_ENABLE_LOGGING_FLAG_FIELD			LCHAR_STRINGIFY(enableLogging)
+#define LOGUSER_MSG_PREFIX_FIELD					LCHAR_STRINGIFY(msgPrefix)
+#define LOGUSER_PRIMARYFILE_FLAG_FIELD				LCHAR_STRINGIFY(allocLogFile)
+#define LOGUSER_PRIMARYFILE_NAME_FIELD				LCHAR_STRINGIFY(logFilename)
+#define LOGUSER_PRIMARYFILE_OVERWRITE_FLAG_FIELD	LCHAR_STRINGIFY(overwriteFile)
+#define LOGUSER_CONSOLE_FLAG_FIELD					LCHAR_STRINGIFY(allocConsole)
+#define LOGUSER_TIMESTAMP_FLAG_FIELD				LCHAR_STRINGIFY(timestampEnable)
+
 class LogUser
 {
 	// Data members
@@ -68,7 +79,8 @@ public:
 
 	/* Getters and setters
 	The following functions should be used only with some knowledge
-	of what the specific class of this object uses a Logger for.
+	of what the specific class of this object uses a Logger for,
+	unless they are overridden in the derived class.
 
 	Logging is sometimes used for outputting important data!
 	*/
@@ -77,7 +89,7 @@ public:
 	If the call to the Logger constructor fails, this
 	object's logger is not changed.
 	 */
-	HRESULT setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool holdAndReplaceFile = false, bool allocLogConsole = false);
+	virtual HRESULT setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool holdAndReplaceFile = false, bool allocLogConsole = false);
 
 	/* Reverts to the previous Logger
 
@@ -90,10 +102,10 @@ public:
 	with the Logger used previously, rather than
 	acting like an "undo" feature storing a stack of past changes.
 	*/
-	HRESULT revertLogger(void);
+	virtual HRESULT revertLogger(void);
 
-	void enableLogging();
-	void disableLogging();
+	virtual void enableLogging();
+	virtual void disableLogging();
 
 protected:
 	void setMsgPrefix(const std::wstring& prefix);

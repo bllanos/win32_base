@@ -47,22 +47,28 @@ Issues
 /* The following definitions are:
    -Key parameters used to retrieve configuration data
    -Default values used in the absence of configuration data
-      or constructor/function arguments
+      or constructor/function arguments (where necessary)
  */
-#define BASICWINDOW_SCOPE LCHAR_STRINGIFY(BasicWindow)
 
-#define BASICWINDOW_DEFAULT_NAME LCHAR_STRINGIFY(No Name)
-#define BASICWINDOW_DEFAULT_NAME_FIELD LCHAR_STRINGIFY(windowName)
+#define BASICWINDOW_SCOPE					LCHAR_STRINGIFY(BasicWindow)
 
-#define BASICWINDOW_DEFAULT_EXITABLE true
-#define BASICWINDOW_DEFAULT_EXITABLE_FIELD LCHAR_STRINGIFY(exitOnClose)
+// BasicWindow instance parameters
+#define BASICWINDOW_DEFAULT_NAME			LCHAR_STRINGIFY(No Name)
+#define BASICWINDOW_DEFAULT_NAME_FIELD		LCHAR_STRINGIFY(windowName)
 
-#define BASICWINDOW_DEFAULT_WIDTH 600
-#define BASICWINDOW_DEFAULT_WIDTH_FIELD LCHAR_STRINGIFY(width)
+#define BASICWINDOW_DEFAULT_EXITABLE		true
+#define BASICWINDOW_DEFAULT_EXITABLE_FIELD	LCHAR_STRINGIFY(exitOnClose)
 
-#define BASICWINDOW_DEFAULT_HEIGHT 400
-#define BASICWINDOW_DEFAULT_HEIGHT_FIELD LCHAR_STRINGIFY(height)
+#define BASICWINDOW_DEFAULT_WIDTH			600 // Pixels
+#define BASICWINDOW_DEFAULT_WIDTH_FIELD		LCHAR_STRINGIFY(width)
 
+#define BASICWINDOW_DEFAULT_HEIGHT			400 // Pixels
+#define BASICWINDOW_DEFAULT_HEIGHT_FIELD	LCHAR_STRINGIFY(height)
+
+// LogUser and ConfigUser configuration parameters
+// Refer to LogUser.h and ConfigUser.h
+#define BASICWINDOW_LOGUSER_SCOPE			LCHAR_STRINGIFY(BasicWindow_LogUser)
+#define BASICWINDOW_CONFIGUSER_SCOPE		LCHAR_STRINGIFY(BasicWindow_ConfigUser)
 
 class BasicWindow : public ConfigUser
 {

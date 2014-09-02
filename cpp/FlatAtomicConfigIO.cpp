@@ -65,6 +65,10 @@ bool FlatAtomicConfigIO::toggleContextOutput(const bool outputContext) {
 	return previousState;
 }
 
+void FlatAtomicConfigIO::enableLogging() {}
+
+void FlatAtomicConfigIO::disableLogging() {}
+
 HRESULT FlatAtomicConfigIO::read(const wstring& filename, Config& config) {
 
 	setMsgPrefix(L"FlatAtomicConfigIO reading " + filename + L" >");

@@ -30,7 +30,8 @@ void testBasicWindow::openNWindows(const unsigned int n, bool exitAble, WPARAM& 
 
 	// Construction
 	for (unsigned int i = 0; i < n; ++i) {
-		windowArray[i] = new BasicWindow(std::to_wstring(i), exitAble);
+		windowArray[i] = new BasicWindow(
+			ConfigUser::Usage::PRIVATE, false, std::to_wstring(i), exitAble);
 	}
 
 	// Open each window

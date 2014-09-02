@@ -19,8 +19,9 @@ Description
 
 #pragma once
 
+// -------------------------------------------------------------------------
 // For finding memory leaks in the debug build configuration
-// ---------------------------------------------------------
+// -------------------------------------------------------------------------
 #ifndef _CRTDBG_MAP_ALLOC
 #define _CRTDBG_MAP_ALLOC
 // See http://msdn.microsoft.com/en-us/library/x98tx3cf.aspx
@@ -43,10 +44,13 @@ from the use of the 'new' operator.
 // (See http://msdn.microsoft.com/en-us/library/7e3a913x.aspx)
 #define LCHAR_STRINGIFY( x ) L#x
 
-// Default configuration values
-// and their keys in a configuration object (where applicable)
-// ---------------------------------------------------------------------
-// (To be overridden with values loaded from a configuration file)
+// -------------------------------------------------------------------------
+/*
+ * Default configuration values
+ * and their keys in a configuration object (where applicable)
+ * (To be overridden with values loaded from a configuration file)
+ */
+// -------------------------------------------------------------------------
 
 // Directory to contain the global logging file
 #define DEFAULT_LOG_PATH					LCHAR_STRINGIFY(.\\logger_output)
@@ -84,8 +88,10 @@ from the use of the 'new' operator.
 #define OUTPUT_DEFAULT_CONFIG_SCOPE			LCHAR_STRINGIFY(main)
 #define OUTPUT_DEFAULT_CONFIG_FIELD			LCHAR_STRINGIFY(outputConfigFlag)
 
+
+// -------------------------------------------------------------------------
 // Custom error code definitions
-// -----------------------------
+// -------------------------------------------------------------------------
 
 // Used for making custom HRESULT values
 #define FACILITY_BL_ENGINE 0
@@ -119,8 +125,9 @@ list of all error codes used in the program.
 // ERROR_ALREADY_ASSIGNED		// A data structure already contains this data item
 
 
+// -------------------------------------------------------------------------
 // Constants
-// ---------
+// -------------------------------------------------------------------------
 
 #define MIN_RGBA_UINT 0u		// Minimum value of a non-normalized RGBA color component
 #define MIN_RGBA_FLOAT 0.0f

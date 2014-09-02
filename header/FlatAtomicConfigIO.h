@@ -114,6 +114,7 @@ private:
 	static const size_t s_nSupportedDataTypes;
 
 private:
+	// Flag controlled by toggleContextOutput()
 	bool m_outputContext;
 
 public:
@@ -153,6 +154,14 @@ public:
 	   (See IConfigIO.h for details)
 	 */
 	virtual bool toggleContextOutput(const bool outputContext) override;
+
+	/* This class disables external control over its logging output flag.
+	   As currently implemented, externally changing this object's Logger instance
+	   using setLogger() or revertLogger() is safe, except during
+	   calls to read() or write().
+	 */
+	virtual void enableLogging() override;
+	virtual void disableLogging() override;
 
 protected:
 	/* Processes a data type, key, value line
