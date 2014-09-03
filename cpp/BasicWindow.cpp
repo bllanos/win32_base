@@ -53,9 +53,9 @@ BasicWindow::BasicWindow(
 	}
 
 	if( initFromGlobalConfig ) {
-		initialize();
+		configure();
 	} else {
-		initialize(name, exitAble, width, height);
+		setMembers(name, exitAble, width, height);
 	}
 }
 
@@ -64,15 +64,12 @@ ConfigUser(true, BASICWINDOW_START_MSG_PREFIX, sharedConfig),
 m_applicationName(), m_hinstance(0), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
 m_width(0), m_height(0), m_id(0), m_opened(false)
 {
-	initialize();
+	configure();
 }
 
-HRESULT BasicWindow::initialize(void) {
+HRESULT BasicWindow::configure(void) {
 
-	// Data retrieval helper variables
-	const std::wstring* stringValue = 0;
-	const bool* boolValue = 0;
-	const int* intValue = 0;
+	HRESULT result;
 
 	// Initialization data
 	std::wstring applicationName;
@@ -80,40 +77,60 @@ HRESULT BasicWindow::initialize(void) {
 	int width;
 	int height;
 
-	// Query for initialization data
-	if( retrieve<Config::DataType::WSTRING, std::wstring>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_NAME_FIELD, stringValue) ) {
-		applicationName = *stringValue;
+	if( hasConfigToUse() ) {
+
+		// Configure base members
+		const std::wstring logUserScope(BASICWINDOW_LOGUSER_SCOPE);
+		const std::wstring configUserScope(BASICWINDOW_CONFIGUSER_SCOPE);
+		if( FAILED(configureConfigUser(logUserScope, &configUserScope)) ) {
+			result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		}
+
+		// Data retrieval helper variables
+		const std::wstring* stringValue = 0;
+		const bool* boolValue = 0;
+		const int* intValue = 0;
+
+		// Query for initialization data
+		if( retrieve<Config::DataType::WSTRING, std::wstring>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_NAME_FIELD, stringValue) ) {
+			applicationName = *stringValue;
+		} else {
+			applicationName = BASICWINDOW_DEFAULT_NAME;
+		}
+
+		if( retrieve<Config::DataType::BOOL, bool>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_EXITABLE_FIELD, boolValue) ) {
+			exitAble = *boolValue;
+		} else {
+			exitAble = BASICWINDOW_DEFAULT_EXITABLE;
+		}
+
+		if( retrieve<Config::DataType::INT, int>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_WIDTH_FIELD, intValue) ) {
+			width = *intValue;
+		} else {
+			width = BASICWINDOW_DEFAULT_WIDTH;
+		}
+
+		if( retrieve<Config::DataType::INT, int>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_HEIGHT_FIELD, intValue) ) {
+			height = *intValue;
+		} else {
+			height = BASICWINDOW_DEFAULT_HEIGHT;
+		}
 	} else {
+		logMessage(L"BasicWindow initialization from configuration data: No Config instance to use.");
 		applicationName = BASICWINDOW_DEFAULT_NAME;
-	}
-
-	if( retrieve<Config::DataType::BOOL, bool>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_EXITABLE_FIELD, boolValue) ) {
-		exitAble = *boolValue;
-	} else {
 		exitAble = BASICWINDOW_DEFAULT_EXITABLE;
-	}
-
-	if( retrieve<Config::DataType::INT, int>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_WIDTH_FIELD, intValue) ) {
-		width = *intValue;
-	} else {
 		width = BASICWINDOW_DEFAULT_WIDTH;
-	}
-
-	if( retrieve<Config::DataType::INT, int>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_HEIGHT_FIELD, intValue) ) {
-		height = *intValue;
-	} else {
 		height = BASICWINDOW_DEFAULT_HEIGHT;
 	}
 
 	// Initialization
-	if( FAILED(initialize(applicationName, exitAble, width, height)) ) {
-		return 	MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
-	} else {
-		return ERROR_SUCCESS;
+	if( FAILED(setMembers(applicationName, exitAble, width, height)) ) {
+		result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	}
+	return result;
 }
 
-HRESULT BasicWindow::initialize(std::wstring& name, bool& exitAble, int& width, int& height) {
+HRESULT BasicWindow::setMembers(std::wstring& name, bool& exitAble, int& width, int& height) {
 	m_applicationName = name;
 	m_exitAble = exitAble;
 	m_width = width;

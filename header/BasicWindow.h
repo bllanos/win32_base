@@ -132,17 +132,20 @@ public:
 		);
 
 protected:
-	/* Retrieves configuration data and then calls the other
-	   initialization function declared below.
+	/* Retrieves configuration data, or sets default values
+	   in the absence of configuration data
+	   -Calls ConfigUser::ConfigureConfigUser() if there is a Config instance to use
+	   -Calls setMembers()
 	 */
-	HRESULT initialize(void);
+	HRESULT configure(void);
 
 	/* The effective constructor
-	   This function is responsible the initialization of BasicWindow-specific
-	   data that is set based on constructor parameters or configuration data.
+	   This function is responsible for dynamic initialization of
+	   BasicWindow-specific data. Its arguments would be obtained by the caller
+	   from constructor arguments or configuration data.
 
-	   Constructors are responsible for initialization data that is always
-	   constant at the time of construction.
+	   Note that constructors are responsible for static initialization;
+	   The initialization of data that is constant at compile time.
 
 	   The window width and height will be reduced if the screen size
 	   turns out to be smaller.
@@ -152,7 +155,7 @@ protected:
 	   shutdownAll() to be called shortly thereafter,
 	   and Windows will probably expect the thread to terminate.
 	  */
-	HRESULT initialize(std::wstring& name, bool& exitAble, int& width, int& height);
+	HRESULT setMembers(std::wstring& name, bool& exitAble, int& width, int& height);
 
 public:
 	virtual ~BasicWindow(void);
@@ -236,7 +239,7 @@ template<typename ConfigIOClass> BasicWindow::BasicWindow(
 	m_applicationName(), m_hinstance(0), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
 	m_width(0), m_height(0), m_id(0), m_opened(false)
 {
-	initialize();
+	configure();
 }
 
 template<typename ConfigIOClass> BasicWindow::BasicWindow(
@@ -251,5 +254,5 @@ template<typename ConfigIOClass> BasicWindow::BasicWindow(
 	m_applicationName(), m_hinstance(0), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
 	m_width(0), m_height(0), m_id(0), m_opened(false)
 {
-	initialize();
+	configure();
 }
