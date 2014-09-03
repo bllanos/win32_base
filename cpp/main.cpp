@@ -469,11 +469,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
  */
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
-	// testTextProcessing::testStrToIntArray();
-	// testConfig_IConfigManager::testConfigWithStringValues(13, 2);
-	// testConfig_IConfigManager::testFlatAtomicConfigIO();
-	// testFileUtil::testExtractPath();
-	// testFileUtil::testInspectFileOrDirName();
-	// testFileUtil::testInspectFileOrDirNameAndPath();
+	testBasicWindow::openNWindows(1, true, quit_wParam);
 	return ERROR_SUCCESS;
 }

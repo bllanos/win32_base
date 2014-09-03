@@ -34,17 +34,18 @@ using std::vector;
 // Static member initialization
 vector<BasicWindow*>* BasicWindow::s_winProcList = 0;
 std::vector<BasicWindow>::size_type BasicWindow::s_currentId = 0;
+HINSTANCE BasicWindow::s_hinstance = NULL;
 
 BasicWindow::BasicWindow(
 	Usage usage,
 	const bool initFromGlobalConfig,
-	std::wstring name,
+	std::wstring title,
 	bool exitAble,
 	int width,
 	int height
 	) :
 	ConfigUser(true, BASICWINDOW_START_MSG_PREFIX, usage),
-	m_applicationName(name), m_hinstance(0), m_hwnd(0), m_exitAble(exitAble),
+	m_title(title), m_hwnd(0), m_exitAble(exitAble),
 	m_width(width), m_height(height), m_id(0), m_opened(false)
 {
 	if( initFromGlobalConfig && (usage != Usage::GLOBAL) ) {
@@ -55,13 +56,13 @@ BasicWindow::BasicWindow(
 	if( initFromGlobalConfig ) {
 		configure();
 	} else {
-		setMembers(name, exitAble, width, height);
+		setMembers(title, exitAble, width, height);
 	}
 }
 
 BasicWindow::BasicWindow(Config* sharedConfig) :
 ConfigUser(true, BASICWINDOW_START_MSG_PREFIX, sharedConfig),
-m_applicationName(), m_hinstance(0), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
+m_title(), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
 m_width(0), m_height(0), m_id(0), m_opened(false)
 {
 	configure();
@@ -72,7 +73,7 @@ HRESULT BasicWindow::configure(void) {
 	HRESULT result;
 
 	// Initialization data
-	std::wstring applicationName;
+	std::wstring title;
 	bool exitAble;
 	int width;
 	int height;
@@ -92,10 +93,10 @@ HRESULT BasicWindow::configure(void) {
 		const int* intValue = 0;
 
 		// Query for initialization data
-		if( retrieve<Config::DataType::WSTRING, std::wstring>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_NAME_FIELD, stringValue) ) {
-			applicationName = *stringValue;
+		if( retrieve<Config::DataType::WSTRING, std::wstring>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_TITLE_FIELD, stringValue) ) {
+			title = *stringValue;
 		} else {
-			applicationName = BASICWINDOW_DEFAULT_NAME;
+			title = BASICWINDOW_DEFAULT_TITLE;
 		}
 
 		if( retrieve<Config::DataType::BOOL, bool>(BASICWINDOW_SCOPE, BASICWINDOW_DEFAULT_EXITABLE_FIELD, boolValue) ) {
@@ -117,31 +118,31 @@ HRESULT BasicWindow::configure(void) {
 		}
 	} else {
 		logMessage(L"BasicWindow initialization from configuration data: No Config instance to use.");
-		applicationName = BASICWINDOW_DEFAULT_NAME;
+		title = BASICWINDOW_DEFAULT_TITLE;
 		exitAble = BASICWINDOW_DEFAULT_EXITABLE;
 		width = BASICWINDOW_DEFAULT_WIDTH;
 		height = BASICWINDOW_DEFAULT_HEIGHT;
 	}
 
 	// Initialization
-	if( FAILED(setMembers(applicationName, exitAble, width, height)) ) {
+	if( FAILED(setMembers(title, exitAble, width, height)) ) {
 		result = MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 	}
 	return result;
 }
 
-HRESULT BasicWindow::setMembers(std::wstring& name, bool& exitAble, int& width, int& height) {
-	m_applicationName = name;
+HRESULT BasicWindow::setMembers(std::wstring& title, bool& exitAble, int& width, int& height) {
+	m_title = title;
 	m_exitAble = exitAble;
 	m_width = width;
 	m_height = height;
 
-	if( name.empty() ) {
-		m_applicationName = BASICWINDOW_DEFAULT_NAME;
+	if( title.empty() ) {
+		m_title = BASICWINDOW_DEFAULT_TITLE;
 	}
 
 	// Set the logging message prefix
-	setMsgPrefix(BASICWINDOW_START_MSG_PREFIX L"'" + m_applicationName + L"'");
+	setMsgPrefix(BASICWINDOW_START_MSG_PREFIX L"'" + m_title + L"'");
 
 	// Determine the resolution of the client's screen and adapt if necessary
 	unsigned int screenWidth = GetSystemMetrics(SM_CXSCREEN);
@@ -162,7 +163,11 @@ HRESULT BasicWindow::openWindow(void) {
 
 	// Update static data members
 	if (s_winProcList == 0) {
+		// First window to be opened
 		s_winProcList = new vector < BasicWindow* > ;
+		if( FAILED(registerWindowClass()) ) {
+			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
+		}
 	}
 	if (!m_opened) {
 		// Need to create a new entry for this window
@@ -178,31 +183,8 @@ HRESULT BasicWindow::openWindow(void) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
 	}
 
-	WNDCLASSEX wc; // struct which describes the window class (properties of the window)
 	// DEVMODE dmScreenSettings;
 	int posX, posY;
-
-	// Get the instance of this application.
-	m_hinstance = GetModuleHandle(NULL);
-
-	// Setup the windows class with default settings.
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // See http://msdn.microsoft.com/en-us/library/windows/desktop/ff729176(v=vs.85).aspx
-	wc.lpfnWndProc = appProc; // our procedure to call back on window events
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = m_hinstance; // set window's application to this application
-	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
-	wc.hIconSm = wc.hIcon;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW); // use standard arrow cursor for window (when shown)
-	wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)); // brush for painting background colour
-	wc.lpszMenuName = NULL; // we have no menus with our window
-	wc.lpszClassName = m_applicationName.c_str(); // name of our application (Note: Project properties need to be set to use the Unicode character set for this line to compile)
-	wc.cbSize = sizeof(WNDCLASSEX);  //size of this structure in bytes
-
-	// Register the window class.
-	// The window class must be registered with Window's OS before the window
-	// can actually be created.
-	RegisterClassEx(&wc);
 
 	// Place the window in the middle of the screen.
 	posX = (GetSystemMetrics(SM_CXSCREEN) - m_width) / 2;
@@ -212,8 +194,8 @@ HRESULT BasicWindow::openWindow(void) {
 	// If the function fails, it returns 0
 	//http://msdn.microsoft.com/en-us/library/windows/desktop/ms632679(v=vs.85).aspx
 	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW,
-		m_applicationName.c_str(), // This is the name of the WNDCLASS instance that was registered
-		m_applicationName.c_str(), // This will be the window title
+		BASICWINDOW_WNDCLASSNAME, // This is the name of the WNDCLASS instance that was registered
+		m_title.c_str(), // This will be the window title
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 		posX,  // screen X of window's top left corner
 		posY, // screen Y of window's top left corner
@@ -221,7 +203,7 @@ HRESULT BasicWindow::openWindow(void) {
 		m_height, // height of screen
 		NULL, // Parent window
 		NULL, // Menu handle
-		m_hinstance, // the application instance
+		s_hinstance, // the application instance
 		NULL); // Additional parameters
 
 	// Check if window creation failed
@@ -236,7 +218,7 @@ HRESULT BasicWindow::openWindow(void) {
 	SetFocus(m_hwnd);            // give window input focus
 
 	// Set the logging message prefix to include more information
-	setMsgPrefix(L"BasicWindow '" + m_applicationName +
+	setMsgPrefix(L"BasicWindow '" + m_title +
 		L"', id = " + std::to_wstring(m_id) + L":");
 
 	logMessage(L"Window opened.");
@@ -258,10 +240,6 @@ HRESULT BasicWindow::shutdownWindow(const bool exitIfLast) {
 		// Remove the window.
 		DestroyWindow(m_hwnd);
 		m_hwnd = NULL;
-
-		// Remove the application instance.
-		UnregisterClass(m_applicationName.c_str(), m_hinstance);
-		m_hinstance = NULL;
 
 		// Remove the reference to this object
 		(*s_winProcList)[m_id] = 0;
@@ -298,6 +276,8 @@ HRESULT BasicWindow::shutdownAll(void) {
 		}
 	}
 
+	unregisterWindowClass();
+
 	// Cleanup static members
 	delete s_winProcList;
 	s_winProcList = 0;
@@ -333,6 +313,7 @@ HRESULT BasicWindow::updateAll(bool& quit, WPARAM& msg_wParam) {
 			quit = true;
 			msg_wParam = msg.wParam;
 			shutdownAll();
+			break;
 		}
 	}
 
@@ -390,4 +371,51 @@ LRESULT CALLBACK BasicWindow::appProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARA
 
 	// Any other messages are sent to the default message handler
 	return DefWindowProc(hwnd, umsg, wparam, lparam);
+}
+
+HRESULT BasicWindow::registerWindowClass(void) {
+
+	if( s_hinstance != NULL ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
+	}
+
+	WNDCLASSEX wc; // struct which describes the window class (properties of the window)
+	s_hinstance = GetModuleHandle(NULL);
+
+	// Setup the windows class with default settings.
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // See http://msdn.microsoft.com/en-us/library/windows/desktop/ff729176(v=vs.85).aspx
+	wc.lpfnWndProc = appProc; // our procedure to call back on window events
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = s_hinstance; // set window's application to this application
+	wc.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+	wc.hIconSm = wc.hIcon;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW); // use standard arrow cursor for window (when shown)
+	wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)); // brush for painting background colour
+	wc.lpszMenuName = NULL; // we have no menus with our window
+	wc.lpszClassName = BASICWINDOW_WNDCLASSNAME; // name of our application (Note: Project properties need to be set to use the Unicode character set for this line to compile)
+	wc.cbSize = sizeof(WNDCLASSEX);  //size of this structure in bytes
+
+	// Register the window class.
+	// The window class must be registered with Window's OS before the window
+	// can actually be created.
+	if( RegisterClassEx(&wc) == 0 ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WINDOWS_CALL);
+	}
+	return ERROR_SUCCESS;
+}
+
+HRESULT BasicWindow::unregisterWindowClass(void) {
+
+	if( s_hinstance == NULL ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
+	}
+
+	// Remove the application instance.
+	if( !UnregisterClass(BASICWINDOW_WNDCLASSNAME, s_hinstance) ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WINDOWS_CALL);
+	} else {
+		s_hinstance = NULL;
+		return ERROR_SUCCESS;
+	}
 }

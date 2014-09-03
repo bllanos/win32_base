@@ -43,6 +43,7 @@ Issues
 
 // Preprocessor Definitions
 #define WIN32_LEAN_AND_MEAN
+#define BASICWINDOW_WNDCLASSNAME			LCHAR_STRINGIFY(BasicWindow)
 
 /* The following definitions are:
    -Key parameters used to retrieve configuration data
@@ -53,8 +54,8 @@ Issues
 #define BASICWINDOW_SCOPE					LCHAR_STRINGIFY(BasicWindow)
 
 // BasicWindow instance parameters
-#define BASICWINDOW_DEFAULT_NAME			LCHAR_STRINGIFY(No Name)
-#define BASICWINDOW_DEFAULT_NAME_FIELD		LCHAR_STRINGIFY(windowName)
+#define BASICWINDOW_DEFAULT_TITLE			LCHAR_STRINGIFY(No Title)
+#define BASICWINDOW_DEFAULT_TITLE_FIELD		LCHAR_STRINGIFY(windowTitle)
 
 #define BASICWINDOW_DEFAULT_EXITABLE		true
 #define BASICWINDOW_DEFAULT_EXITABLE_FIELD	LCHAR_STRINGIFY(exitOnClose)
@@ -74,8 +75,7 @@ class BasicWindow : public ConfigUser
 {
 	// Data members
 private:
-	std::wstring	m_applicationName;
-	HINSTANCE		m_hinstance;
+	std::wstring	m_title; // Title of the window
 	HWND			m_hwnd;  // handle to the client window for the application
 	bool			m_exitAble; // True if closing this window will cause the application to quit
 	unsigned int	m_width; // Pixel width of the window
@@ -89,7 +89,7 @@ private:
 	   to use the full flexibility of the ConfigUser class,
 	   which BasicWindow is derived from.
 
-	   Only the 'name', 'exitAble', 'width', and 'height'
+	   Only the 'title', 'exitAble', 'width', and 'height'
 	   parameters are specific to the BasicWindow class.
 	   All constructors that do not accept these parameters
 	   will try to load appropriate values from configuration data.
@@ -101,7 +101,7 @@ public:
 	   and 'usage' is Usage::GLOBAL.
 
 	   If 'initFromGlobalConfig' is false, this object will use the
-	   'name', 'exitAble', 'width', and 'height' parameters for initialization.
+	   'title', 'exitAble', 'width', and 'height' parameters for initialization.
 
 	   The constructor will throw an exception of type std::exception if
 	   'initFromGlobalConfig' is true and 'usage' is not Usage::GLOBAL,
@@ -110,7 +110,7 @@ public:
 	BasicWindow(
 		Usage usage,
 		const bool initFromGlobalConfig = true,
-		std::wstring name = BASICWINDOW_DEFAULT_NAME,
+		std::wstring title = BASICWINDOW_DEFAULT_TITLE,
 		bool exitAble = true,
 		int width = BASICWINDOW_DEFAULT_WIDTH,
 		int height = BASICWINDOW_DEFAULT_HEIGHT
@@ -155,7 +155,7 @@ protected:
 	   shutdownAll() to be called shortly thereafter,
 	   and Windows will probably expect the thread to terminate.
 	  */
-	HRESULT setMembers(std::wstring& name, bool& exitAble, int& width, int& height);
+	HRESULT setMembers(std::wstring& title, bool& exitAble, int& width, int& height);
 
 public:
 	virtual ~BasicWindow(void);
@@ -211,9 +211,14 @@ private:
 	 */
 	static LRESULT CALLBACK appProc(HWND, UINT, WPARAM, LPARAM);
 
+	/* Registers the window class used to create windows */
+	static HRESULT registerWindowClass(void);
+	static HRESULT unregisterWindowClass(void);
+
 	// Static data members
 	static std::vector<BasicWindow*>* s_winProcList;
 	static std::vector<BasicWindow>::size_type s_currentId; // The ID to be assigned to the next window opened
+	static HINSTANCE s_hinstance;
 
 	// Currently not implemented - will cause linker errors if called
 private:
@@ -236,7 +241,7 @@ template<typename ConfigIOClass> BasicWindow::BasicWindow(
 	directoryScope,
 	directoryField
 	),
-	m_applicationName(), m_hinstance(0), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
+	m_title(), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
 	m_width(0), m_height(0), m_id(0), m_opened(false)
 {
 	configure();
@@ -251,7 +256,7 @@ template<typename ConfigIOClass> BasicWindow::BasicWindow(
 	filename,
 	path
 	),
-	m_applicationName(), m_hinstance(0), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
+	m_title(), m_hwnd(0), m_exitAble(BASICWINDOW_DEFAULT_EXITABLE),
 	m_width(0), m_height(0), m_id(0), m_opened(false)
 {
 	configure();
