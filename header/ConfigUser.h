@@ -18,6 +18,11 @@ Description
      for its descendants. This includes checking if the Config
 	 instance that the object is using is null before accessing it.
 
+  -Except where explicitly noted, function members of this class
+	 do not attempt to use a Config instance on behalf of derived
+	 classes, as this would require making assumptions concerning
+	 how configuration data should be used.
+
   -Allows for reading, writing, and switching configuration data
 
   -Allows for setting the visibility of the configuration data
@@ -234,6 +239,9 @@ public:
 	   Unlike the change of a PRIVATE Config instance (refer to the setter
 	   functions in the next section below), this function will not generate
 	   logging output (regardless of whether the operation succeeds or fails).
+
+	   Note that this function does not attempt to use the configuration
+	   data, such as to re-configure this object's state.
 	 */
 	virtual HRESULT setSharedConfig(Config* sharedConfig);
 
@@ -504,6 +512,49 @@ private:
 	   Also called by hasConfigToUse()
 	 */
 	Config* getConfigToUse(void) const;
+
+	// Configuration Functions
+	// -----------------------------------------------------------------
+	/* The following functions can be called by derived classes
+	   to configure LogUser and ConfigUser aspects of the object's state.
+
+	   These functions use the given key scopes passed in as the
+	   'scope' parameter in combination with key fields defined as preprocessor
+	   constants in LogUser.h and ConfigUser.h to retrieve data
+	   from the Config instance that this object is using (if one exists).
+
+	   All functions will return failure results only in case of internal
+	   errors (other than the return of failure results by insertion
+	   and retrieval operations). In particular, they will return
+	   success results if configuration data cannot be found, or
+	   if there is no Config instance to use.
+
+	   The function members of ConfigUser do not call these functions;
+	   they are for use by derived classes only!
+	 */
+protected:
+	/* Configures the following:
+         -Whether or not logging is enabled
+	     -The Logging message prefix
+	     -The Logger used by this object, and its state/behaviour (if it is not
+		    the global Logger instance)
+	 */
+	virtual HRESULT configureLogUserOnly(const std::wstring& scope);
+
+	/* Configures the following:
+	     -Whether or not logging is enabled relating to the use of
+		    configuration data
+	 */
+	virtual HRESULT configureConfigUserOnly(const std::wstring& scope);
+
+	/* This function simply calls configureLogUserOnly(), then configureConfigUserOnly(),
+	   provided that configuration data is available.
+	   -'logUserScope' is passed to configureLogUserOnly()
+	   -'configUserScope' is passed to configureConfigUserOnly()
+	   -If 'configUserScope' is null, then 'logUserScope' is also passed
+	      to configureConfigUserOnly()
+	 */
+	virtual HRESULT configureConfigUser(const std::wstring& logUserScope, const std::wstring* configUserScope = 0);
 
 	// Currently not implemented - will cause linker errors if called
 private:

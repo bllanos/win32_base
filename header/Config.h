@@ -237,7 +237,9 @@ public:
 	the ERROR_DATA_NOT_FOUND error code.
 
 	The 'value' parameter of a retrieval function is a reference to a pointer.
-	The pointer is a pointer to a constant object.
+	The pointer is a pointer to a constant object. Note that retrieval
+	functions will overwrite 'value' regardless of whether or not
+	it was passed in as a null pointer.
 
 	Retrieval functions will return failure results for internal errors.
 

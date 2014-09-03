@@ -35,6 +35,7 @@ Notes
 #include <Windows.h>
 #include <string>
 #include <list>
+#include "defs.h"
 #include "Logger.h"
 
 /* Suggested configuration data keys to be used by derived classes
@@ -44,10 +45,19 @@ Notes
 #define LOGUSER_MSG_PREFIX_FIELD					LCHAR_STRINGIFY(msgPrefix)
 #define LOGUSER_USEGLOBAL_LOGGER_FLAG_FIELD			LCHAR_STRINGIFY(useGlobalLog)
 #define LOGUSER_PRIMARYFILE_FLAG_FIELD				LCHAR_STRINGIFY(allocLogFile)
-#define LOGUSER_PRIMARYFILE_NAME_FIELD				LCHAR_STRINGIFY(logFilename)
+#define LOGUSER_PRIMARYFILE_NAME_FIELD				LCHAR_STRINGIFY(logFileName)
+#define LOGUSER_PRIMARYFILE_PATH_FIELD				LCHAR_STRINGIFY(logFilePath)
 #define LOGUSER_PRIMARYFILE_OVERWRITE_FLAG_FIELD	LCHAR_STRINGIFY(overwriteFile)
 #define LOGUSER_CONSOLE_FLAG_FIELD					LCHAR_STRINGIFY(allocConsole)
 #define LOGUSER_TIMESTAMP_FLAG_FIELD				LCHAR_STRINGIFY(timestampEnable)
+
+// Default argument values
+#define LOGUSER_USEGLOBAL_LOGGER_FLAG				true
+#define LOGUSER_PRIMARYFILE_FLAG					true
+#define LOGUSER_PRIMARYFILE_NAME					LCHAR_STRINGIFY(customLog.txt)
+#define LOGUSER_PRIMARYFILE_OVERWRITE_FLAG			false
+#define LOGUSER_CONSOLE_FLAG						false
+#define LOGUSER_TIMESTAMP_FLAG						true
 
 class LogUser
 {
@@ -90,7 +100,12 @@ public:
 	If the call to the Logger constructor fails, this
 	object's logger is not changed.
 	 */
-	virtual HRESULT setLogger(bool allocLogFile = true, const std::wstring filename = L"customLog.txt", bool holdAndReplaceFile = false, bool allocLogConsole = false);
+	virtual HRESULT setLogger(
+		bool allocLogFile = LOGUSER_PRIMARYFILE_FLAG,
+		const std::wstring filename = LOGUSER_PRIMARYFILE_NAME,
+		bool holdAndReplaceFile = LOGUSER_PRIMARYFILE_OVERWRITE_FLAG,
+		bool allocLogConsole = LOGUSER_CONSOLE_FLAG
+		);
 
 	/* Reverts to the previous Logger
 
