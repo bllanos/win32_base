@@ -72,6 +72,11 @@ Notes
 #define CONFIGUSER_OUTPUT_OVERWRITE_FLAG_FIELD	LCHAR_STRINGIFY(overwriteFileFromConfig)
 #define CONFIGUSER_OUTPUT_CONTEXT_FLAG_FIELD	LCHAR_STRINGIFY(outputConfigFileContext)
 
+/* Default argument values, which can be used when configuration
+   data is missing
+ */
+#define CONFIGUSER_ENABLE_LOGGING_FLAG			true
+
 class ConfigUser : public LogUser {
 
 public:
@@ -521,13 +526,13 @@ private:
 	   These functions use the given key scopes passed in as the
 	   'scope' parameter in combination with key fields defined as preprocessor
 	   constants in LogUser.h and ConfigUser.h to retrieve data
-	   from the Config instance that this object is using (if one exists).
+	   from the Config instance that this object is using.
 
-	   All functions will return failure results only in case of internal
+	   All functions will return failure results in case of internal
 	   errors (other than the return of failure results by insertion
-	   and retrieval operations). In particular, they will return
-	   success results if configuration data cannot be found, or
-	   if there is no Config instance to use.
+	   and retrieval operations). They will return success results if
+	   configuration data cannot be found, but will return failure results
+	   and do nothing if there is no Config instance to use.
 
 	   The function members of ConfigUser do not call these functions;
 	   they are for use by derived classes only!
@@ -538,12 +543,20 @@ protected:
 	     -The Logging message prefix
 	     -The Logger used by this object, and its state/behaviour (if it is not
 		    the global Logger instance)
+
+	   If a Config instance is available, default values will
+	   be used for Boolean parameters and other simple data
+	   that is not found in the Config instance.
 	 */
 	virtual HRESULT configureLogUserOnly(const std::wstring& scope);
 
 	/* Configures the following:
 	     -Whether or not logging is enabled relating to the use of
 		    configuration data
+
+	   If a Config instance is available, default values will
+	   be used for Boolean parameters and other simple data
+	   that is not found in the Config instance.
 	 */
 	virtual HRESULT configureConfigUserOnly(const std::wstring& scope);
 

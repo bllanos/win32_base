@@ -51,10 +51,12 @@ Notes
 #define LOGUSER_CONSOLE_FLAG_FIELD					LCHAR_STRINGIFY(allocConsole)
 #define LOGUSER_TIMESTAMP_FLAG_FIELD				LCHAR_STRINGIFY(timestampEnable)
 
-// Default argument values
+/* Default argument values, which can be used when configuration
+   data is missing
+ */
+#define LOGUSER_ENABLE_LOGGING_FLAG					true
 #define LOGUSER_USEGLOBAL_LOGGER_FLAG				true
 #define LOGUSER_PRIMARYFILE_FLAG					true
-#define LOGUSER_PRIMARYFILE_NAME					LCHAR_STRINGIFY(customLog.txt)
 #define LOGUSER_PRIMARYFILE_OVERWRITE_FLAG			false
 #define LOGUSER_CONSOLE_FLAG						false
 #define LOGUSER_TIMESTAMP_FLAG						true
@@ -101,8 +103,8 @@ public:
 	object's logger is not changed.
 	 */
 	virtual HRESULT setLogger(
-		bool allocLogFile = LOGUSER_PRIMARYFILE_FLAG,
-		const std::wstring filename = LOGUSER_PRIMARYFILE_NAME,
+		bool allocLogFile,
+		const std::wstring filename,
 		bool holdAndReplaceFile = LOGUSER_PRIMARYFILE_OVERWRITE_FLAG,
 		bool allocLogConsole = LOGUSER_CONSOLE_FLAG
 		);
