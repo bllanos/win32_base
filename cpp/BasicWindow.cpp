@@ -183,22 +183,15 @@ HRESULT BasicWindow::openWindow(void) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
 	}
 
-	// DEVMODE dmScreenSettings;
-	int posX, posY;
-
-	// Place the window in the middle of the screen.
-	posX = (GetSystemMetrics(SM_CXSCREEN) - m_width) / 2;
-	posY = (GetSystemMetrics(SM_CYSCREEN) - m_height) / 2;
-
 	// Create the window with the screen settings and get the handle to it.
 	// If the function fails, it returns 0
 	//http://msdn.microsoft.com/en-us/library/windows/desktop/ms632679(v=vs.85).aspx
 	m_hwnd = CreateWindowEx(WS_EX_APPWINDOW,
 		BASICWINDOW_WNDCLASSNAME, // This is the name of the WNDCLASS instance that was registered
-		m_title.c_str(), // This will be the window title
+		m_title.c_str(), // This will be the text in the window's caption bar
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-		posX,  // screen X of window's top left corner
-		posY, // screen Y of window's top left corner
+		CW_USEDEFAULT,  // screen X of window's top left corner
+		CW_USEDEFAULT, // screen Y of window's top left corner
 		m_width,  // width of screen
 		m_height, // height of screen
 		NULL, // Parent window
@@ -213,7 +206,7 @@ HRESULT BasicWindow::openWindow(void) {
 	}
 
 	// Bring the window up on the screen and set it as main focus.
-	ShowWindow(m_hwnd, SW_SHOW); // show  the window
+	ShowWindow(m_hwnd, SW_SHOW); // show the window
 	SetForegroundWindow(m_hwnd); // make window the foreground window
 	SetFocus(m_hwnd);            // give window input focus
 
@@ -291,7 +284,7 @@ HRESULT BasicWindow::updateAll(bool& quit, WPARAM& msg_wParam) {
 
 	// Initialize the message structure.
 	MSG msg;
-	ZeroMemory(&msg, sizeof(MSG));
+	SecureZeroMemory(&msg, sizeof(MSG));
 
 	/* Dispatch Windows messages for this thread
 	   Note that passing in a HWND value for the second
@@ -305,15 +298,15 @@ HRESULT BasicWindow::updateAll(bool& quit, WPARAM& msg_wParam) {
 	 */
 	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-
 		if( msg.message == WM_QUIT ) {
 			// The application must terminate
 			quit = true;
 			msg_wParam = msg.wParam;
 			shutdownAll();
 			break;
+		} else {
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
 		}
 	}
 
@@ -322,21 +315,28 @@ HRESULT BasicWindow::updateAll(bool& quit, WPARAM& msg_wParam) {
 
 LRESULT CALLBACK BasicWindow::winProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
 
-	// Check if the window is being destroyed or closed
-	if (umsg == WM_DESTROY || umsg == WM_CLOSE) {
+	// Check for requests to terminate
+	/* See http://msdn.microsoft.com/en-us/library/windows/desktop/ms632598%28v=vs.85%29.aspx#destroying_win
+	     for more information on WM_CLOSE and WM_DESTROY messages.
+	 */
+	if (umsg == WM_CLOSE || (umsg == WM_KEYDOWN && wparam == VK_ESCAPE) ) {
 		
 		if (m_exitAble) {
 			/* Closing this window means that the entire application must shut down
-			shortly. The quit message will be encountered by any update() function call.
-			*/
+			   shortly. The quit message will be encountered by any update() function call.
+			 */
 			PostQuitMessage(0);
-			logMessage(L"Posted quit message because this 'exitAble' window received a WM_CLOSE (2) or WM_DESTROY (16) message."
-				L"\n\tThe message value is "+std::to_wstring(umsg));
+			logMessage(L"Posted quit message because this 'exitAble' window received a message that will cause it to close. "
+				L"The message value is "+std::to_wstring(umsg));
 		} else {
-			logMessage(L"Non-'exitAble' window received a WM_CLOSE (2) or WM_DESTROY (16) message."
-				L"\n\tThe message value is " + std::to_wstring(umsg));
+			logMessage(L"Non-'exitAble' window received a message that will cause it to close. "
+				L"The message value is " + std::to_wstring(umsg));
 			shutdownWindow(true); // Close only this window, unless it is the only open window
 		}
+		return 0;
+
+	} else if( umsg == WM_DESTROY ) {
+		// No special processing
 		return 0;
 	}
 
@@ -383,7 +383,7 @@ HRESULT BasicWindow::registerWindowClass(void) {
 	s_hinstance = GetModuleHandle(NULL);
 
 	// Setup the windows class with default settings.
-	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // See http://msdn.microsoft.com/en-us/library/windows/desktop/ff729176(v=vs.85).aspx
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_DBLCLKS; // See http://msdn.microsoft.com/en-us/library/windows/desktop/ff729176(v=vs.85).aspx
 	wc.lpfnWndProc = appProc; // our procedure to call back on window events
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
