@@ -70,7 +70,7 @@ m_width(0), m_height(0), m_id(0), m_opened(false)
 
 HRESULT BasicWindow::configure(void) {
 
-	HRESULT result;
+	HRESULT result = ERROR_SUCCESS;
 
 	// Initialization data
 	std::wstring title;

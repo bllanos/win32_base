@@ -31,4 +31,8 @@ namespace testBasicWindow {
 	*/
 	void openNWindows(const unsigned int n, const unsigned int nExitAble, WPARAM& quit_wParam);
 
+	/* Test configuration of a window from the global configuration object.
+	   (Otherwise does nothing except open the window.)
+	 */
+	HRESULT testGlobalBasicWindowConfig(WPARAM& quit_wParam);
 }
