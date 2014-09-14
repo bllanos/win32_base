@@ -4,3 +4,7 @@ FILENAME -- BasicWindow_LogUser::logFileName = "basicWindowLog.txt"
 BOOL -- BasicWindow_LogUser::overwriteFile = false
 BOOL -- BasicWindow_ConfigUser::enableConfigUseLogging = true
 WSTRING -- BasicWindow::windowTitle = L"myWindow"
+
+# Where to load configuration data for the second BasicWindow object
+DIRECTORY -- config::path= ".\configuration\test"
+FILENAME -- config::filename = "testBasicWindowConfig2.txt"

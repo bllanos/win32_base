@@ -25,8 +25,6 @@ Description
 #include "defs.h"
 #include <exception>
 
-#define BASICWINDOW_START_MSG_PREFIX L"BasicWindow "
-
 // Using declarations
 using std::wstring;
 using std::vector;

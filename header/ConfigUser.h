@@ -161,6 +161,15 @@ protected:
 	   The configuration file (if it exists) will be used to
 	   construct this object's Config instance.
 
+	   'optionalLoader' = Object to use for reading the configuration file.
+	     It should be of a type derived from the IConfigIO interface class.
+		 If it is null, the constructor will try to create
+		 an object, of the same type, for reading configuration data,
+		 using a zero-parameter constructor.
+
+		 If 'optionalLoader' is passed in as a non-null pointer,
+		 it must be deallocated by the caller.
+
 	   (filenameScope, filenameField) = Key used to retrieve the
 	     name of the file, if 'directoryScope' and 'directoryField'
 		 are not both empty. If 'directoryScope' and 'directoryField'
@@ -181,13 +190,10 @@ protected:
 	       const bool enableLogging, const std::wstring& msgPrefix, Usage usage
 		 ),
 	   where 'usage' is PRIVATE.
-
-	   The type parameter, 'ConfigIOClass', is the type of loader to use for
-	   reading the configuration file. Therefore, 'ConfigIOClass' must be
-	   derived from the IConfigIO interface class.
 	 */
 	template<typename ConfigIOClass> ConfigUser(
 		const bool enableLogging, const std::wstring& msgPrefix,
+		ConfigIOClass* const optionalLoader,
 		const Config* locationSource,
 		const std::wstring filenameScope,
 		const std::wstring filenameField,
@@ -210,12 +216,18 @@ protected:
 		 ),
 	   where 'usage' is PRIVATE.
 
-	   The type parameter, 'ConfigIOClass', is the type of loader to use for
-	   reading the configuration file. Therefore, 'ConfigIOClass' must be
-	   derived from the IConfigIO interface class.
+	   'optionalLoader' is the object to use for reading the configuration file.
+	     It should be of a type derived from the IConfigIO interface class.
+		 If it is null, the constructor will try to create
+		 an object, of the same type, for reading configuration data,
+		 using a zero-parameter constructor.
+
+		 If 'optionalLoader' is passed in as a non-null pointer,
+		 it must be deallocated by the caller.
 	 */
 	template<typename ConfigIOClass> ConfigUser(
 		const bool enableLogging, const std::wstring& msgPrefix,
+		ConfigIOClass* const optionalLoader,
 		const std::wstring filename,
 		const std::wstring path = L""
 		);
@@ -334,6 +346,7 @@ protected:
 	   log a message describing the issue.
 	 */
 	template<typename ConfigIOClass> HRESULT setPrivateConfig(const bool useOwnConfig,
+		ConfigIOClass* const optionalLoader,
 		const Config* locationSource,
 		const std::wstring filenameScope,
 		const std::wstring filenameField,
@@ -356,6 +369,7 @@ protected:
 	   log a message describing the issue.
 	 */
 	template<typename ConfigIOClass> HRESULT setPrivateConfig(
+		ConfigIOClass* const optionalLoader,
 		const std::wstring filename,
 		const std::wstring path = L"",
 		const bool overwrite = true
@@ -384,6 +398,7 @@ private:
 	   In this case, this function will also return ERROR_DATA_INCOMPLETE.
 	 */
 	template<typename ConfigIOClass> HRESULT setPrivateConfig(
+		ConfigIOClass* const optionalLoader,
 		const std::wstring& filenameAndPath,
 		const bool overwrite
 		);
@@ -437,6 +452,7 @@ protected:
 	 */
 public:
 	template<typename ConfigIOClass> HRESULT writePrivateConfig(const bool useOwnConfig,
+		ConfigIOClass* const optionalWriter,
 		const Config* locationSource,
 		const std::wstring filenameScope,
 		const std::wstring filenameField,
@@ -447,6 +463,7 @@ public:
 		);
 
 	template<typename ConfigIOClass> HRESULT writePrivateConfig(
+		ConfigIOClass* const optionalWriter,
 		const std::wstring filename,
 		const std::wstring path = L"",
 		const bool overwrite = true,
@@ -467,6 +484,7 @@ private:
 	   data writing operation in its logging output.
 	 */
 	template<typename ConfigIOClass> HRESULT writePrivateConfig(
+		ConfigIOClass* const optionalWriter,
 		const std::wstring& filenameAndPath,
 		const bool overwrite,
 		const bool outputContext
@@ -497,13 +515,11 @@ private:
 		const std::wstring& logMsgPrefix
 		);
 
-	/* As currently implemented, 'filename' must not be null
-	   and 'filenameAndPath' must be null when they are passed in.
-	   The caller must delete 'filenameAndPath' if 'quit' is false,
-	   and if 'filenameAndPath' is not the same pointer as 'filename'.
+	/* As currently implemented 'filenameAndPath' must be null when passed in.
+	   The caller must delete 'filenameAndPath' if 'quit' is false.
 	 */
 	HRESULT helper_IOPrivateConfig(
-		std::wstring*& filename,
+		const std::wstring& filename,
 		const std::wstring& path,
 		bool& quit,
 		std::wstring*& filenameAndPath,
@@ -581,6 +597,7 @@ private:
 
 template<typename ConfigIOClass> ConfigUser::ConfigUser(
 	const bool enableLogging, const std::wstring& msgPrefix,
+	ConfigIOClass* const optionalLoader,
 	const Config* locationSource,
 	const std::wstring filenameScope,
 	const std::wstring filenameField,
@@ -593,6 +610,7 @@ template<typename ConfigIOClass> ConfigUser::ConfigUser(
 	if( !filenameField.empty() ) {
 		HRESULT error = setPrivateConfig<ConfigIOClass>(
 			false,
+			optionalLoader,
 			locationSource,
 			filenameScope,
 			filenameField,
@@ -612,6 +630,7 @@ template<typename ConfigIOClass> ConfigUser::ConfigUser(
 
 template<typename ConfigIOClass> ConfigUser::ConfigUser(
 	const bool enableLogging, const std::wstring& msgPrefix,
+	ConfigIOClass* const optionalLoader,
 	const std::wstring filename,
 	const std::wstring path
 	) :
@@ -620,6 +639,7 @@ template<typename ConfigIOClass> ConfigUser::ConfigUser(
 {
 	if( !filename.empty() ) {
 		HRESULT error = setPrivateConfig<ConfigIOClass>(
+			optionalLoader,
 			filename,
 			path,
 			true);
@@ -635,6 +655,7 @@ template<typename ConfigIOClass> ConfigUser::ConfigUser(
 }
 
 template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(const bool useOwnConfig,
+	ConfigIOClass* const optionalLoader,
 	const Config* locationSource,
 	const std::wstring filenameScope,
 	const std::wstring filenameField,
@@ -666,10 +687,11 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(const bool
 	}
 
 	// Perform the change of Config instance
-	return setPrivateConfig<ConfigIOClass>(filenameAndPath, overwrite);
+	return setPrivateConfig<ConfigIOClass>(optionalLoader, filenameAndPath, overwrite);
 }
 
 template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
+	ConfigIOClass* const optionalLoader,
 	const std::wstring filename,
 	const std::wstring path,
 	const bool overwrite
@@ -681,10 +703,10 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 	}
 
 	bool quit;
-	std::wstring* filenameAndPath;
+	std::wstring* filenameAndPath = 0;
 	const std::wstring logMsgPrefix = L"setPrivateConfig([filepath arguments]): ";
 	HRESULT result = helper_IOPrivateConfig(
-		&filename,
+		filename,
 		path,
 		quit,
 		filenameAndPath,
@@ -695,15 +717,16 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 	}
 
 	// Perform the change of Config instance
-	result = setPrivateConfig<ConfigIOClass>(*filenameAndPath, overwrite);
+	result = setPrivateConfig<ConfigIOClass>(optionalLoader, *filenameAndPath, overwrite);
 
-	if( (filenameAndPath != &filename) && (filenameAndPath != 0) ) {
+	if( filenameAndPath != 0 ) {
 		delete filenameAndPath;
 	}
 	return result;
 }
 
 template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
+	ConfigIOClass* const optionalLoader,
 	const std::wstring& filenameAndPath,
 	const bool overwrite
 	)
@@ -719,7 +742,12 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 		CONFIGUSER_LOGMESSAGE(L"setPrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = false.")
 	}
 
-	IConfigIO* configIO = new ConfigIOClass;
+	IConfigIO* configIO = 0;
+	if( optionalLoader == 0 ) {
+		configIO = new ConfigIOClass;
+	} else {
+		configIO = optionalLoader;
+	}
 	Config* config = (overwrite || (m_config == 0)) ? new Config : m_config;
 
 	HRESULT error = configIO->read(filenameAndPath, *config);
@@ -757,7 +785,7 @@ template<typename ConfigIOClass> HRESULT ConfigUser::setPrivateConfig(
 	}
 
 	// Cleanup
-	if( configIO != 0 ) {
+	if( (configIO != 0) && (optionalLoader == 0) ) {
 		delete configIO;
 	}
 
@@ -827,6 +855,7 @@ template<Config::DataType D, typename T> bool ConfigUser::retrieve(
 }
 
 template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(const bool useOwnConfig,
+	ConfigIOClass* const optionalWriter,
 	const Config* locationSource,
 	const std::wstring filenameScope,
 	const std::wstring filenameField,
@@ -859,10 +888,11 @@ template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(const bo
 	}
 
 	// Perform the output operation
-	return writePrivateConfig<ConfigIOClass>(filenameAndPath, overwrite, outputContext);
+	return writePrivateConfig<ConfigIOClass>(optionalWriter, filenameAndPath, overwrite, outputContext);
 }
 
 template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
+	ConfigIOClass* const optionalWriter,
 	const std::wstring filename,
 	const std::wstring path,
 	const bool overwrite,
@@ -875,10 +905,10 @@ template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
 	}
 
 	bool quit;
-	std::wstring* filenameAndPath;
+	std::wstring* filenameAndPath = 0;
 	const std::wstring logMsgPrefix = L"writePrivateConfig([filepath arguments]): ";
 	HRESULT result = helper_IOPrivateConfig(
-		&filename,
+		filename,
 		path,
 		quit,
 		filenameAndPath,
@@ -889,15 +919,16 @@ template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
 	}
 
 	// Perform the output operation
-	result = writePrivateConfig<ConfigIOClass>(filenameAndPath, overwrite, outputContext);
+	result = writePrivateConfig<ConfigIOClass>(optionalWriter, filenameAndPath, overwrite, outputContext);
 
-	if( (filenameAndPath != &filename) && (filenameAndPath != 0) ) {
+	if( filenameAndPath != 0 ) {
 		delete filenameAndPath;
 	}
 	return result;
 }
 
 template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
+	ConfigIOClass* const optionalWriter,
 	const std::wstring& filenameAndPath,
 	const bool overwrite,
 	const bool outputContext
@@ -914,7 +945,12 @@ template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
 		CONFIGUSER_LOGMESSAGE(L"writePrivateConfig() base function: called with file = " + filenameAndPath + L" and overwrite = false.")
 	}
 
-	IConfigIO* configIO = new ConfigIOClass;
+	IConfigIO* configIO = 0;
+	if( optionalWriter == 0 ) {
+		configIO = new ConfigIOClass;
+	} else {
+		configIO = optionalWriter;
+	}
 	configIO->toggleContextOutput(outputContext);
 	HRESULT error = configIO->write(filenameAndPath, *m_config, overwrite);
 
@@ -932,7 +968,7 @@ template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
 	}
 
 	// Cleanup
-	if( configIO != 0 ) {
+	if( (configIO != 0) && (optionalWriter == 0) ) {
 		delete configIO;
 	}
 

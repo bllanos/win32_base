@@ -255,3 +255,111 @@ HRESULT testBasicWindow::testSharedBasicWindowConfig(WPARAM& quit_wParam) {
 
 	return finalResult;
 }
+
+HRESULT testBasicWindow::testPrivateBasicWindowConfig(WPARAM& quit_wParam) {
+
+	// Create a file for logging the test results
+	Logger* logger = 0;
+	std::wstring logFilename;
+	try {
+		logFilename;
+		fileUtil::combineAsPath(logFilename, DEFAULT_LOG_PATH_TEST, L"testPrivateBasicWindowConfig.txt");
+		logger = new Logger(true, logFilename, false, false);
+	} catch( ... ) {
+		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_NO_LOGGER);
+	}
+
+	std::wstring errorStr;
+	HRESULT result = ERROR_SUCCESS;
+	HRESULT finalResult = ERROR_SUCCESS;
+
+	// Set up configuration data to use for retrieving configuration data later
+	Config config;
+	Config* pConfig = &config;
+
+	FlatAtomicConfigIO configIO;
+	result = configIO.setLogger(true, logFilename, false, false);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to redirect logging output of the FlatAtomicConfigIO object.");
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
+		finalResult = result;
+	}
+
+	// Read in the configuration file
+	const std::wstring configFileNameOnly(L"testBasicWindowConfig1.txt");
+	const std::wstring configFilePathOnly(DEFAULT_CONFIG_PATH_TEST);
+	std::wstring configFilename;
+	fileUtil::combineAsPath(configFilename, configFilePathOnly, configFileNameOnly);
+	result = configIO.read(configFilename, config);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to read the configuration file: " + configFilename);
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
+		finalResult = result;
+	}
+
+	// Create the first window
+	BasicWindow basicWindow1(&configIO, configFileNameOnly, configFilePathOnly);
+	// BasicWindow basicWindow1(static_cast<FlatAtomicConfigIO*>(0), configFileNameOnly, configFilePathOnly);
+
+	// Create the second window
+	const std::wstring filenameScope = L"config";
+	const std::wstring filenameField = L"filename";
+	const std::wstring directoryScope = filenameScope;
+	const std::wstring directoryField = L"path";
+	BasicWindow basicWindow2(
+		&configIO,
+		// static_cast<FlatAtomicConfigIO*>(0),
+		&config,
+		filenameScope,
+		filenameField,
+		directoryScope,
+		directoryField
+		);
+
+	// Open the windows
+	result = basicWindow1.openWindow();
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to open the first window.");
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
+		finalResult = result;
+	}
+	result = basicWindow2.openWindow();
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to open the second window.");
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
+		finalResult = result;
+	}
+
+	// Update loop
+	logger->logMessage(L"testBasicWindow::testPrivateBasicWindowConfig() Entering update loop.");
+	bool quit = false;
+	quit_wParam = static_cast<WPARAM>(0);
+	while( !quit ) {
+		result = BasicWindow::updateAll(quit, quit_wParam);
+		if( FAILED(result) ) {
+			logger->logMessage(
+				L"testBasicWindow::testPrivateBasicWindowConfig() BasicWindow updateAll() function returned an error.");
+			prettyPrintHRESULT(errorStr, result);
+			logger->logMessage(errorStr);
+			finalResult = result;
+		}
+		if( quit ) {
+			break;
+		}
+	}
+	logger->logMessage(L"testBasicWindow::testPrivateBasicWindowConfig() Leaving update loop.");
+
+	if( SUCCEEDED(finalResult) ) {
+		logger->logMessage(L"All tests passed.");
+	} else {
+		logger->logMessage(L"Some or all tests failed.");
+	}
+
+	delete logger;
+
+	return finalResult;
+}

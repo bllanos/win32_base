@@ -45,6 +45,9 @@ Issues
 #define WIN32_LEAN_AND_MEAN
 #define BASICWINDOW_WNDCLASSNAME			LCHAR_STRINGIFY(BasicWindow)
 
+// Default log message prefix used before more information is available
+#define BASICWINDOW_START_MSG_PREFIX L"BasicWindow "
+
 /* The following definitions are:
    -Key parameters used to retrieve configuration data
    -Default values used in the absence of configuration data
@@ -119,6 +122,7 @@ public:
 	BasicWindow(Config* sharedConfig);
 
 	template<typename ConfigIOClass> BasicWindow(
+		ConfigIOClass* const optionalLoader,
 		const Config* locationSource,
 		const std::wstring filenameScope,
 		const std::wstring filenameField,
@@ -127,6 +131,7 @@ public:
 		);
 
 	template<typename ConfigIOClass> BasicWindow(
+		ConfigIOClass* const optionalLoader,
 		const std::wstring filename,
 		const std::wstring path = L""
 		);
@@ -227,14 +232,16 @@ private:
 };
 
 template<typename ConfigIOClass> BasicWindow::BasicWindow(
+	ConfigIOClass* const optionalLoader,
 	const Config* locationSource,
 	const std::wstring filenameScope,
 	const std::wstring filenameField,
 	const std::wstring directoryScope,
 	const std::wstring directoryField
 	) :
-	ConfigUser<ConfigIOClass>(
+	ConfigUser(
 	true, BASICWINDOW_START_MSG_PREFIX,
+	optionalLoader,
 	locationSource,
 	filenameScope,
 	filenameField,
@@ -248,11 +255,13 @@ template<typename ConfigIOClass> BasicWindow::BasicWindow(
 }
 
 template<typename ConfigIOClass> BasicWindow::BasicWindow(
+	ConfigIOClass* const optionalLoader,
 	const std::wstring filename,
 	const std::wstring path
 	) :
-	ConfigUser<ConfigIOClass>(
+	ConfigUser(
 	true, BASICWINDOW_START_MSG_PREFIX,
+	optionalLoader,
 	filename,
 	path
 	),

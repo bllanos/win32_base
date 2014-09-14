@@ -187,7 +187,7 @@ HRESULT ConfigUser::helper_IOPrivateConfig(const bool useOwnConfig,
 }
 
 HRESULT ConfigUser::helper_IOPrivateConfig(
-	wstring*& filename,
+	const wstring& filename,
 	const wstring& path,
 	bool& quit,
 	wstring*& filenameAndPath,
@@ -199,23 +199,23 @@ HRESULT ConfigUser::helper_IOPrivateConfig(
 	// Error checking
 	if( m_usage != Usage::PRIVATE ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_WRONG_STATE);
-	} else if( (filename == 0) || (filenameAndPath != 0) ) {
+	} else if( filenameAndPath != 0 ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
-	} else if( filename->empty() ) {
+	} else if( filename.empty() ) {
 		return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_INVALID_INPUT);
 	}
 
 	// Prepare combined filename and path
 	if( !path.empty() ) {
 		filenameAndPath = new wstring;
-		if( FAILED(fileUtil::combineAsPath(*filenameAndPath, path, *filename)) ) {
+		if( FAILED(fileUtil::combineAsPath(*filenameAndPath, path, filename)) ) {
 			CONFIGUSER_LOGMESSAGE(logMsgPrefix + L"Combination of the filename and path using fileUtil::combineAsPath() failed.")
 			delete filenameAndPath;
 			filenameAndPath = 0;
 			return MAKE_HRESULT(SEVERITY_ERROR, FACILITY_BL_ENGINE, ERROR_FUNCTION_CALL);
 		}
 	} else {
-		filenameAndPath = filename;
+		filenameAndPath = new wstring(filename);
 	}
 
 	quit = false;

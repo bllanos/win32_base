@@ -471,7 +471,7 @@ HRESULT applicationLoop(WPARAM& quit_wParam) {
 
 	// testBasicWindow::openNWindows(3, 3, quit_wParam);
 	// testBasicWindow::testGlobalBasicWindowConfig(quit_wParam);
-
-	return testBasicWindow::testSharedBasicWindowConfig(quit_wParam);
+	// testBasicWindow::testSharedBasicWindowConfig(quit_wParam);
+	return testBasicWindow::testPrivateBasicWindowConfig(quit_wParam);
 	// return ERROR_SUCCESS;
 }
