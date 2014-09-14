@@ -1,0 +1,6 @@
+BOOL -- BasicWindow_LogUser::enableLogging = true
+DIRECTORY -- BasicWindow_LogUser::logFilePath = "..\win32_base IO Files"
+FILENAME -- BasicWindow_LogUser::logFileName = "basicWindowLog2.txt"
+BOOL -- BasicWindow_LogUser::overwriteFile = false
+BOOL -- BasicWindow_ConfigUser::enableConfigUseLogging = true
+WSTRING -- BasicWindow::windowTitle = L"myWindow2"

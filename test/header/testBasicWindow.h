@@ -35,4 +35,18 @@ namespace testBasicWindow {
 	   (Otherwise does nothing except open the window.)
 	 */
 	HRESULT testGlobalBasicWindowConfig(WPARAM& quit_wParam);
+
+	/* Test configuration of two windows from a shared configuration object.
+	   In-between the construction of the two BasicWindow objects,
+	   the function adds height and width data to the shared Config object.
+
+	   (Otherwise does nothing except open the windows.)
+	 */
+	HRESULT testSharedBasicWindowConfig(WPARAM& quit_wParam);
+
+	/* Test configuration of two windows from a private configuration objects.
+
+	   (Otherwise does nothing except open the windows.)
+	*/
+	HRESULT testPrivateBasicWindowConfig(WPARAM& quit_wParam);
 }
