@@ -216,16 +216,17 @@ HRESULT fileUtil::inspectFileOrDirNameAndPath(const std::wstring& filepath,
 }
 
 HRESULT fileUtil::combineAsPath(std::wstring& out, const std::wstring& seg1, const std::wstring& seg2) {
-	out = seg1;
+	wstring tempOut = seg1;
 	if( seg1.back() == W_PATH_SEP ) {
 		if( seg2.front() == W_PATH_SEP ) {
-			out.pop_back();
+			tempOut.pop_back();
 		}
 	} else {
 		if( seg2.front() != W_PATH_SEP ) {
-			out += W_PATH_SEP;
+			tempOut += W_PATH_SEP;
 		}
 	}
-	out += seg2;
+	tempOut += seg2;
+	out = tempOut;
 	return ERROR_SUCCESS;
 }
