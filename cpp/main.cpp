@@ -469,6 +469,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
  */
 HRESULT applicationLoop(WPARAM& quit_wParam) {
 
-	testBasicWindow::openNWindows(1, false, quit_wParam);
+	testBasicWindow::openNWindows(3, 3, quit_wParam);
 	return ERROR_SUCCESS;
 }

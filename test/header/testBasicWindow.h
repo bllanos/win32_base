@@ -25,9 +25,10 @@ Description
 
 namespace testBasicWindow {
 
-	/* Opens the number of windows specified by the input parameter
-	The second parameter specifies whether the windows are 'exitAble'
+	/* Opens the number of windows specified by the input parameter, 'n'
+	The second parameter specifies how many windows are 'exitAble'.
+	The 'exitAble' windows will be opened first.
 	*/
-	void openNWindows(const unsigned int n, bool exitAble, WPARAM& quit_wParam);
+	void openNWindows(const unsigned int n, const unsigned int nExitAble, WPARAM& quit_wParam);
 
 }

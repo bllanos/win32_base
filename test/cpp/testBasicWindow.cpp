@@ -24,14 +24,19 @@ Description
 #include "testBasicWindow.h"
 
 
-void testBasicWindow::openNWindows(const unsigned int n, bool exitAble, WPARAM& quit_wParam) {
+void testBasicWindow::openNWindows(const unsigned int n, const unsigned int nExitAble, WPARAM& quit_wParam) {
 	if (n == 0) return;
 	BasicWindow** windowArray = new BasicWindow*[n];
 
 	// Construction
 	for (unsigned int i = 0; i < n; ++i) {
-		windowArray[i] = new BasicWindow(
-			ConfigUser::Usage::PRIVATE, false, std::to_wstring(i), exitAble);
+		if( i < nExitAble ) {
+			windowArray[i] = new BasicWindow(
+				ConfigUser::Usage::PRIVATE, false, L"Exitable - "+ std::to_wstring(i), true);
+		} else {
+			windowArray[i] = new BasicWindow(
+				ConfigUser::Usage::PRIVATE, false, L"Non-Exitable - " + std::to_wstring(i), false);
+		}
 	}
 
 	// Open each window
