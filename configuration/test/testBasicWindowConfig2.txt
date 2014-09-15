@@ -4,3 +4,6 @@ FILENAME -- BasicWindow_LogUser::logFileName = "basicWindowLog2.txt"
 BOOL -- BasicWindow_LogUser::overwriteFile = true
 BOOL -- BasicWindow_ConfigUser::enableConfigUseLogging = true
 WSTRING -- BasicWindow::windowTitle = L"myWindow2"
+
+DIRECTORY -- config::pathOut = ".\configuration\test\output"
+FILENAME -- config::filenameOut = "testBasicWindowConfigOut2_ownConfig.txt"

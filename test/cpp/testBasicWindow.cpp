@@ -305,9 +305,9 @@ HRESULT testBasicWindow::testPrivateBasicWindowConfig(WPARAM& quit_wParam) {
 
 	// Create the second window
 	const std::wstring filenameScope = L"config";
-	const std::wstring filenameField = L"filename";
+	const std::wstring filenameField = L"filenameIn";
 	const std::wstring directoryScope = filenameScope;
-	const std::wstring directoryField = L"path";
+	const std::wstring directoryField = L"pathIn";
 	BasicWindow basicWindow2(
 		&configIO,
 		// static_cast<FlatAtomicConfigIO*>(0),
@@ -352,6 +352,67 @@ HRESULT testBasicWindow::testPrivateBasicWindowConfig(WPARAM& quit_wParam) {
 		}
 	}
 	logger->logMessage(L"testBasicWindow::testPrivateBasicWindowConfig() Leaving update loop.");
+
+	// Write the configuration data used by both objects
+	logger->logMessage(L"testBasicWindow::testPrivateBasicWindowConfig() Testing configuration output.");
+
+	const std::wstring configFileNameOnlyOut(L"testBasicWindowConfigOut1.txt");
+	const std::wstring configFilePathOnlyOut(DEFAULT_CONFIG_PATH_TEST_WRITE);
+
+	// Providing an explicit filename and path
+	result = basicWindow1.writePrivateConfig(
+		&configIO,
+		// static_cast<FlatAtomicConfigIO*>(0),
+		configFileNameOnlyOut,
+		configFilePathOnlyOut,
+		true,
+		true);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to output the configuration of the first window.");
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
+		finalResult = result;
+	}
+
+	// Getting the filename and path from an existing Config instance
+	const std::wstring filenameFieldOut = L"filenameOut";
+	const std::wstring directoryFieldOut = L"pathOut";
+	result = basicWindow2.writePrivateConfig(
+		false,
+		&configIO,
+		// static_cast<FlatAtomicConfigIO*>(0),
+		&config,
+		filenameScope,
+		filenameFieldOut,
+		directoryScope,
+		directoryFieldOut,
+		true,
+		true);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to output the configuration of the second window, with output parameters from an external Config object.");
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
+		finalResult = result;
+	}
+
+	// Getting a filename and path from the object's own Config instance
+	result = basicWindow2.writePrivateConfig(
+		true,
+		&configIO,
+		// static_cast<FlatAtomicConfigIO*>(0),
+		0,
+		filenameScope,
+		filenameFieldOut,
+		directoryScope,
+		directoryFieldOut,
+		true,
+		true);
+	if( FAILED(result) ) {
+		logger->logMessage(L"Failed to output the configuration of the second window, with output parameters from its own Config object.");
+		prettyPrintHRESULT(errorStr, result);
+		logger->logMessage(errorStr);
+		finalResult = result;
+	}
 
 	if( SUCCEEDED(finalResult) ) {
 		logger->logMessage(L"All tests passed.");

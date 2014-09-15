@@ -919,7 +919,7 @@ template<typename ConfigIOClass> HRESULT ConfigUser::writePrivateConfig(
 	}
 
 	// Perform the output operation
-	result = writePrivateConfig<ConfigIOClass>(optionalWriter, filenameAndPath, overwrite, outputContext);
+	result = writePrivateConfig<ConfigIOClass>(optionalWriter, *filenameAndPath, overwrite, outputContext);
 
 	if( filenameAndPath != 0 ) {
 		delete filenameAndPath;

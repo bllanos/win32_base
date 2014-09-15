@@ -6,5 +6,9 @@ BOOL -- BasicWindow_ConfigUser::enableConfigUseLogging = true
 WSTRING -- BasicWindow::windowTitle = L"myWindow"
 
 # Where to load configuration data for the second BasicWindow object
-DIRECTORY -- config::path= ".\configuration\test"
-FILENAME -- config::filename = "testBasicWindowConfig2.txt"
+DIRECTORY -- config::pathIn = ".\configuration\test"
+FILENAME -- config::filenameIn = "testBasicWindowConfig2.txt"
+
+# Where to write configuration data for the second BasicWindow object
+DIRECTORY -- config::pathOut = ".\configuration\test\output"
+FILENAME -- config::filenameOut = "testBasicWindowConfigOut2_externalConfig.txt"
