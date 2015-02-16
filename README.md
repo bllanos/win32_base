@@ -16,6 +16,21 @@ to files
 - Handling Windows messages, including for keyboard and mouse input
 - Logging debugging messages to files and/or a console window
 
+## Current Status
+This project is now archived (as of September 2014). Some ideas and code
+from this project may find their way into future endeavours, but it is
+unlikely that this codebase will be updated.
+
+Fortunately, I was able to use this framework as the basis for a 3rd year
+game development project
+(_COMP 3501 Foundations of Game Programming and Computer Graphics_,
+Carleton University, Fall 2014), where it proved to be reliable
+and resulted in a strong separation of code from data (due to the use of
+configuration files).
+
+In the future, I would like to leverage industry-standard libraries
+to perform the functions of this project (and more).
+
 ## Operating Instructions
 Once the program is built and run for the first time, if its
 configuration file has not instructed it otherwise, it will
